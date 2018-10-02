@@ -84,57 +84,57 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="SSH��Կ��֤��¼"><a href="#SSH��Կ��֤��¼" class="headerlink" title="SSH��Կ��֤��¼"></a>SSH��Կ��֤��¼</h1><blockquote>
+        <h1 id="SSH公钥认证登录"><a href="#SSH公钥认证登录" class="headerlink" title="SSH公钥认证登录"></a>SSH公钥认证登录</h1><blockquote>
 <p>SSH PubkeyAuthentication</p>
 </blockquote>
-<p>����: <a href="http://oicu.cc.blog.163.com" target="_blank" rel="noopener">oicu.cc@163.com</a></p>
-<p><strong>�����š�ֻ�ǹ�Կ��֤��һ��������</strong> 2̨�������໥ʹ�ù�Կ��֤��¼���Žл��š�</p>
-<p>����ǰ��������ʹ�� OpenSSH����������� A��192.168.1.1�� ���û� user1 ��Ҫʹ�ù�Կ��֤��¼������ B��192.168.1.2�����û� user2��</p>
-<h2 id="1-��˭����"><a href="#1-��˭����" class="headerlink" title="1. ��˭����"></a>1. ��˭����</h2><p>ԭ���ϣ�˭ӵ�� user1��user2 ������Ȩ�ޣ�˭�����������Ӧ��ʹ�� root ��������ͨ�û�֮��Ĺ�Կ��֤��</p>
-<p>������Կ��֤�����������һ������Ҫ�����������ϵͳ֮��Ľ�����ϵ��</p>
-<h2 id="2-������Կ��"><a href="#2-������Կ��" class="headerlink" title="2. ������Կ��"></a>2. ������Կ��</h2><blockquote>
-<p>�� ‘’.pub’’ ��β���ǹ�Կ���������⹫�������� .pub ��β����˽Կ��������˽Կ�����룬<strong>˽Կ����й¶</strong>��<br>������֮��Ĺ�Կ��֤���������˽Կ���룬��������ϵͳ��������Ҫ�˹�������������ʹ�á�<br>������Կ�����û���Կ�����ɷ���һ����ֻ���ļ���������λ�á��û����鲻ͬ��  </p>
+<p>作者: <a href="http://oicu.cc.blog.163.com" target="_blank" rel="noopener">oicu.cc@163.com</a></p>
+<p><strong>“互信”只是公钥认证的一个特例。</strong> 2台服务器相互使用公钥认证登录，才叫互信。</p>
+<p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
+<h2 id="1-由谁操作"><a href="#1-由谁操作" class="headerlink" title="1. 由谁操作"></a>1. 由谁操作</h2><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
+<p>管理公钥认证就如管理密码一样，需要绝对清楚各个系统之间的交互关系。</p>
+<h2 id="2-生成密钥对"><a href="#2-生成密钥对" class="headerlink" title="2. 生成密钥对"></a>2. 生成密钥对</h2><blockquote>
+<p>带 ‘’.pub’’ 结尾的是公钥，可以任意公开。不带 .pub 结尾的是私钥，可设置私钥的密码，<strong>私钥不能泄露</strong>。<br>服务器之间的公钥认证，如果设置私钥密码，当服务器系统重启后需要人工处理才能正常使用。<br>主机密钥对与用户密钥对生成方法一样，只是文件名、保存位置、用户属组不同。  </p>
 </blockquote>
-<h3 id="2-1-RSA��Կ��"><a href="#2-1-RSA��Կ��" class="headerlink" title="2.1. RSA��Կ��"></a>2.1. RSA��Կ��</h3><p>��¼������ A ���û� user1�����ɷǶԳƼ��� RSA ��Կ�ԣ�����ʹ�� 2048 �� 4096 λ��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure></p>
-<p>������ʾһֱ���س��������� ~/.ssh Ŀ¼������ 2 ���ļ���<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
-<h3 id="2-2-ed25519��Կ��"><a href="#2-2-ed25519��Կ��" class="headerlink" title="2.2. ed25519��Կ��"></a>2.2. ed25519��Կ��</h3><p>OpenSSH 6.5 ֮��İ汾֧���µ� ed25519 �����㷨���ɴ��� RSA �㷨��</p>
-<p>��¼������ A ���û� user1�����ɷǶԳƼ��� ed25519 ��Կ�ԣ�����ָ����Կ���ȣ�</p>
+<h3 id="2-1-RSA密钥对"><a href="#2-1-RSA密钥对" class="headerlink" title="2.1. RSA密钥对"></a>2.1. RSA密钥对</h3><p>登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure></p>
+<p>按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-2-ed25519密钥对"><a href="#2-2-ed25519密钥对" class="headerlink" title="2.2. ed25519密钥对"></a>2.2. ed25519密钥对</h3><p>OpenSSH 6.5 之后的版本支持新的 ed25519 加密算法，可代替 RSA 算法。</p>
+<p>登录服务器 A 的用户 user1，生成非对称加密 ed25519 密钥对，无需指定密钥长度：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
-<p>������ʾһֱ���س��������� ~/.ssh Ŀ¼������ 2 ���ļ���<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure></p>
-<h2 id="3-��E��Կ"><a href="#3-��E��Կ" class="headerlink" title="3. ��Ȩ��Կ"></a>3. ��Ȩ��Կ</h2><p>ͨ�׵Ľ��ͣ���Ȩ��Կ�Ĺ��̾��൱��¼��ָ�ƣ�</p>
-<p>�� user1@A �Ĺ�Կ���ӵ� user2@B �� <strong>~/.ssh/authorized_keys</strong> ��Ȩ�ļ��user1@A �����������¼ user2@B��</p>
-<h3 id="3-1-ʹ��ssh-copy-id"><a href="#3-1-ʹ��ssh-copy-id" class="headerlink" title="3.1. ʹ��ssh-copy-id"></a>3.1. ʹ��ssh-copy-id</h3><p>��¼������ A �� user1 �û�������</p>
-<h4 id="3-1-1-Linux-Unix"><a href="#3-1-1-Linux-Unix" class="headerlink" title="3.1.1. Linux/Unix"></a>3.1.1. Linux/Unix</h4><p>Linux ������Ĭ���� ssh-copy-id ���AIX �������� ssh �汾�ͣ�û�и����</p>
+<p>按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-授权公钥"><a href="#3-授权公钥" class="headerlink" title="3. 授权公钥"></a>3. 授权公钥</h2><p>通俗的解释：授权公钥的过程就相当于录入指纹！</p>
+<p>把 user1@A 的公钥添加到 user2@B 的 <strong>~/.ssh/authorized_keys</strong> 授权文件里，user1@A 即可免密码登录 user2@B。</p>
+<h3 id="3-1-使用ssh-copy-id"><a href="#3-1-使用ssh-copy-id" class="headerlink" title="3.1. 使用ssh-copy-id"></a>3.1. 使用ssh-copy-id</h3><p>登录服务器 A 的 user1 用户操作。</p>
+<h4 id="3-1-1-Linux-Unix"><a href="#3-1-1-Linux-Unix" class="headerlink" title="3.1.1. Linux/Unix"></a>3.1.1. Linux/Unix</h4><p>Linux 服务器默认有 ssh-copy-id 命令，AIX 服务器的 ssh 版本低，没有该命令。</p>
 <blockquote>
-<p>-i ������ָ������<strong>�û���Կ</strong>��<br>�û���Կ���û�˽Կ����ͬһĿ¼��</p>
+<p>-i 参数后指定的是<strong>用户公钥</strong>。<br>用户公钥和用户私钥需在同一目录。</p>
 </blockquote>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
-<p>�˿ڲ���22ʱ��Ҫ����������д����<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub 'user2@192.168.1.2 -p 22'</span><br></pre></td></tr></table></figure></p>
-<h4 id="3-1-2-MacOSX"><a href="#3-1-2-MacOSX" class="headerlink" title="3.1.2. MacOSX"></a>3.1.2. MacOSX</h4><p>Mac OSX ϵͳû�д� ssh-copy-id ������������·�����װ��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line">chmod +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure></p>
+<p>端口不是22时需要用以下这种写法：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub 'user2@192.168.1.2 -p 22'</span><br></pre></td></tr></table></figure></p>
+<h4 id="3-1-2-MacOSX"><a href="#3-1-2-MacOSX" class="headerlink" title="3.1.2. MacOSX"></a>3.1.2. MacOSX</h4><p>Mac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line">chmod +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure></p>
 <p>or<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure></p>
-<h3 id="3-2-�ֶ��༭�����Ƽ���"><a href="#3-2-�ֶ��༭�����Ƽ���" class="headerlink" title="3.2. �ֶ��༭�����Ƽ���"></a>3.2. �ֶ��༭�����Ƽ���</h3><p>��¼������ B �� user2 �û�������</p>
-<p>���Ȱ� user1@A �Ĺ�Կ���䵽 user2@B ��ĳһ��Ŀ¼�¡�</p>
-<p>���û�� ~/.ssh Ŀ¼�����½���</p>
+<h3 id="3-2-手动编辑（不推荐）"><a href="#3-2-手动编辑（不推荐）" class="headerlink" title="3.2. 手动编辑（不推荐）"></a>3.2. 手动编辑（不推荐）</h3><p>登录服务器 B 的 user2 用户操作。</p>
+<p>首先把 user1@A 的公钥传输到 user2@B 的某一个目录下。</p>
+<p>如果没有 ~/.ssh 目录则需新建。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; mkdir ~/.ssh</span><br><span class="line">chmod 700 ~/.ssh</span><br><span class="line">cat ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">rm ~/yourname.pub</span><br><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
-<h3 id="3-3-�ܵ�����"><a href="#3-3-�ܵ�����" class="headerlink" title="3.3. �ܵ�����"></a>3.3. �ܵ�����</h3><p>��¼������ A �� user1 �û�������</p>
+<h3 id="3-3-管道操作"><a href="#3-3-管道操作" class="headerlink" title="3.3. 管道操作"></a>3.3. 管道操作</h3><p>登录服务器 A 的 user1 用户操作。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 "umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys"</span><br></pre></td></tr></table></figure>
-<p>����<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 '(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span><br><span class="line">cat &gt;&gt; ~/.ssh/authorized_keys' &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
-<h2 id="4-�����E"><a href="#4-�����E" class="headerlink" title="4. �����Ȩ"></a>4. �����Ȩ</h2><p>��¼������ B �� user2 �û�������</p>
-<p>���Ŀ¼Ȩ���Ƿ�Ϊ700��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld ~/.ssh</span><br></pre></td></tr></table></figure></p>
-<p>�����Ȩ�ļ���Ȩ���Ƿ�Ϊ600��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
-<p>�����Ȩ�ļ������ݣ�ÿ����ԿӦ��ֻռ <strong>1</strong> �У�<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
-<p>����û���Ŀ¼��Ȩ���Ƿ�Ϊ700/755��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld $HOME</span><br></pre></td></tr></table></figure></p>
-<h2 id="5-SSHԭ��"><a href="#5-SSHԭ��" class="headerlink" title="5. SSHԭ��"></a>5. SSHԭ��</h2><h3 id="5-1-I�������l�"><a href="#5-1-I�������l�" class="headerlink" title="5.1. Ĭ�������ļ�"></a>5.1. Ĭ�������ļ�</h3><table>
+<p>或者<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 '(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span><br><span class="line">cat &gt;&gt; ~/.ssh/authorized_keys' &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
+<h2 id="4-检查授权"><a href="#4-检查授权" class="headerlink" title="4. 检查授权"></a>4. 检查授权</h2><p>登录服务器 B 的 user2 用户操作。</p>
+<p>检查目录权限是否为700：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld ~/.ssh</span><br></pre></td></tr></table></figure></p>
+<p>检查授权文件的权限是否为600：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>检查用户主目录的权限是否为700/755：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld $HOME</span><br></pre></td></tr></table></figure></p>
+<h2 id="5-SSH原理"><a href="#5-SSH原理" class="headerlink" title="5. SSH原理"></a>5. SSH原理</h2><h3 id="5-1-默认配置文件"><a href="#5-1-默认配置文件" class="headerlink" title="5.1. 默认配置文件"></a>5.1. 默认配置文件</h3><table>
 <thead>
 <tr>
-<th style="text-align:left">Ŀ¼</th>
-<th style="text-align:left">�ļ���</th>
+<th style="text-align:left">目录</th>
+<th style="text-align:left">文件名</th>
 <th style="text-align:left">C/S</th>
-<th style="text-align:left">��;</th>
-<th style="text-align:left">�Ƿ�ʹ��</th>
-<th style="text-align:left">�û�����</th>
-<th style="text-align:left">Ȩ��</th>
-<th style="text-align:left">��ע</th>
+<th style="text-align:left">用途</th>
+<th style="text-align:left">是否使用</th>
+<th style="text-align:left">用户属组</th>
+<th style="text-align:left">权限</th>
+<th style="text-align:left">备注</th>
 </tr>
 </thead>
 <tbody>
@@ -150,121 +150,121 @@
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_config</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�ͻ���ȫ������</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">客户端全局设置</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">sshd_config</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">������ȫ������</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">服务器全局设置</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ecdsa_key</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����ecdsa˽Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机ecdsa私钥</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ecdsa_key.pub</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����ecdsa��Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机ecdsa公钥</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ed25519_key</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����ed25519˽Կ</td>
-<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机ed25519私钥</td>
+<td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">����rsaͬʱ����</td>
+<td style="text-align:left">可与rsa同时启用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ed25519_key.pub</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����ed25519��Կ</td>
-<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机ed25519公钥</td>
+<td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_rsa_key</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����rsa˽Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机rsa私钥</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_rsa_key.pub</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����rsa��Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机rsa公钥</td>
+<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_dsa_key</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����dsa˽Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机dsa私钥</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">��ȫԭ��OpenSSH 7.0����</td>
+<td style="text-align:left">安全原因，OpenSSH 7.0弃用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_dsa_key.pub</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����dsa��Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机dsa公钥</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_key</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����rsa˽Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机rsa私钥</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">SSH1Э��ʹ��</td>
+<td style="text-align:left">SSH1协议使用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_key.pub</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">����rsa��Կ</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">主机rsa公钥</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left">SSH1Э��ʹ��</td>
+<td style="text-align:left">SSH1协议使用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_known_hosts</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">ȫ����Ȩ�����б�</td>
-<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">全局授权主机列表</td>
+<td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
 </tr>
@@ -274,62 +274,62 @@
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">700</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">authorized_keys</td>
-<td style="text-align:left">�����</td>
-<td style="text-align:left">��Ȩ�ļ�</td>
-<td style="text-align:left">��</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">服务端</td>
+<td style="text-align:left">授权文件</td>
+<td style="text-align:left">√</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">�����������������û���Կ</td>
+<td style="text-align:left">保存其他服务器的用户公钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">config</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�û�����</td>
-<td style="text-align:left">��</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">用户配置</td>
+<td style="text-align:left">√</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_rsa</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�û�rsa˽Կ</td>
-<td style="text-align:left">��</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">用户rsa私钥</td>
+<td style="text-align:left">√</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_rsa.pub</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�û�rsa��Կ</td>
-<td style="text-align:left">��</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">用户rsa公钥</td>
+<td style="text-align:left">√</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_ed25519</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�û�ed25519˽Կ</td>
-<td style="text-align:left">��ѡ</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">用户ed25519私钥</td>
+<td style="text-align:left">可选</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_ed25519.pub</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">�û�ed25519��Կ</td>
-<td style="text-align:left">��ѡ</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">用户ed25519公钥</td>
+<td style="text-align:left">可选</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">644</td>
 </tr>
 <tr>
@@ -337,30 +337,30 @@
 <td style="text-align:left">id_dsa</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��Ч�ļ�</td>
+<td style="text-align:left">无效文件</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_dsa.pub</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��</td>
+<td style="text-align:left">×</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��Ч�ļ�</td>
+<td style="text-align:left">无效文件</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">known_hosts</td>
-<td style="text-align:left">�ͻ���</td>
-<td style="text-align:left">��Ȩ�����б�</td>
-<td style="text-align:left">��</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">客户端</td>
+<td style="text-align:left">授权主机列表</td>
+<td style="text-align:left">√</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left">����������������������Կ</td>
+<td style="text-align:left">保存其他服务器的主机公钥</td>
 </tr>
 <tr>
 <td style="text-align:left">/home</td>
@@ -377,134 +377,134 @@
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">对应用户</td>
 <td style="text-align:left">700/755</td>
-<td style="text-align:left">Linuxϵͳ���� root �û�</td>
+<td style="text-align:left">Linux系统，除 root 用户</td>
 </tr>
 </tbody>
 </table>
-<h3 id="5-2-��Կ�l�"><a href="#5-2-��Կ�l�" class="headerlink" title="5.2. ��Կ�ļ�"></a>5.2. ��Կ�ļ�</h3><p>ÿ����Կֻ��һ�У�3���ֶΣ��ո�ָ���</p>
+<h3 id="5-2-公钥文件"><a href="#5-2-公钥文件" class="headerlink" title="5.2. 公钥文件"></a>5.2. 公钥文件</h3><p>每个公钥只有一行，3个字段，空格分隔：</p>
 <ul>
-<li>��������</li>
-<li>��Կ����</li>
-<li>��ע</li>
+<li>加密类型</li>
+<li>公钥内容</li>
+<li>备注</li>
 </ul>
 <blockquote>
-<p>��Կ�ļ���չ������ .pub<br>��Կ���ݵļ�������Ҫ��<strong>Сд</strong>������ ssh-rsa��ssh-ed25519<br>��ע���ø������䡢�û���@���������û���@IP  </p>
+<p>公钥文件扩展名常用 .pub<br>公钥内容的加密类型要用<strong>小写</strong>，比如 ssh-rsa、ssh-ed25519<br>备注常用个人邮箱、用户名@主机名、用户名@IP  </p>
 </blockquote>
-<h3 id="5-3-��E�l�"><a href="#5-3-��E�l�" class="headerlink" title="5.3. ��Ȩ�ļ�"></a>5.3. ��Ȩ�ļ�</h3><p>authorized_keys �ļ����� SSH ����ˣ�</p>
-<p>������һ�㲻�����û���Կ .pub �ļ�����Ҫ�ö��ⷽʽ�ǼǸ�ϵͳ֮�����Ȩ��ϵ��</p>
-<p>��Ȩ��¼���������û���Կ��ȫ����¼�� authorized_keys �ļ��ÿ���û���Կһ�С�</p>
-<p>�ӷ�������ÿ����Ӱ��� authorized_keys �ļ��Ƴ���Ӧ���û���Կ���ɳ�����¼Ȩ�ޡ�</p>
-<h3 id="5-4-��E�����б�"><a href="#5-4-��E�����б�" class="headerlink" title="5.4. ��Ȩ�����б�"></a>5.4. ��Ȩ�����б�</h3><p>known_hosts �ļ����� SSH �ͻ��ˣ�</p>
-<p>��ǰ�û���¼���ķ�������������Կȫ����¼�� known_hosts �ļ���ÿ��������Կһ�С�</p>
-<p>���´η�����ͬ�����ʱ��OpenSSH ��˶Թ�Կ�������Կ��ͬ��OpenSSH �ᷢ�������ܾ���¼���������ܵ� DNS�ٳ֡��м��˹�����</p>
-<p>��ʽ����Ȩ�ļ��в��죬�������ֹ��༭��</p>
-<h4 id="5-4-1-ɾ����E��������Կ"><a href="#5-4-1-ɾ����E��������Կ" class="headerlink" title="5.4.1. ɾ����Ȩ��������Կ"></a>5.4.1. ɾ����Ȩ��������Կ</h4><p>ɾ�� known_hosts �ļ���ָ��������������192.168.0.100����������Կ������������Զ����ű���</p>
+<h3 id="5-3-授权文件"><a href="#5-3-授权文件" class="headerlink" title="5.3. 授权文件"></a>5.3. 授权文件</h3><p>authorized_keys 文件用于 SSH 服务端！</p>
+<p>服务器一般不保留用户公钥 .pub 文件，需要用额外方式登记各系统之间的授权关系。</p>
+<p>授权登录服务器的用户公钥都全部记录到 authorized_keys 文件里，每个用户公钥一行。</p>
+<p>从服务器上每个受影响的 authorized_keys 文件移除对应的用户公钥即可撤销登录权限。</p>
+<h3 id="5-4-授权主机列表"><a href="#5-4-授权主机列表" class="headerlink" title="5.4. 授权主机列表"></a>5.4. 授权主机列表</h3><p>known_hosts 文件用于 SSH 客户端！</p>
+<p>当前用户登录过的服务器的主机公钥全部记录到 known_hosts 文件，每个主机公钥一行。</p>
+<p>当下次访问相同计算机时，OpenSSH 会核对公钥，如果公钥不同，OpenSSH 会发出警告或拒绝登录，避免你受到 DNS劫持、中间人攻击。</p>
+<p>格式与授权文件有差异，不建议手工编辑。</p>
+<h4 id="5-4-1-删除授权的主机公钥"><a href="#5-4-1-删除授权的主机公钥" class="headerlink" title="5.4.1. 删除授权的主机公钥"></a>5.4.1. 删除授权的主机公钥</h4><p>删除 known_hosts 文件里指定服务器（比如192.168.0.100）的主机公钥的命令，可用于自动化脚本：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>�����Ƿ����У������Զ����±��� known_hosts.old<br>known_hosts �ļ����и�ʽ�������ʱ��ɾ��ʧ�ܣ����ᱸ�ݡ�  </p>
+<p>不管是否命中，都会自动重新备份 known_hosts.old<br>known_hosts 文件里有格式错误的行时，删除失败，不会备份。  </p>
 </blockquote>
-<h4 id="5-4-2-I���Զ�����������Կ"><a href="#5-4-2-I���Զ�����������Կ" class="headerlink" title="5.4.2. Ĭ���Զ�����������Կ"></a>5.4.2. Ĭ���Զ�����������Կ</h4><p>�� ~/.ssh/config ������ StrictHostKeyChecking ѡ�</p>
+<h4 id="5-4-2-默认自动保存主机公钥"><a href="#5-4-2-默认自动保存主机公钥" class="headerlink" title="5.4.2. 默认自动保存主机公钥"></a>5.4.2. 默认自动保存主机公钥</h4><p>在 ~/.ssh/config 里增加 StrictHostKeyChecking 选项：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host *</span><br><span class="line">        StrictHostKeyChecking no</span><br><span class="line">        UserKnownHostsFile /dev/null</span><br></pre></td></tr></table></figure>
-<p>������ ssh/sftp/scp ��������ʹ�ò�����</p>
+<p>或者在 ssh/sftp/scp 命令行里使用参数：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
 <blockquote>
-<p>��ɾ������Ĭ�����ӷ�����������Կ��ȱ���ǵ�¼ʱ���ӳ١�<br>UserKnownHostsFile �ǿ�ѡ�ģ�ʹ�� /dev/null���ڶ��ļ�������������Կ��  </p>
+<p>先删除后再默认添加服务器主机公钥的缺点是登录时会延迟。<br>UserKnownHostsFile 是可选的，使用 /dev/null“黑洞文件”保存主机公钥。  </p>
 </blockquote>
-<h2 id="6-��������"><a href="#6-��������" class="headerlink" title="6. ��������"></a>6. ��������</h2><h3 id="6-1-���ʹ�ϵ"><a href="#6-1-���ʹ�ϵ" class="headerlink" title="6.1. ���ʹ�ϵ"></a>6.1. ���ʹ�ϵ</h3><p>user1@A Ҫ��¼ user2@B��user3@C��user4@D����ô user1 ���û���Կ��Ҫȫ����ŵ� B��C��D ��Ӧ���û�����Ȩ�ļ��</p>
-<p>user2@B��user3@C��user4@D ��Ҫ��¼ user1@A����ô user2��user3��user4 ���û���Կ����Ҫ��ŵ� user1 ����Ȩ�ļ��</p>
-<h3 id="6-2-��ڵ������"><a href="#6-2-��ڵ������" class="headerlink" title="6.2. ��ڵ������"></a>6.2. ��ڵ������</h3><p>��̨��������ʹ�� DMZ / NAT / HA �ȼ�������ʹ��ͬһ�� IP ���������ṩ���񣬵��������л�������Ŀ���������������Կ�仯��������Ϊ���м��˹���ģ�ͣ��ͻ�����֤ known_hosts ʧ�ܲ��ܾ���¼��</p>
-<p>����취�����¼�������ѡ��һ��</p>
+<h2 id="6-常见问题"><a href="#6-常见问题" class="headerlink" title="6. 常见问题"></a>6. 常见问题</h2><h3 id="6-1-访问关系"><a href="#6-1-访问关系" class="headerlink" title="6.1. 访问关系"></a>6.1. 访问关系</h3><p>user1@A 要登录 user2@B、user3@C、user4@D，那么 user1 的用户公钥需要全部存放到 B、C、D 对应的用户的授权文件里。</p>
+<p>user2@B、user3@C、user4@D 都要登录 user1@A，那么 user2、user3、user4 的用户公钥都需要存放到 user1 的授权文件里。</p>
+<h3 id="6-2-多节点服务器"><a href="#6-2-多节点服务器" class="headerlink" title="6.2. 多节点服务器"></a>6.2. 多节点服务器</h3><p>多台服务器，使用 DMZ / NAT / HA 等技术对外使用同一个 IP 或者域名提供服务，当服务器切换后，由于目标服务器的主机公钥变化，构造人为的中间人攻击模型，客户端验证 known_hosts 失败并拒绝登录。</p>
+<p>解决办法有以下几个，任选其一：</p>
 <ul>
-<li>����������������Կ�ԣ��� /etc/ssh/ Ŀ¼������ñ���һ�¡�</li>
-<li>�ͻ���ÿ�ζ�ɾ�� known_hosts ���������Կ����¼ʱ���¼�¼��</li>
-<li>�ͻ��˲�ʹ�ø����� IP ���ʷ�����������ʹ�ø�̨������˽�е� IP ���ʡ���Ҫͨ��������ʽ�жϷ�������Ⱥ������ڵ㣬�ʲ��Ƽ��÷���</li>
+<li>服务器复用主机密钥对，即 /etc/ssh/ 目录里的配置保存一致。</li>
+<li>客户端每次都删除 known_hosts 里的主机公钥，登录时重新记录。</li>
+<li>客户端不使用浮动的 IP 访问服务器，而是使用各台服务器私有的 IP 访问。需要通过其他方式判断服务器集群活动的主节点，故不推荐该法。</li>
 </ul>
-<h3 id="6-3-ϵͳ��¡"><a href="#6-3-ϵͳ��¡" class="headerlink" title="6.3. ϵͳ��¡"></a>6.3. ϵͳ��¡</h3><p>��¡��������а�ȫ���⣬���� user1@A ��Կ��֤��¼ user2@B��B ϵͳ��¡�õ� C����ô user1@A ���Թ�Կ��֤��¼ user2@C��</p>
+<h3 id="6-3-系统克隆"><a href="#6-3-系统克隆" class="headerlink" title="6.3. 系统克隆"></a>6.3. 系统克隆</h3><p>克隆虚拟机会有安全问题，比如 user1@A 公钥认证登录 user2@B，B 系统克隆得到 C，那么 user1@A 可以公钥认证登录 user2@C。</p>
 <ul>
-<li>����Կ���õ�����Ҫ��ʱ��һ�㽨���¡�������ϵͳ���̺���������������Կ�ԡ�</li>
-<li>ɾ�������û��� .ssh Ŀ¼��</li>
+<li>无密钥复用的特殊要求时候，一般建议克隆虚拟机、系统磁盘后重新生成主机密钥对。</li>
+<li>删除所有用户的 .ssh 目录。</li>
 </ul>
-<h3 id="6-4-�����ͻ���"><a href="#6-4-�����ͻ���" class="headerlink" title="6.4. �����ͻ���"></a>6.4. �����ͻ���</h3><p>��������� 2 ̨�������������� Ansible �Ĺ������ߣ�����ʹ����ͬ��һ���û���Կ id_rsa.pub��˽Կ id_rsa������ֻ�������е�Ŀ���������һ����Ȩ��</p>
-<h3 id="6-5-СE�u�"><a href="#6-5-СE�u�" class="headerlink" title="6.5. СȨ�û�"></a>6.5. СȨ�û�</h3><p>����СȨ�û��鿴����û���Ŀ¼ʱ������ĵͼ������� chown -R �� chmod ���� /home��$HOME �����顢Ȩ�ޣ����¹�Կ��֤ʧЧ��</p>
-<p>���ܶ��顢�����û����� $HOME ��д��Ȩ�ޣ���ȷ��Ȩ�����ã�<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">chmod og+x /home</span></span><br><span class="line"><span class="meta">$</span><span class="bash">chmod og-w <span class="variable">$HOME</span></span></span><br></pre></td></tr></table></figure></p>
+<h3 id="6-4-主备客户端"><a href="#6-4-主备客户端" class="headerlink" title="6.4. 主备客户端"></a>6.4. 主备客户端</h3><p>如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。</p>
+<h3 id="6-5-小权用户"><a href="#6-5-小权用户" class="headerlink" title="6.5. 小权用户"></a>6.5. 小权用户</h3><p>建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 /home、$HOME 的属组、权限，导致公钥认证失效。</p>
+<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">chmod og+x /home</span></span><br><span class="line"><span class="meta">$</span><span class="bash">chmod og-w <span class="variable">$HOME</span></span></span><br></pre></td></tr></table></figure></p>
 <blockquote>
-<p># ��ͷ���д����� root Ȩ��ִ�У�$ �����û�Ȩ��ִ�С�</p>
+<p># 开头的行代表用 root 权限执行，$ 代表用户权限执行。</p>
 </blockquote>
-<h3 id="6-6-������Ч��"><a href="#6-6-������Ч��" class="headerlink" title="6.6. ������Ч��"></a>6.6. ������Ч��</h3><ul>
-<li>�û�����������Ч�ڣ����ں�Ҳ�޷��ù�Կ��֤��¼��</li>
-<li>�� root �û���Կ��֤��¼���޷������û����룬ӵ�����뼴ӵ�е�ǰ�û������Ȩ�ޡ�</li>
-<li>��Կ��֤��¼ʱ����˽Կ��������û����룬˽Կ�������ʱ�޸ġ�</li>
-<li>�����û����롢˽Կ���붼��Ӱ���Ĺ�Կ��֤��¼��</li>
+<h3 id="6-6-密码有效期"><a href="#6-6-密码有效期" class="headerlink" title="6.6. 密码有效期"></a>6.6. 密码有效期</h3><ul>
+<li>用户密码设置有效期，到期后也无法用公钥认证登录。</li>
+<li>非 root 用户公钥认证登录后无法更改用户密码，拥有密码即拥有当前用户的最高权限。</li>
+<li>公钥认证登录时，用私钥密码代替用户密码，私钥密码可随时修改。</li>
+<li>更改用户密码、私钥密码都不影响别的公钥认证登录。</li>
 </ul>
-<h3 id="6-7-��ֹ������֤"><a href="#6-7-��ֹ������֤" class="headerlink" title="6.7. ��ֹ������֤"></a>6.7. ��ֹ������֤</h3><p>root �û��༭ /etc/ssh/sshd_config �ļ�����ֹ�����û������� root��ʹ��������֤��ʽ��¼��<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no    # ������֤��Ĭ�� yes</span><br><span class="line">PermitEmptyPasswords no      # �������¼��Ĭ�� no</span><br></pre></td></tr></table></figure></p>
-<p>ʹ�� Match User ����ĳЩѡ��ֻ�Ը��û���Ч��������� abc �û��⣬�����û��������������¼��<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure></p>
-<h3 id="6-8-����root�u���¼"><a href="#6-8-����root�u���¼" class="headerlink" title="6.8. ����root�û���¼"></a>6.8. ����root�û���¼</h3><p>/etc/ssh/sshd_config �Ŀ�ѡ�� PermitRootLogin �����޶� root �û�ͨ�� ssh �ĵ�¼��ʽ��</p>
+<h3 id="6-7-禁止密码认证"><a href="#6-7-禁止密码认证" class="headerlink" title="6.7. 禁止密码认证"></a>6.7. 禁止密码认证</h3><p>root 用户编辑 /etc/ssh/sshd_config 文件，禁止所有用户（包括 root）使用密码认证方式登录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no    # 密码认证，默认 yes</span><br><span class="line">PermitEmptyPasswords no      # 空密码登录，默认 no</span><br></pre></td></tr></table></figure></p>
+<p>使用 Match User 可让某些选项只对该用户生效，比如除了 abc 用户外，其他用户都可以用密码登录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure></p>
+<h3 id="6-8-限制root用户登录"><a href="#6-8-限制root用户登录" class="headerlink" title="6.8. 限制root用户登录"></a>6.8. 限制root用户登录</h3><p>/etc/ssh/sshd_config 的可选项 PermitRootLogin 可以限定 root 用户通过 ssh 的登录方式。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align:left">�������</th>
-<th style="text-align:left">�Ƿ�����ssh��½</th>
-<th style="text-align:left">��¼��ʽ</th>
-<th style="text-align:left">����shell</th>
+<th style="text-align:left">参数类别</th>
+<th style="text-align:left">是否允许ssh登陆</th>
+<th style="text-align:left">登录方式</th>
+<th style="text-align:left">交互shell</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align:left">yes</td>
-<td style="text-align:left">����</td>
-<td style="text-align:left">û������</td>
-<td style="text-align:left">û������</td>
+<td style="text-align:left">允许</td>
+<td style="text-align:left">没有限制</td>
+<td style="text-align:left">没有限制</td>
 </tr>
 <tr>
 <td style="text-align:left">without-password</td>
-<td style="text-align:left">����</td>
-<td style="text-align:left">����������</td>
-<td style="text-align:left">û������</td>
+<td style="text-align:left">允许</td>
+<td style="text-align:left">除密码以外</td>
+<td style="text-align:left">没有限制</td>
 </tr>
 <tr>
 <td style="text-align:left">forced-commands-only</td>
-<td style="text-align:left">����</td>
-<td style="text-align:left">������ʹ����Կ</td>
-<td style="text-align:left">����������Ȩ������</td>
+<td style="text-align:left">允许</td>
+<td style="text-align:left">仅允许使用密钥</td>
+<td style="text-align:left">仅允许已授权的命令</td>
 </tr>
 <tr>
 <td style="text-align:left">no</td>
-<td style="text-align:left">������</td>
+<td style="text-align:left">不允许</td>
 <td style="text-align:left">N/A</td>
 <td style="text-align:left">N/A</td>
 </tr>
 <tr>
 <td style="text-align:left">prohibit-password</td>
-<td style="text-align:left">����</td>
-<td style="text-align:left">����������</td>
-<td style="text-align:left">û������</td>
+<td style="text-align:left">允许</td>
+<td style="text-align:left">除密码以外</td>
+<td style="text-align:left">没有限制</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
-<p>OpenSSH 7.0 ��ʼ����Ĭ��ѡ��� yes �� prohibit-password��without-password ��ͬ�������������������<br>PasswordAuthentication �����ȼ��� PermitRootLogin �ߡ�</p>
+<p>OpenSSH 7.0 开始调整默认选项从 yes 到 prohibit-password（without-password 的同义且语义改良参数）。<br>PasswordAuthentication 的优先级比 PermitRootLogin 高。</p>
 </blockquote>
-<h3 id="6-9-��ֹ�u���¼"><a href="#6-9-��ֹ�u���¼" class="headerlink" title="6.9. ��ֹ�û���¼"></a>6.9. ��ֹ�û���¼</h3><p>/etc/ssh/sshd_config �Ŀ�ѡ�� AllowUsers �� Denyusers �������û�����������������</p>
-<p>���˿��Խ�ֹĳ���û���¼����������Թ̶��� IP ���н�ֹ��¼��/etc/hosts.allow �� /etc/hosts.deny �������������� sshd ���� IP �б���</p>
-<p>�� /etc/passwd ������ /sbin/nologin ��ֹĳ�û���¼����ʹ�� root �û� su �����л��û�Ҳ�޷���½��</p>
+<h3 id="6-9-禁止用户登录"><a href="#6-9-禁止用户登录" class="headerlink" title="6.9. 禁止用户登录"></a>6.9. 禁止用户登录</h3><p>/etc/ssh/sshd_config 的可选项 AllowUsers 和 Denyusers 可设置用户白名单、黑名单。</p>
+<p>除了可以禁止某个用户登录，还可以针对固定的 IP 进行禁止登录。/etc/hosts.allow 和 /etc/hosts.deny 可设置允许访问 sshd 进程 IP 列表。</p>
+<p>在 /etc/passwd 里设置 /sbin/nologin 禁止某用户登录，即使用 root 用户 su 命令切换用户也无法登陆。</p>
 <blockquote>
-<p>����ֹ���û��� IP ��ַ��������֤����Կ��֤���޷���¼��</p>
+<p>被禁止的用户或 IP 地址，密码认证、公钥认证都无法登录。</p>
 </blockquote>
-<h3 id="6-10-ֻ����sftp��¼"><a href="#6-10-ֻ����sftp��¼" class="headerlink" title="6.10. ֻ����sftp��¼"></a>6.10. ֻ����sftp��¼</h3><h4 id="6-10-1-authorized-keys��ʽ"><a href="#6-10-1-authorized-keys��ʽ" class="headerlink" title="6.10.1 authorized_keys��ʽ"></a>6.10.1 authorized_keys��ʽ</h4><p>�� authorized_keys ��Ȩ�ļ��Ĺ�Կ��ͷд������ʹ�õ����ֻ�����ڹ�Կ��֤��</p>
-<p>�û����Լ��޸���Ȩ�ļ�ʱ��Ȩ�޹ܿز��ϸ񡣽���������֤������C A ��չ��Ч����һ�㡣</p>
+<h3 id="6-10-只允许sftp登录"><a href="#6-10-只允许sftp登录" class="headerlink" title="6.10. 只允许sftp登录"></a>6.10. 只允许sftp登录</h3><h4 id="6-10-1-authorized-keys方式"><a href="#6-10-1-authorized-keys方式" class="headerlink" title="6.10.1 authorized_keys方式"></a>6.10.1 authorized_keys方式</h4><p>在 authorized_keys 授权文件的公钥开头写上允许使用的命令，只适用于公钥认证。</p>
+<p>用户可自己修改授权文件时，权限管控不严格。禁用密码认证并采用C A 扩展，效果好一点。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">command=&quot;internal-sftp&quot; ssh-rsa AAAAB3NzaC1yc2EAAAADA...</span><br></pre></td></tr></table></figure>
-<h4 id="6-10-2-sshd-config��ʽ"><a href="#6-10-2-sshd-config��ʽ" class="headerlink" title="6.10.2 sshd_config��ʽ"></a>6.10.2 sshd_config��ʽ</h4><p>�ϸ��Ȩ�޹ܿ���Ҫ�� root �û����� sshd_config �ļ����ù�Կ��֤��������֤���޷� ssh ��¼��</p>
+<h4 id="6-10-2-sshd-config方式"><a href="#6-10-2-sshd-config方式" class="headerlink" title="6.10.2 sshd_config方式"></a>6.10.2 sshd_config方式</h4><p>严格的权限管控需要由 root 用户更改 sshd_config 文件，用公钥认证或密码认证都无法 ssh 登录。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#Subsystem       sftp    /usr/libexec/openssh/sftp-server</span><br><span class="line">Subsystem        sftp    internal-sftp</span><br><span class="line"></span><br><span class="line">Match User user1</span><br><span class="line">        ChrootDirectory /home</span><br><span class="line">        ForceCommand internal-sftp</span><br></pre></td></tr></table></figure>
-<h2 id="7-CA��չ"><a href="#7-CA��չ" class="headerlink" title="7. CA��չ"></a>7. CA��չ</h2><p>OpenSSH 5.4 ���ϰ汾֧�� CA ��չ���ͻ��ˡ���������Ҫͬʱ֧�ֲſ��á�</p>
-<p>�����ķ�������Ҫʹ�ù�Կ��֤��¼ user1@A ʱ����ʹ�� CA ֤����֤��</p>
-<p>�û���֤�Ļ��������ǣ���һ̨������ C��Ҳ������ A ��������һ��˽Կ���Կͻ��˵��û���Կǩ����user1@A ����Ȩ�ļ���ֻ�豣�� C ��һ��ǩ����Կ��</p>
+<h2 id="7-CA扩展"><a href="#7-CA扩展" class="headerlink" title="7. CA扩展"></a>7. CA扩展</h2><p>OpenSSH 5.4 以上版本支持 CA 扩展，客户端、服务器需要同时支持才可用。</p>
+<p>大量的服务器需要使用公钥认证登录 user1@A 时，可使用 CA 证书认证。</p>
+<p>用户认证的基本流程是：用一台服务器 C（也可以是 A 本身）的一个私钥，对客户端的用户公钥签名，user1@A 的授权文件里只需保存 C 的一个签名公钥。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/10/02/ssh/" data-id="cjmrw1qn600018ssu0yfcob7l" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/10/02/ssh/" data-id="cjmrwatl40001ggsu3f1c45vv" class="article-share-link">Share</a>
       
       
     </footer>
@@ -549,7 +549,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2018/10/02/hello-world/" data-id="cjmrw1qmq00008ssuptytlad6" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2018/10/02/hello-world/" data-id="cjmrwatkj0000ggsulbbvmkdh" class="article-share-link">Share</a>
       
       
     </footer>
