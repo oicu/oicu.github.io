@@ -370,14 +370,12 @@
 <p>检查授权文件的权限是否为600：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
 <p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
 <p>检查用户主目录的权限是否为700/755：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld $HOME</span><br></pre></td></tr></table></figure></p>
-<h2 id="5-SSH原理"><a href="#5-SSH原理" class="headerlink" title="5. SSH原理"></a>5. SSH原理</h2><h3 id="5-1-默认配置文件"><a href="#5-1-默认配置文件" class="headerlink" title="5.1. 默认配置文件"></a>5.1. 默认配置文件</h3><table>
+<h2 id="5-SSH原理"><a href="#5-SSH原理" class="headerlink" title="5. SSH原理"></a>5. SSH原理</h2><h3 id="5-1-默认配置文件"><a href="#5-1-默认配置文件" class="headerlink" title="5.1. 默认配置文件"></a>5.1. 默认配置文件</h3><p>与服务端相关的目录、文件：</p>
+<table>
 <thead>
 <tr>
 <th style="text-align:left">目录</th>
 <th style="text-align:left">文件名</th>
-<th style="text-align:left">C/S</th>
-<th style="text-align:left">用途</th>
-<th style="text-align:left">是否使用</th>
 <th style="text-align:left">用户属组</th>
 <th style="text-align:left">权限</th>
 <th style="text-align:left">备注</th>
@@ -387,148 +385,89 @@
 <tr>
 <td style="text-align:left">/etc/ssh</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">755</td>
 <td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
-<td style="text-align:left">ssh_config</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">客户端全局设置</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">root</td>
-<td style="text-align:left">644</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
 <td style="text-align:left">sshd_config</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">服务器全局设置</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">服务器全局设置</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ecdsa_key</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机ecdsa私钥</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机ecdsa私钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ecdsa_key.pub</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机ecdsa公钥</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机ecdsa公钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ed25519_key</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机ed25519私钥</td>
-<td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">可与rsa同时启用</td>
+<td style="text-align:left">主机ed25519私钥，可与rsa同时启用，可选</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_ed25519_key.pub</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机ed25519公钥</td>
-<td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机ed25519公钥，可选</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_rsa_key</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机rsa私钥</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机rsa私钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_rsa_key.pub</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机rsa公钥</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机rsa公钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_dsa_key</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机dsa私钥</td>
-<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">安全原因，OpenSSH 7.0弃用</td>
+<td style="text-align:left">主机dsa私钥，安全原因，OpenSSH 7.0弃用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_dsa_key.pub</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机dsa公钥</td>
-<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机dsa公钥，弃用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_key</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机rsa私钥</td>
-<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">SSH1协议使用</td>
+<td style="text-align:left">主机rsa私钥，SSH1协议使用</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">ssh_host_key.pub</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">主机rsa公钥</td>
-<td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
-<td style="text-align:left">SSH1协议使用</td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">ssh_known_hosts</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">全局授权主机列表</td>
-<td style="text-align:left">可选</td>
-<td style="text-align:left">root</td>
-<td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">主机rsa公钥，SSH1协议使用</td>
 </tr>
 <tr>
 <td style="text-align:left">~/.ssh</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">700</td>
@@ -537,69 +476,13 @@
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">authorized_keys</td>
-<td style="text-align:left">服务端</td>
-<td style="text-align:left">授权文件</td>
-<td style="text-align:left">√</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
-<td style="text-align:left">保存其他服务器的用户公钥</td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">config</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">用户配置</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">600</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">id_rsa</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">用户rsa私钥</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">600</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">id_rsa.pub</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">用户rsa公钥</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">644</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">id_ed25519</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">用户ed25519私钥</td>
-<td style="text-align:left">可选</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">600</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">id_ed25519.pub</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">用户ed25519公钥</td>
-<td style="text-align:left">可选</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">644</td>
-<td style="text-align:left"></td>
+<td style="text-align:left">授权文件，保存其他服务器的用户公钥</td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
 <td style="text-align:left">id_dsa</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">×</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">无效文件</td>
@@ -609,26 +492,10 @@
 <td style="text-align:left">id_dsa.pub</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">×</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
 <td style="text-align:left">无效文件</td>
 </tr>
 <tr>
-<td style="text-align:left">:::</td>
-<td style="text-align:left">known_hosts</td>
-<td style="text-align:left">客户端</td>
-<td style="text-align:left">授权主机列表</td>
-<td style="text-align:left">√</td>
-<td style="text-align:left">对应用户</td>
-<td style="text-align:left">644</td>
-<td style="text-align:left">保存其他服务器的主机公钥</td>
-</tr>
-<tr>
 <td style="text-align:left">/home</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
 <td style="text-align:left">-</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">755</td>
@@ -637,12 +504,93 @@
 <tr>
 <td style="text-align:left">$HOME</td>
 <td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
-<td style="text-align:left">-</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">700/755</td>
 <td style="text-align:left">Linux系统，除 root 用户</td>
+</tr>
+</tbody>
+</table>
+<p>与客户端相关的目录、文件：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">目录</th>
+<th style="text-align:left">文件名</th>
+<th style="text-align:left">用户属组</th>
+<th style="text-align:left">权限</th>
+<th style="text-align:left">备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">/etc/ssh</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">755</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_config</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">客户端全局设置</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_known_hosts</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">全局授权主机列表，可选</td>
+</tr>
+<tr>
+<td style="text-align:left">~/.ssh</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">700</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">config</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">用户配置</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_rsa</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">用户rsa私钥</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_rsa.pub</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">用户rsa公钥</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_ed25519</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">用户ed25519私钥，可选</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_ed25519.pub</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">用户ed25519公钥，可选</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">known_hosts</td>
+<td style="text-align:left">对应用户</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">授权主机列表，保存其他服务器的主机公钥</td>
 </tr>
 </tbody>
 </table>
@@ -691,7 +639,7 @@
 </ul>
 <h3 id="6-4-主备客户端"><a href="#6-4-主备客户端" class="headerlink" title="6.4. 主备客户端"></a>6.4. 主备客户端</h3><p>如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。</p>
 <h3 id="6-5-小权用户"><a href="#6-5-小权用户" class="headerlink" title="6.5. 小权用户"></a>6.5. 小权用户</h3><p>建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 /home、$HOME 的属组、权限，导致公钥认证失效。</p>
-<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">chmod og+x /home</span></span><br><span class="line"><span class="meta">$</span><span class="bash">chmod og-w <span class="variable">$HOME</span></span></span><br></pre></td></tr></table></figure></p>
+<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>chmod og+x /home</span><br><span class="line"><span class="meta">$</span>chmod og-w $HOME</span><br></pre></td></tr></table></figure></p>
 <blockquote>
 <p># 开头的行代表用 root 权限执行，$ 代表用户权限执行。</p>
 </blockquote>
