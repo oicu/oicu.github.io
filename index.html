@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="default">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-ssh" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/10/02/ssh/" class="article-date">
+  <time datetime="2018-10-02T15:37:35.000Z" itemprop="datePublished">2018-10-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/02/ssh/">ssh</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="SSH��Կ��֤��¼"><a href="#SSH��Կ��֤��¼" class="headerlink" title="SSH��Կ��֤��¼"></a>SSH��Կ��֤��¼</h1><blockquote>
+<p>SSH PubkeyAuthentication</p>
+</blockquote>
+<p>����: <a href="http://oicu.cc.blog.163.com" target="_blank" rel="noopener">oicu.cc@163.com</a></p>
+<p><strong>�����š�ֻ�ǹ�Կ��֤��һ��������</strong> 2̨�������໥ʹ�ù�Կ��֤��¼���Žл��š�</p>
+<p>����ǰ��������ʹ�� OpenSSH����������� A��192.168.1.1�� ���û� user1 ��Ҫʹ�ù�Կ��֤��¼������ B��192.168.1.2�����û� user2��</p>
+<h2 id="1-��˭����"><a href="#1-��˭����" class="headerlink" title="1. ��˭����"></a>1. ��˭����</h2><p>ԭ���ϣ�˭ӵ�� user1��user2 ������Ȩ�ޣ�˭�����������Ӧ��ʹ�� root ��������ͨ�û�֮��Ĺ�Կ��֤��</p>
+<p>������Կ��֤�����������һ������Ҫ�����������ϵͳ֮��Ľ�����ϵ��</p>
+<h2 id="2-������Կ��"><a href="#2-������Կ��" class="headerlink" title="2. ������Կ��"></a>2. ������Կ��</h2><blockquote>
+<p>�� ‘’.pub’’ ��β���ǹ�Կ���������⹫�������� .pub ��β����˽Կ��������˽Կ�����룬<strong>˽Կ����й¶</strong>��<br>������֮��Ĺ�Կ��֤���������˽Կ���룬��������ϵͳ��������Ҫ�˹�������������ʹ�á�<br>������Կ�����û���Կ�����ɷ���һ����ֻ���ļ���������λ�á��û����鲻ͬ��  </p>
+</blockquote>
+<h3 id="2-1-RSA��Կ��"><a href="#2-1-RSA��Կ��" class="headerlink" title="2.1. RSA��Կ��"></a>2.1. RSA��Կ��</h3><p>��¼������ A ���û� user1�����ɷǶԳƼ��� RSA ��Կ�ԣ�����ʹ�� 2048 �� 4096 λ��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure></p>
+<p>������ʾһֱ���س��������� ~/.ssh Ŀ¼������ 2 ���ļ���<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-2-ed25519��Կ��"><a href="#2-2-ed25519��Կ��" class="headerlink" title="2.2. ed25519��Կ��"></a>2.2. ed25519��Կ��</h3><p>OpenSSH 6.5 ֮��İ汾֧���µ� ed25519 �����㷨���ɴ��� RSA �㷨��</p>
+<p>��¼������ A ���û� user1�����ɷǶԳƼ��� ed25519 ��Կ�ԣ�����ָ����Կ���ȣ�</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
+<p>������ʾһֱ���س��������� ~/.ssh Ŀ¼������ 2 ���ļ���<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure></p>
+<h2 id="3-��E��Կ"><a href="#3-��E��Կ" class="headerlink" title="3. ��Ȩ��Կ"></a>3. ��Ȩ��Կ</h2><p>ͨ�׵Ľ��ͣ���Ȩ��Կ�Ĺ��̾��൱��¼��ָ�ƣ�</p>
+<p>�� user1@A �Ĺ�Կ���ӵ� user2@B �� <strong>~/.ssh/authorized_keys</strong> ��Ȩ�ļ��user1@A �����������¼ user2@B��</p>
+<h3 id="3-1-ʹ��ssh-copy-id"><a href="#3-1-ʹ��ssh-copy-id" class="headerlink" title="3.1. ʹ��ssh-copy-id"></a>3.1. ʹ��ssh-copy-id</h3><p>��¼������ A �� user1 �û�������</p>
+<h4 id="3-1-1-Linux-Unix"><a href="#3-1-1-Linux-Unix" class="headerlink" title="3.1.1. Linux/Unix"></a>3.1.1. Linux/Unix</h4><p>Linux ������Ĭ���� ssh-copy-id ���AIX �������� ssh �汾�ͣ�û�и����</p>
+<blockquote>
+<p>-i ������ָ������<strong>�û���Կ</strong>��<br>�û���Կ���û�˽Կ����ͬһĿ¼��</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
+<p>�˿ڲ���22ʱ��Ҫ����������д����<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub 'user2@192.168.1.2 -p 22'</span><br></pre></td></tr></table></figure></p>
+<h4 id="3-1-2-MacOSX"><a href="#3-1-2-MacOSX" class="headerlink" title="3.1.2. MacOSX"></a>3.1.2. MacOSX</h4><p>Mac OSX ϵͳû�д� ssh-copy-id ������������·�����װ��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line">chmod +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure></p>
+<p>or<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure></p>
+<h3 id="3-2-�ֶ��༭�����Ƽ���"><a href="#3-2-�ֶ��༭�����Ƽ���" class="headerlink" title="3.2. �ֶ��༭�����Ƽ���"></a>3.2. �ֶ��༭�����Ƽ���</h3><p>��¼������ B �� user2 �û�������</p>
+<p>���Ȱ� user1@A �Ĺ�Կ���䵽 user2@B ��ĳһ��Ŀ¼�¡�</p>
+<p>���û�� ~/.ssh Ŀ¼�����½���</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; mkdir ~/.ssh</span><br><span class="line">chmod 700 ~/.ssh</span><br><span class="line">cat ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">rm ~/yourname.pub</span><br><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<h3 id="3-3-�ܵ�����"><a href="#3-3-�ܵ�����" class="headerlink" title="3.3. �ܵ�����"></a>3.3. �ܵ�����</h3><p>��¼������ A �� user1 �û�������</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 "umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys"</span><br></pre></td></tr></table></figure>
+<p>����<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 '(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span><br><span class="line">cat &gt;&gt; ~/.ssh/authorized_keys' &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
+<h2 id="4-�����E"><a href="#4-�����E" class="headerlink" title="4. �����Ȩ"></a>4. �����Ȩ</h2><p>��¼������ B �� user2 �û�������</p>
+<p>���Ŀ¼Ȩ���Ƿ�Ϊ700��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld ~/.ssh</span><br></pre></td></tr></table></figure></p>
+<p>�����Ȩ�ļ���Ȩ���Ƿ�Ϊ600��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>�����Ȩ�ļ������ݣ�ÿ����ԿӦ��ֻռ <strong>1</strong> �У�<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>����û���Ŀ¼��Ȩ���Ƿ�Ϊ700/755��<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld $HOME</span><br></pre></td></tr></table></figure></p>
+<h2 id="5-SSHԭ��"><a href="#5-SSHԭ��" class="headerlink" title="5. SSHԭ��"></a>5. SSHԭ��</h2><h3 id="5-1-I�������l�"><a href="#5-1-I�������l�" class="headerlink" title="5.1. Ĭ�������ļ�"></a>5.1. Ĭ�������ļ�</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">Ŀ¼</th>
+<th style="text-align:left">�ļ���</th>
+<th style="text-align:left">C/S</th>
+<th style="text-align:left">��;</th>
+<th style="text-align:left">�Ƿ�ʹ��</th>
+<th style="text-align:left">�û�����</th>
+<th style="text-align:left">Ȩ��</th>
+<th style="text-align:left">��ע</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">/etc/ssh</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">755</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_config</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�ͻ���ȫ������</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">sshd_config</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">������ȫ������</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_ecdsa_key</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����ecdsa˽Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">600</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_ecdsa_key.pub</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����ecdsa��Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_ed25519_key</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����ed25519˽Կ</td>
+<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">����rsaͬʱ����</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_ed25519_key.pub</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����ed25519��Կ</td>
+<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_rsa_key</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����rsa˽Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">600</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_rsa_key.pub</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����rsa��Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_dsa_key</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����dsa˽Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">��ȫԭ��OpenSSH 7.0����</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_dsa_key.pub</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����dsa��Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_key</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����rsa˽Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">SSH1Э��ʹ��</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_host_key.pub</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">����rsa��Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">SSH1Э��ʹ��</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">ssh_known_hosts</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">ȫ����Ȩ�����б�</td>
+<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">~/.ssh</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">700</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">authorized_keys</td>
+<td style="text-align:left">�����</td>
+<td style="text-align:left">��Ȩ�ļ�</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">600</td>
+<td style="text-align:left">�����������������û���Կ</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">config</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�û�����</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">600</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_rsa</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�û�rsa˽Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">600</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_rsa.pub</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�û�rsa��Կ</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_ed25519</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�û�ed25519˽Կ</td>
+<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">600</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_ed25519.pub</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">�û�ed25519��Կ</td>
+<td style="text-align:left">��ѡ</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">644</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_dsa</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��Ч�ļ�</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">id_dsa.pub</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��Ч�ļ�</td>
+</tr>
+<tr>
+<td style="text-align:left">:::</td>
+<td style="text-align:left">known_hosts</td>
+<td style="text-align:left">�ͻ���</td>
+<td style="text-align:left">��Ȩ�����б�</td>
+<td style="text-align:left">��</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">644</td>
+<td style="text-align:left">����������������������Կ</td>
+</tr>
+<tr>
+<td style="text-align:left">/home</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">755</td>
+</tr>
+<tr>
+<td style="text-align:left">$HOME</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">-</td>
+<td style="text-align:left">��Ӧ�û�</td>
+<td style="text-align:left">700/755</td>
+<td style="text-align:left">Linuxϵͳ���� root �û�</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5-2-��Կ�l�"><a href="#5-2-��Կ�l�" class="headerlink" title="5.2. ��Կ�ļ�"></a>5.2. ��Կ�ļ�</h3><p>ÿ����Կֻ��һ�У�3���ֶΣ��ո�ָ���</p>
+<ul>
+<li>��������</li>
+<li>��Կ����</li>
+<li>��ע</li>
+</ul>
+<blockquote>
+<p>��Կ�ļ���չ������ .pub<br>��Կ���ݵļ�������Ҫ��<strong>Сд</strong>������ ssh-rsa��ssh-ed25519<br>��ע���ø������䡢�û���@���������û���@IP  </p>
+</blockquote>
+<h3 id="5-3-��E�l�"><a href="#5-3-��E�l�" class="headerlink" title="5.3. ��Ȩ�ļ�"></a>5.3. ��Ȩ�ļ�</h3><p>authorized_keys �ļ����� SSH ����ˣ�</p>
+<p>������һ�㲻�����û���Կ .pub �ļ�����Ҫ�ö��ⷽʽ�ǼǸ�ϵͳ֮�����Ȩ��ϵ��</p>
+<p>��Ȩ��¼���������û���Կ��ȫ����¼�� authorized_keys �ļ��ÿ���û���Կһ�С�</p>
+<p>�ӷ�������ÿ����Ӱ��� authorized_keys �ļ��Ƴ���Ӧ���û���Կ���ɳ�����¼Ȩ�ޡ�</p>
+<h3 id="5-4-��E�����б�"><a href="#5-4-��E�����б�" class="headerlink" title="5.4. ��Ȩ�����б�"></a>5.4. ��Ȩ�����б�</h3><p>known_hosts �ļ����� SSH �ͻ��ˣ�</p>
+<p>��ǰ�û���¼���ķ�������������Կȫ����¼�� known_hosts �ļ���ÿ��������Կһ�С�</p>
+<p>���´η�����ͬ�����ʱ��OpenSSH ��˶Թ�Կ�������Կ��ͬ��OpenSSH �ᷢ�������ܾ���¼���������ܵ� DNS�ٳ֡��м��˹�����</p>
+<p>��ʽ����Ȩ�ļ��в��죬�������ֹ��༭��</p>
+<h4 id="5-4-1-ɾ����E��������Կ"><a href="#5-4-1-ɾ����E��������Կ" class="headerlink" title="5.4.1. ɾ����Ȩ��������Կ"></a>5.4.1. ɾ����Ȩ��������Կ</h4><p>ɾ�� known_hosts �ļ���ָ��������������192.168.0.100����������Կ������������Զ����ű���</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>�����Ƿ����У������Զ����±��� known_hosts.old<br>known_hosts �ļ����и�ʽ�������ʱ��ɾ��ʧ�ܣ����ᱸ�ݡ�  </p>
+</blockquote>
+<h4 id="5-4-2-I���Զ�����������Կ"><a href="#5-4-2-I���Զ�����������Կ" class="headerlink" title="5.4.2. Ĭ���Զ�����������Կ"></a>5.4.2. Ĭ���Զ�����������Կ</h4><p>�� ~/.ssh/config ������ StrictHostKeyChecking ѡ�</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host *</span><br><span class="line">        StrictHostKeyChecking no</span><br><span class="line">        UserKnownHostsFile /dev/null</span><br></pre></td></tr></table></figure>
+<p>������ ssh/sftp/scp ��������ʹ�ò�����</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>��ɾ������Ĭ�����ӷ�����������Կ��ȱ���ǵ�¼ʱ���ӳ١�<br>UserKnownHostsFile �ǿ�ѡ�ģ�ʹ�� /dev/null���ڶ��ļ�������������Կ��  </p>
+</blockquote>
+<h2 id="6-��������"><a href="#6-��������" class="headerlink" title="6. ��������"></a>6. ��������</h2><h3 id="6-1-���ʹ�ϵ"><a href="#6-1-���ʹ�ϵ" class="headerlink" title="6.1. ���ʹ�ϵ"></a>6.1. ���ʹ�ϵ</h3><p>user1@A Ҫ��¼ user2@B��user3@C��user4@D����ô user1 ���û���Կ��Ҫȫ����ŵ� B��C��D ��Ӧ���û�����Ȩ�ļ��</p>
+<p>user2@B��user3@C��user4@D ��Ҫ��¼ user1@A����ô user2��user3��user4 ���û���Կ����Ҫ��ŵ� user1 ����Ȩ�ļ��</p>
+<h3 id="6-2-��ڵ������"><a href="#6-2-��ڵ������" class="headerlink" title="6.2. ��ڵ������"></a>6.2. ��ڵ������</h3><p>��̨��������ʹ�� DMZ / NAT / HA �ȼ�������ʹ��ͬһ�� IP ���������ṩ���񣬵��������л�������Ŀ���������������Կ�仯��������Ϊ���м��˹���ģ�ͣ��ͻ�����֤ known_hosts ʧ�ܲ��ܾ���¼��</p>
+<p>����취�����¼�������ѡ��һ��</p>
+<ul>
+<li>����������������Կ�ԣ��� /etc/ssh/ Ŀ¼������ñ���һ�¡�</li>
+<li>�ͻ���ÿ�ζ�ɾ�� known_hosts ���������Կ����¼ʱ���¼�¼��</li>
+<li>�ͻ��˲�ʹ�ø����� IP ���ʷ�����������ʹ�ø�̨������˽�е� IP ���ʡ���Ҫͨ��������ʽ�жϷ�������Ⱥ������ڵ㣬�ʲ��Ƽ��÷���</li>
+</ul>
+<h3 id="6-3-ϵͳ��¡"><a href="#6-3-ϵͳ��¡" class="headerlink" title="6.3. ϵͳ��¡"></a>6.3. ϵͳ��¡</h3><p>��¡��������а�ȫ���⣬���� user1@A ��Կ��֤��¼ user2@B��B ϵͳ��¡�õ� C����ô user1@A ���Թ�Կ��֤��¼ user2@C��</p>
+<ul>
+<li>����Կ���õ�����Ҫ��ʱ��һ�㽨���¡�������ϵͳ���̺���������������Կ�ԡ�</li>
+<li>ɾ�������û��� .ssh Ŀ¼��</li>
+</ul>
+<h3 id="6-4-�����ͻ���"><a href="#6-4-�����ͻ���" class="headerlink" title="6.4. �����ͻ���"></a>6.4. �����ͻ���</h3><p>��������� 2 ̨�������������� Ansible �Ĺ������ߣ�����ʹ����ͬ��һ���û���Կ id_rsa.pub��˽Կ id_rsa������ֻ�������е�Ŀ���������һ����Ȩ��</p>
+<h3 id="6-5-СE�u�"><a href="#6-5-СE�u�" class="headerlink" title="6.5. СȨ�û�"></a>6.5. СȨ�û�</h3><p>����СȨ�û��鿴����û���Ŀ¼ʱ������ĵͼ������� chown -R �� chmod ���� /home��$HOME �����顢Ȩ�ޣ����¹�Կ��֤ʧЧ��</p>
+<p>���ܶ��顢�����û����� $HOME ��д��Ȩ�ޣ���ȷ��Ȩ�����ã�<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">chmod og+x /home</span></span><br><span class="line"><span class="meta">$</span><span class="bash">chmod og-w <span class="variable">$HOME</span></span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p># ��ͷ���д����� root Ȩ��ִ�У�$ �����û�Ȩ��ִ�С�</p>
+</blockquote>
+<h3 id="6-6-������Ч��"><a href="#6-6-������Ч��" class="headerlink" title="6.6. ������Ч��"></a>6.6. ������Ч��</h3><ul>
+<li>�û�����������Ч�ڣ����ں�Ҳ�޷��ù�Կ��֤��¼��</li>
+<li>�� root �û���Կ��֤��¼���޷������û����룬ӵ�����뼴ӵ�е�ǰ�û������Ȩ�ޡ�</li>
+<li>��Կ��֤��¼ʱ����˽Կ��������û����룬˽Կ�������ʱ�޸ġ�</li>
+<li>�����û����롢˽Կ���붼��Ӱ���Ĺ�Կ��֤��¼��</li>
+</ul>
+<h3 id="6-7-��ֹ������֤"><a href="#6-7-��ֹ������֤" class="headerlink" title="6.7. ��ֹ������֤"></a>6.7. ��ֹ������֤</h3><p>root �û��༭ /etc/ssh/sshd_config �ļ�����ֹ�����û������� root��ʹ��������֤��ʽ��¼��<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no    # ������֤��Ĭ�� yes</span><br><span class="line">PermitEmptyPasswords no      # �������¼��Ĭ�� no</span><br></pre></td></tr></table></figure></p>
+<p>ʹ�� Match User ����ĳЩѡ��ֻ�Ը��û���Ч��������� abc �û��⣬�����û��������������¼��<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure></p>
+<h3 id="6-8-����root�u���¼"><a href="#6-8-����root�u���¼" class="headerlink" title="6.8. ����root�û���¼"></a>6.8. ����root�û���¼</h3><p>/etc/ssh/sshd_config �Ŀ�ѡ�� PermitRootLogin �����޶� root �û�ͨ�� ssh �ĵ�¼��ʽ��</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">�������</th>
+<th style="text-align:left">�Ƿ�����ssh��½</th>
+<th style="text-align:left">��¼��ʽ</th>
+<th style="text-align:left">����shell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">yes</td>
+<td style="text-align:left">����</td>
+<td style="text-align:left">û������</td>
+<td style="text-align:left">û������</td>
+</tr>
+<tr>
+<td style="text-align:left">without-password</td>
+<td style="text-align:left">����</td>
+<td style="text-align:left">����������</td>
+<td style="text-align:left">û������</td>
+</tr>
+<tr>
+<td style="text-align:left">forced-commands-only</td>
+<td style="text-align:left">����</td>
+<td style="text-align:left">������ʹ����Կ</td>
+<td style="text-align:left">����������Ȩ������</td>
+</tr>
+<tr>
+<td style="text-align:left">no</td>
+<td style="text-align:left">������</td>
+<td style="text-align:left">N/A</td>
+<td style="text-align:left">N/A</td>
+</tr>
+<tr>
+<td style="text-align:left">prohibit-password</td>
+<td style="text-align:left">����</td>
+<td style="text-align:left">����������</td>
+<td style="text-align:left">û������</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>OpenSSH 7.0 ��ʼ����Ĭ��ѡ��� yes �� prohibit-password��without-password ��ͬ�������������������<br>PasswordAuthentication �����ȼ��� PermitRootLogin �ߡ�</p>
+</blockquote>
+<h3 id="6-9-��ֹ�u���¼"><a href="#6-9-��ֹ�u���¼" class="headerlink" title="6.9. ��ֹ�û���¼"></a>6.9. ��ֹ�û���¼</h3><p>/etc/ssh/sshd_config �Ŀ�ѡ�� AllowUsers �� Denyusers �������û�����������������</p>
+<p>���˿��Խ�ֹĳ���û���¼����������Թ̶��� IP ���н�ֹ��¼��/etc/hosts.allow �� /etc/hosts.deny �������������� sshd ���� IP �б���</p>
+<p>�� /etc/passwd ������ /sbin/nologin ��ֹĳ�û���¼����ʹ�� root �û� su �����л��û�Ҳ�޷���½��</p>
+<blockquote>
+<p>����ֹ���û��� IP ��ַ��������֤����Կ��֤���޷���¼��</p>
+</blockquote>
+<h3 id="6-10-ֻ����sftp��¼"><a href="#6-10-ֻ����sftp��¼" class="headerlink" title="6.10. ֻ����sftp��¼"></a>6.10. ֻ����sftp��¼</h3><h4 id="6-10-1-authorized-keys��ʽ"><a href="#6-10-1-authorized-keys��ʽ" class="headerlink" title="6.10.1 authorized_keys��ʽ"></a>6.10.1 authorized_keys��ʽ</h4><p>�� authorized_keys ��Ȩ�ļ��Ĺ�Կ��ͷд������ʹ�õ����ֻ�����ڹ�Կ��֤��</p>
+<p>�û����Լ��޸���Ȩ�ļ�ʱ��Ȩ�޹ܿز��ϸ񡣽���������֤������C A ��չ��Ч����һ�㡣</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">command=&quot;internal-sftp&quot; ssh-rsa AAAAB3NzaC1yc2EAAAADA...</span><br></pre></td></tr></table></figure>
+<h4 id="6-10-2-sshd-config��ʽ"><a href="#6-10-2-sshd-config��ʽ" class="headerlink" title="6.10.2 sshd_config��ʽ"></a>6.10.2 sshd_config��ʽ</h4><p>�ϸ��Ȩ�޹ܿ���Ҫ�� root �û����� sshd_config �ļ����ù�Կ��֤��������֤���޷� ssh ��¼��</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#Subsystem       sftp    /usr/libexec/openssh/sftp-server</span><br><span class="line">Subsystem        sftp    internal-sftp</span><br><span class="line"></span><br><span class="line">Match User user1</span><br><span class="line">        ChrootDirectory /home</span><br><span class="line">        ForceCommand internal-sftp</span><br></pre></td></tr></table></figure>
+<h2 id="7-CA��չ"><a href="#7-CA��չ" class="headerlink" title="7. CA��չ"></a>7. CA��չ</h2><p>OpenSSH 5.4 ���ϰ汾֧�� CA ��չ���ͻ��ˡ���������Ҫͬʱ֧�ֲſ��á�</p>
+<p>�����ķ�������Ҫʹ�ù�Կ��֤��¼ user1@A ʱ����ʹ�� CA ֤����֤��</p>
+<p>�û���֤�Ļ��������ǣ���һ̨������ C��Ҳ������ A ��������һ��˽Կ���Կͻ��˵��û���Կǩ����user1@A ����Ȩ�ļ���ֻ�豣�� C ��һ��ǩ����Կ��</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/10/02/ssh/" data-id="cjmrw1qn600018ssu0yfcob7l" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/10/02/hello-world/" class="article-date">
+  <time datetime="2018-10-02T15:13:35.656Z" itemprop="datePublished">2018-10-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/02/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2018/10/02/hello-world/" data-id="cjmrw1qmq00008ssuptytlad6" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">October 2018</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/10/02/ssh/">ssh</a>
+          </li>
+        
+          <li>
+            <a href="/2018/10/02/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
