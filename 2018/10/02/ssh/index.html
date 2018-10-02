@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu.cc@163.com “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 us">
+<meta name="description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 user1、user2 的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ssh">
 <meta property="og:url" content="https://oicu.github.io/2018/10/02/ssh/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu.cc@163.com “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 us">
+<meta property="og:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 user1、user2 的">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-10-02T15:45:55.193Z">
+<meta property="og:updated_time" content="2018-10-02T16:58:48.122Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ssh">
-<meta name="twitter:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu.cc@163.com “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 us">
+<meta name="twitter:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 1. 由谁操作原则上，谁拥有 user1、user2 的">
 
 
 
@@ -186,6 +186,36 @@
               <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
             
             Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
           </a>
         </li>
       
@@ -302,7 +332,7 @@
         <h1 id="SSH公钥认证登录"><a href="#SSH公钥认证登录" class="headerlink" title="SSH公钥认证登录"></a>SSH公钥认证登录</h1><blockquote>
 <p>SSH PubkeyAuthentication</p>
 </blockquote>
-<p>作者: <a href="http://oicu.cc.blog.163.com" target="_blank" rel="noopener">oicu.cc@163.com</a></p>
+<p>作者: <a href="https://oicu.github.io/">oicu</a></p>
 <p><strong>“互信”只是公钥认证的一个特例。</strong> 2台服务器相互使用公钥认证登录，才叫互信。</p>
 <p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
 <h2 id="1-由谁操作"><a href="#1-由谁操作" class="headerlink" title="1. 由谁操作"></a>1. 由谁操作</h2><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
@@ -361,6 +391,7 @@
 <td style="text-align:left">-</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">755</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -370,6 +401,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -379,6 +411,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -388,6 +421,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -397,6 +431,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -416,6 +451,7 @@
 <td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -425,6 +461,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">600</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -434,6 +471,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -453,6 +491,7 @@
 <td style="text-align:left">×</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -482,6 +521,7 @@
 <td style="text-align:left">可选</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">~/.ssh</td>
@@ -491,6 +531,7 @@
 <td style="text-align:left">-</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">700</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -510,6 +551,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -519,6 +561,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -528,6 +571,7 @@
 <td style="text-align:left">√</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -537,6 +581,7 @@
 <td style="text-align:left">可选</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">600</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -546,6 +591,7 @@
 <td style="text-align:left">可选</td>
 <td style="text-align:left">对应用户</td>
 <td style="text-align:left">644</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">:::</td>
@@ -585,6 +631,7 @@
 <td style="text-align:left">-</td>
 <td style="text-align:left">root</td>
 <td style="text-align:left">755</td>
+<td style="text-align:left"></td>
 </tr>
 <tr>
 <td style="text-align:left">$HOME</td>
@@ -838,6 +885,22 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/oicu" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:oicu.cc@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
           
 
           
