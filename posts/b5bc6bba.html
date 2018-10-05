@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="mail,Excel," />
 
 
 
@@ -80,13 +80,14 @@
 
 
 <meta name="description" content="其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。 不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。 氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附">
+<meta name="keywords" content="mail,Excel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="破解ExcelMailer邮件群发工具">
 <meta property="og:url" content="https://oicu.github.io/posts/b5bc6bba.html">
 <meta property="og:site_name" content="Oh! I see you!">
 <meta property="og:description" content="其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。 不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。 氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-05T20:19:19.646Z">
+<meta property="og:updated_time" content="2018-10-05T20:37:29.721Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="破解ExcelMailer邮件群发工具">
 <meta name="twitter:description" content="其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。 不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。 氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附">
@@ -385,8 +386,9 @@
         <p>其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。</p>
 <p>不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。</p>
 <p>氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附件），比如 ExcelMailer 这个 Excel 插件，含有拆分数据和邮件群发的功能，刚好满足 OL 们的基本需求。</p>
+<a id="more"></a>
 <p>ExcelMailer 授权费￥100，未授权的时候，发送邮件会带尾巴广告。瞅了一眼程序的dll文件，看到了作者的数据库密码（生日）等信息，也知道它读取注册表哪个位置检查PassCode授权码，对于糙快猛理念的我，破解它的注册机制太tmd麻烦了，直接去掉尾巴内容不就完事。</p>
-<p>ExcelMailer v3.8.1.8 版本，破解去掉邮件尾巴信息：<br>用二进制编辑器打开 ExcelMailer.dll 跳转到地址 001DDE80<br>把第一个 3B 20 替换为 00 00，即<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">31 0A 00 0A 00 3B 20 3B 20 3B 20</span><br></pre></td></tr></table></figure></p>
+<p>ExcelMailer v3.8.1.8 版本，破解去掉邮件尾巴信息：<br>用二进制编辑器打开 ExcelMailer.dll 跳转到地址 <code>001DDE80</code><br>把第一个 <code>3B 20</code> 替换为 <code>00 00</code>，即<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">31 0A 00 0A 00 3B 20 3B 20 3B 20</span><br></pre></td></tr></table></figure></p>
 <p>变成<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">31 0A 00 0A 00 00 00 3B 20 3B 20</span><br></pre></td></tr></table></figure></p>
 <p>测试1秒间隔，发送了94封邮件，都正常发出。</p>
 
@@ -421,6 +423,14 @@
     
 
     <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mail/" rel="tag"># mail</a>
+          
+            <a href="/tags/Excel/" rel="tag"># Excel</a>
+          
+        </div>
       
 
       
@@ -529,7 +539,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
