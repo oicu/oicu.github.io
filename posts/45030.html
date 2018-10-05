@@ -81,14 +81,14 @@
 
 <meta name="description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ssh">
-<meta property="og:url" content="https://oicu.github.io/2018/10/02/ssh/index.html">
+<meta property="og:title" content="SSH公钥认证登录">
+<meta property="og:url" content="https://oicu.github.io/posts/45030.html">
 <meta property="og:site_name" content="Oh! I see you!">
 <meta property="og:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-02T17:37:45.447Z">
+<meta property="og:updated_time" content="2018-10-05T17:41:17.318Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="ssh">
+<meta name="twitter:title" content="SSH公钥认证登录">
 <meta name="twitter:description" content="SSH公钥认证登录 SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权">
 
 
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://oicu.github.io/2018/10/02/ssh/"/>
+  <link rel="canonical" href="https://oicu.github.io/posts/45030.html"/>
 
 
 
 
 
-  <title>ssh | Oh! I see you!</title>
+  <title>SSH公钥认证登录 | Oh! I see you!</title>
   
 
 
@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/2018/10/02/ssh/">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/45030.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="oicu">
@@ -279,7 +279,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">ssh</h1>
+          <h1 class="post-title" itemprop="name headline">SSH公钥认证登录</h1>
         
 
         <div class="post-meta">
@@ -337,14 +337,15 @@
 <p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
 <h2 id="由谁操作"><a href="#由谁操作" class="headerlink" title="由谁操作"></a>由谁操作</h2><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
 <p>管理公钥认证就如管理密码一样，需要绝对清楚各个系统之间的交互关系。</p>
+<a id="more"></a>
 <h2 id="生成密钥对"><a href="#生成密钥对" class="headerlink" title="生成密钥对"></a>生成密钥对</h2><blockquote>
 <p>带 ‘’.pub’’ 结尾的是公钥，可以任意公开。不带 .pub 结尾的是私钥，可设置私钥的密码，<strong>私钥不能泄露</strong>。<br>服务器之间的公钥认证，如果设置私钥密码，当服务器系统重启后需要人工处理才能正常使用。<br>主机密钥对与用户密钥对生成方法一样，只是文件名、保存位置、用户属组不同。  </p>
 </blockquote>
-<h3 id="RSA密钥对"><a href="#RSA密钥对" class="headerlink" title="RSA密钥对"></a>RSA密钥对</h3><p>登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure></p>
+<h3 id="RSA密钥对"><a href="#RSA密钥对" class="headerlink" title="RSA密钥对"></a>RSA密钥对</h3><p>登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure></p>
 <p>按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
 <h3 id="ed25519密钥对"><a href="#ed25519密钥对" class="headerlink" title="ed25519密钥对"></a>ed25519密钥对</h3><p>OpenSSH 6.5 之后的版本支持新的 ed25519 加密算法，可代替 RSA 算法。</p>
 <p>登录服务器 A 的用户 user1，生成非对称加密 ed25519 密钥对，无需指定密钥长度：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
 <p>按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure></p>
 <h2 id="授权公钥"><a href="#授权公钥" class="headerlink" title="授权公钥"></a>授权公钥</h2><p>通俗的解释：授权公钥的过程就相当于录入指纹！</p>
 <p>把 user1@A 的公钥添加到 user2@B 的 <strong>~/.ssh/authorized_keys</strong> 授权文件里，user1@A 即可免密码登录 user2@B。</p>
@@ -353,23 +354,39 @@
 <blockquote>
 <p>-i 参数后指定的是<strong>用户公钥</strong>。<br>用户公钥和用户私钥需在同一目录。</p>
 </blockquote>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
-<p>端口不是22时需要用以下这种写法：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub 'user2@192.168.1.2 -p 22'</span><br></pre></td></tr></table></figure></p>
-<h4 id="MacOSX"><a href="#MacOSX" class="headerlink" title="MacOSX"></a>MacOSX</h4><p>Mac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line">chmod +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure></p>
-<p>or<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
+<p>端口不是22时需要用以下这种写法：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub <span class="string">'user2@192.168.1.2 -p 22'</span></span><br></pre></td></tr></table></figure></p>
+<h4 id="MacOSX"><a href="#MacOSX" class="headerlink" title="MacOSX"></a>MacOSX</h4><p>Mac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/<span class="built_in">local</span>/bin/ssh-copy-id</span><br><span class="line">chmod +x /usr/<span class="built_in">local</span>/bin/ssh-copy-id</span><br></pre></td></tr></table></figure></p>
+<p>or<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure></p>
 <h3 id="手动编辑（不推荐）"><a href="#手动编辑（不推荐）" class="headerlink" title="手动编辑（不推荐）"></a>手动编辑（不推荐）</h3><p>登录服务器 B 的 user2 用户操作。</p>
 <p>首先把 user1@A 的公钥传输到 user2@B 的某一个目录下。</p>
 <p>如果没有 ~/.ssh 目录则需新建。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; mkdir ~/.ssh</span><br><span class="line">chmod 700 ~/.ssh</span><br><span class="line">cat ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">rm ~/yourname.pub</span><br><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; mkdir ~/.ssh</span><br><span class="line">chmod 700 ~/.ssh</span><br><span class="line">cat ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line">rm ~/yourname.pub</span><br><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
 <h3 id="管道操作"><a href="#管道操作" class="headerlink" title="管道操作"></a>管道操作</h3><p>登录服务器 A 的 user1 用户操作。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 "umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys"</span><br></pre></td></tr></table></figure>
-<p>或者<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 '(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span><br><span class="line">cat &gt;&gt; ~/.ssh/authorized_keys' &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cat ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 <span class="string">"umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys"</span></span><br></pre></td></tr></table></figure>
+<p>或者<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 <span class="string">'(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span></span><br><span class="line"><span class="string">cat &gt;&gt; ~/.ssh/authorized_keys'</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure></p>
 <h2 id="检查授权"><a href="#检查授权" class="headerlink" title="检查授权"></a>检查授权</h2><p>登录服务器 B 的 user2 用户操作。</p>
-<p>检查目录权限是否为700：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld ~/.ssh</span><br></pre></td></tr></table></figure></p>
-<p>检查授权文件的权限是否为600：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
-<p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
-<p>检查用户主目录的权限是否为700/755：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld $HOME</span><br></pre></td></tr></table></figure></p>
+<p>检查目录权限是否为700：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld ~/.ssh</span><br></pre></td></tr></table></figure></p>
+<p>检查授权文件的权限是否为600：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure></p>
+<p>检查用户主目录的权限是否为700/755：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -ld <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure></p>
 <h2 id="SSH原理"><a href="#SSH原理" class="headerlink" title="SSH原理"></a>SSH原理</h2><h3 id="默认配置文件"><a href="#默认配置文件" class="headerlink" title="默认配置文件"></a>默认配置文件</h3><p>与服务端相关的目录、文件：</p>
+<style>
+table th:nth-of-type(1) {
+    width: 20%;
+}
+table th:nth-of-type(2) {
+    width: 25%;
+}
+table th:nth-of-type(3) {
+    width: 15%;
+}
+table th:nth-of-type(4) {
+    width: 15%;
+}
+</style>
+
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -509,7 +526,9 @@
 </tr>
 </tbody>
 </table>
+</div>
 <p>与客户端相关的目录、文件：</p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -593,6 +612,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <h3 id="公钥文件"><a href="#公钥文件" class="headerlink" title="公钥文件"></a>公钥文件</h3><p>每个公钥只有一行，3个字段，空格分隔：</p>
 <ul>
 <li>加密类型</li>
@@ -611,14 +631,14 @@
 <p>当下次访问相同计算机时，OpenSSH 会核对公钥，如果公钥不同，OpenSSH 会发出警告或拒绝登录，避免你受到 DNS劫持、中间人攻击。</p>
 <p>格式与授权文件有差异，不建议手工编辑。</p>
 <h4 id="删除授权的主机公钥"><a href="#删除授权的主机公钥" class="headerlink" title="删除授权的主机公钥"></a>删除授权的主机公钥</h4><p>删除 known_hosts 文件里指定服务器（比如192.168.0.100）的主机公钥的命令，可用于自动化脚本：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>不管是否命中，都会自动重新备份 known_hosts.old<br>known_hosts 文件里有格式错误的行时，删除失败，不会备份。  </p>
 </blockquote>
 <h4 id="默认自动保存主机公钥"><a href="#默认自动保存主机公钥" class="headerlink" title="默认自动保存主机公钥"></a>默认自动保存主机公钥</h4><p>在 ~/.ssh/config 里增加 StrictHostKeyChecking 选项：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host *</span><br><span class="line">        StrictHostKeyChecking no</span><br><span class="line">        UserKnownHostsFile /dev/null</span><br></pre></td></tr></table></figure>
 <p>或者在 ssh/sftp/scp 命令行里使用参数：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>先删除后再默认添加服务器主机公钥的缺点是登录时会延迟。<br>UserKnownHostsFile 是可选的，使用 /dev/null“黑洞文件”保存主机公钥。  </p>
 </blockquote>
@@ -638,7 +658,7 @@
 </ul>
 <h3 id="主备客户端"><a href="#主备客户端" class="headerlink" title="主备客户端"></a>主备客户端</h3><p>如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。</p>
 <h3 id="小权用户"><a href="#小权用户" class="headerlink" title="小权用户"></a>小权用户</h3><p>建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 /home、$HOME 的属组、权限，导致公钥认证失效。</p>
-<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">chmod og+x /home</span></span><br><span class="line"><span class="meta">$</span><span class="bash">chmod og-w <span class="variable">$HOME</span></span></span><br></pre></td></tr></table></figure></p>
+<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#chmod og+x /home</span></span><br><span class="line"><span class="variable">$chmod</span> og-w <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure></p>
 <blockquote>
 <p># 开头的行代表用 root 权限执行，$ 代表用户权限执行。</p>
 </blockquote>
@@ -651,6 +671,7 @@
 <h3 id="禁止密码认证"><a href="#禁止密码认证" class="headerlink" title="禁止密码认证"></a>禁止密码认证</h3><p>root 用户编辑 /etc/ssh/sshd_config 文件，禁止所有用户（包括 root）使用密码认证方式登录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no    # 密码认证，默认 yes</span><br><span class="line">PermitEmptyPasswords no      # 空密码登录，默认 no</span><br></pre></td></tr></table></figure></p>
 <p>使用 Match User 可让某些选项只对该用户生效，比如除了 abc 用户外，其他用户都可以用密码登录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure></p>
 <h3 id="限制root用户登录"><a href="#限制root用户登录" class="headerlink" title="限制root用户登录"></a>限制root用户登录</h3><p>/etc/ssh/sshd_config 的可选项 PermitRootLogin 可以限定 root 用户通过 ssh 的登录方式。</p>
+<div class="table-container">
 <table>
 <thead>
 <tr>
@@ -693,6 +714,7 @@
 </tr>
 </tbody>
 </table>
+</div>
 <blockquote>
 <p>OpenSSH 7.0 开始调整默认选项从 yes 到 prohibit-password（without-password 的同义且语义改良参数）。<br>PasswordAuthentication 的优先级比 PermitRootLogin 高。</p>
 </blockquote>
@@ -734,7 +756,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/10/02/hello-world/" rel="next" title="Hello World">
+              <a href="/posts/4a17b156.html" rel="next" title="Hello World">
                 <i class="fa fa-chevron-left"></i> Hello World
               </a>
             
