@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不">
+<meta name="description" content="SSH PubkeyAuthentication  “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root">
 <meta name="keywords" content="ssh,公钥,互信">
 <meta property="og:type" content="article">
 <meta property="og:title" content="SSH公钥认证登录">
 <meta property="og:url" content="https://oicu.github.io/posts/45030.html">
 <meta property="og:site_name" content="Oh! I see you!">
-<meta property="og:description" content="SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不">
+<meta property="og:description" content="SSH PubkeyAuthentication  “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-10-05T19:45:18.540Z">
+<meta property="og:updated_time" content="2018-10-06T04:57:04.414Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SSH公钥认证登录">
-<meta name="twitter:description" content="SSH PubkeyAuthentication  作者: oicu “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不">
+<meta name="twitter:description" content="SSH PubkeyAuthentication  “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root">
 
 
 
@@ -268,7 +268,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="oicu">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -408,7 +408,6 @@
         <blockquote>
 <p>SSH PubkeyAuthentication</p>
 </blockquote>
-<p>作者: <a href="https://oicu.github.io/">oicu</a></p>
 <p><strong>“互信”只是公钥认证的一个特例。</strong> 2台服务器相互使用公钥认证登录，才叫互信。</p>
 <p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
 <h1 id="由谁操作"><a href="#由谁操作" class="headerlink" title="由谁操作"></a>由谁操作</h1><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
@@ -818,6 +817,30 @@ table th:nth-of-type(4) {
     
 
     
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>「土豪，请留步~」</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="oicu 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
 
     
       <div>
@@ -937,6 +960,10 @@ table th:nth-of-type(4) {
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="oicu" />
             
               <p class="site-author-name" itemprop="name">oicu</p>
               <p class="site-description motion-element" itemprop="description"></p>
