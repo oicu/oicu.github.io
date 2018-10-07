@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /about/
+Allow: /archives/
+Allow: /categories/
+Allow: /tags/
+Allow: /posts/
+Disallow: /images/
+Disallow: /js/
+Disallow: /css/
+Disallow: /fonts/
+Disallow: /lib/
+
+Sitemap: https://oicu.github.io/sitemap.xml
