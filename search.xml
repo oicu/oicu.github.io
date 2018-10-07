@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[Hello World]]></title>
+    <url>%2Fposts%2F4a17b156.html</url>
+    <content type="text"><![CDATA[Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick StartCreate a new post1$ hexo new "My New Post" More info: Writing Run server1$ hexo server More info: Server Generate static files1$ hexo generate More info: Generating Deploy to remote sites1$ hexo deploy More info: Deployment]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>Hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[SSH公钥认证登录]]></title>
+    <url>%2Fposts%2F45030.html</url>
+    <content type="text"><![CDATA[SSH PubkeyAuthentication “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。 管理公钥认证就如管理密码一样，需要绝对清楚各个系统之间的交互关系。 生成密钥对 带 .pub 结尾的是公钥，可以任意公开。不带 .pub 结尾的是私钥，可设置私钥的密码，私钥不能泄露。服务器之间的公钥认证，如果设置私钥密码，当服务器系统重启后需要人工处理才能正常使用。主机密钥对与用户密钥对生成方法一样，只是文件名、保存位置、用户属组不同。 RSA密钥对登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：1ssh-keygen -t rsa -b 2048 按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：12~/.ssh/id_rsa~/.ssh/id_rsa.pub ed25519密钥对OpenSSH 6.5 之后的版本支持新的 ed25519 加密算法，可代替 RSA 算法。 登录服务器 A 的用户 user1，生成非对称加密 ed25519 密钥对，无需指定密钥长度： 1ssh-keygen -t ed25519 按照提示一直按回车，将会在 ~/.ssh 目录下生成 2 个文件：12~/.ssh/id_ed25519~/.ssh/id_ed25519.pub 授权公钥通俗的解释：授权公钥的过程就相当于录入指纹！ 把 user1@A 的公钥添加到 user2@B 的 ~/.ssh/authorized_keys 授权文件里，user1@A 即可免密码登录 user2@B。 使用ssh-copy-id登录服务器 A 的 user1 用户操作。 Linux/UnixLinux 服务器默认有 ssh-copy-id 命令，AIX 服务器的 ssh 版本低，没有该命令。 -i 参数后指定的是用户公钥。用户公钥和用户私钥需在同一目录。 1ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2 端口不是22时需要用以下这种写法：1ssh-copy-id -i ~/.ssh/id_rsa.pub 'user2@192.168.1.2 -p 22' MacOSXMac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。12curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-idchmod +x /usr/local/bin/ssh-copy-id or1brew install ssh-copy-id 手动编辑（不推荐）登录服务器 B 的 user2 用户操作。 首先把 user1@A 的公钥传输到 user2@B 的某一个目录下。 如果没有 ~/.ssh 目录则需新建。 12345[ ! -d ~/.ssh ] &amp;&amp; mkdir ~/.sshchmod 700 ~/.sshcat ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keysrm ~/yourname.pubchmod 600 ~/.ssh/authorized_keys 管道操作登录服务器 A 的 user1 用户操作。 12cat ~/.ssh/id_rsa.pub | \ssh user2@192.168.1.2 "umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys" 或者12ssh user2@192.168.1.2 '(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \cat &gt;&gt; ~/.ssh/authorized_keys' &lt; ~/.ssh/id_rsa.pub 检查授权登录服务器 B 的 user2 用户操作。 检查目录权限是否为700：1ls -ld ~/.ssh 检查授权文件的权限是否为600：1ls -l ~/.ssh/authorized_keys 检查授权文件的内容，每个公钥应该只占 1 行：1cat -n ~/.ssh/authorized_keys 检查用户主目录的权限是否为700/755：1ls -ld $HOME SSH原理默认配置文件与服务端相关的目录、文件： table th:nth-of-type(1) { width: 20%; } table th:nth-of-type(2) { width: 25%; } table th:nth-of-type(3) { width: 15%; } table th:nth-of-type(4) { width: 15%; } 目录 文件名 用户属组 权限 备注 /etc/ssh - root 755 ::: sshd_config root 644 服务器全局设置 ::: ssh_host_ecdsa_key root 600 主机ecdsa私钥 ::: ssh_host_ecdsa_key.pub root 644 主机ecdsa公钥 ::: ssh_host_ed25519_key root 600 主机ed25519私钥，可与rsa同时启用，可选 ::: ssh_host_ed25519_key.pub root 644 主机ed25519公钥，可选 ::: ssh_host_rsa_key root 600 主机rsa私钥 ::: ssh_host_rsa_key.pub root 644 主机rsa公钥 ::: ssh_host_dsa_key root 600 主机dsa私钥，安全原因，OpenSSH 7.0弃用 ::: ssh_host_dsa_key.pub root 644 主机dsa公钥，弃用 ::: ssh_host_key root 600 主机rsa私钥，SSH1协议使用 ::: ssh_host_key.pub root 644 主机rsa公钥，SSH1协议使用 ~/.ssh - 对应用户 700 ::: authorized_keys 对应用户 600 授权文件，保存其他服务器的用户公钥 ::: id_dsa - - 无效文件 ::: id_dsa.pub - - 无效文件 /home - root 755 $HOME - 对应用户 700/755 Linux系统，除 root 用户 与客户端相关的目录、文件： 目录 文件名 用户属组 权限 备注 /etc/ssh - root 755 ::: ssh_config root 644 客户端全局设置 ::: ssh_known_hosts root 644 全局授权主机列表，可选 ~/.ssh - 对应用户 700 ::: config 对应用户 600 用户配置 ::: id_rsa 对应用户 600 用户rsa私钥 ::: id_rsa.pub 对应用户 644 用户rsa公钥 ::: id_ed25519 对应用户 600 用户ed25519私钥，可选 ::: id_ed25519.pub 对应用户 644 用户ed25519公钥，可选 ::: known_hosts 对应用户 644 授权主机列表，保存其他服务器的主机公钥 公钥文件每个公钥只有一行，3个字段，空格分隔： 加密类型 公钥内容 备注 公钥文件扩展名常用 .pub公钥内容的加密类型要用小写，比如 ssh-rsa、ssh-ed25519备注常用个人邮箱、用户名@主机名、用户名@IP 授权文件authorized_keys 文件用于 SSH 服务端！ 服务器一般不保留用户公钥 .pub 文件，需要用额外方式登记各系统之间的授权关系。 授权登录服务器的用户公钥都全部记录到 authorized_keys 文件里，每个用户公钥一行。 从服务器上每个受影响的 authorized_keys 文件移除对应的用户公钥即可撤销登录权限。 授权主机列表known_hosts 文件用于 SSH 客户端！ 当前用户登录过的服务器的主机公钥全部记录到 known_hosts 文件，每个主机公钥一行。 当下次访问相同计算机时，OpenSSH 会核对公钥，如果公钥不同，OpenSSH 会发出警告或拒绝登录，避免你受到 DNS劫持、中间人攻击。 格式与授权文件有差异，不建议手工编辑。 删除授权的主机公钥删除 known_hosts 文件里指定服务器（比如192.168.0.100）的主机公钥的命令，可用于自动化脚本： 1ssh-keygen -R 192.168.0.100 2&gt;/dev/null 不管是否命中，都会自动重新备份 known_hosts.oldknown_hosts 文件里有格式错误的行时，删除失败，不会备份。 默认自动保存主机公钥在 ~/.ssh/config 里增加 StrictHostKeyChecking 选项： 123Host * StrictHostKeyChecking no UserKnownHostsFile /dev/null 或者在 ssh/sftp/scp 命令行里使用参数： 123ssh -o StrictHostKeyChecking=no \ -o UserKnownHostsFile=/dev/null \ user@example.com 先删除后再默认添加服务器主机公钥的缺点是登录时会延迟。UserKnownHostsFile 是可选的，使用 /dev/null“黑洞文件”保存主机公钥。 常见问题访问关系user1@A 要登录 user2@B、user3@C、user4@D，那么 user1 的用户公钥需要全部存放到 B、C、D 对应的用户的授权文件里。 user2@B、user3@C、user4@D 都要登录 user1@A，那么 user2、user3、user4 的用户公钥都需要存放到 user1 的授权文件里。 多节点服务器多台服务器，使用 DMZ / NAT / HA 等技术对外使用同一个 IP 或者域名提供服务，当服务器切换后，由于目标服务器的主机公钥变化，构造人为的中间人攻击模型，客户端验证 known_hosts 失败并拒绝登录。 解决办法有以下几个，任选其一： 服务器复用主机密钥对，即 /etc/ssh/ 目录里的配置保存一致。 客户端每次都删除 known_hosts 里的主机公钥，登录时重新记录。 客户端不使用浮动的 IP 访问服务器，而是使用各台服务器私有的 IP 访问。需要通过其他方式判断服务器集群活动的主节点，故不推荐该法。 系统克隆克隆虚拟机会有安全问题，比如 user1@A 公钥认证登录 user2@B，B 系统克隆得到 C，那么 user1@A 可以公钥认证登录 user2@C。 无密钥复用的特殊要求时候，一般建议克隆虚拟机、系统磁盘后重新生成主机密钥对。 删除所有用户的 .ssh 目录。 主备客户端如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。 小权用户建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 /home、$HOME 的属组、权限，导致公钥认证失效。 不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：12#chmod og+x /home$chmod og-w $HOME # 开头的行代表用 root 权限执行，$ 代表用户权限执行。 密码有效期 用户密码设置有效期，到期后也无法用公钥认证登录。 非 root 用户公钥认证登录后无法更改用户密码，拥有密码即拥有当前用户的最高权限。 公钥认证登录时，用私钥密码代替用户密码，私钥密码可随时修改。 更改用户密码、私钥密码都不影响别的公钥认证登录。 禁止密码认证root 用户编辑 /etc/ssh/sshd_config 文件，禁止所有用户（包括 root）使用密码认证方式登录：12PasswordAuthentication no # 密码认证，默认 yesPermitEmptyPasswords no # 空密码登录，默认 no 使用 Match User 可让某些选项只对该用户生效，比如除了 abc 用户外，其他用户都可以用密码登录：1234PasswordAuthentication yesMatch User abc PasswordAuthentication no 限制root用户登录/etc/ssh/sshd_config 的可选项 PermitRootLogin 可以限定 root 用户通过 ssh 的登录方式。 参数类别 是否允许ssh登陆 登录方式 交互shell yes 允许 没有限制 没有限制 without-password 允许 除密码以外 没有限制 forced-commands-only 允许 仅允许使用密钥 仅允许已授权的命令 no 不允许 N/A N/A prohibit-password 允许 除密码以外 没有限制 OpenSSH 7.0 开始调整默认选项从 yes 到 prohibit-password（without-password 的同义且语义改良参数）。PasswordAuthentication 的优先级比 PermitRootLogin 高。 禁止用户登录/etc/ssh/sshd_config 的可选项 AllowUsers 和 Denyusers 可设置用户白名单、黑名单。 除了可以禁止某个用户登录，还可以针对固定的 IP 进行禁止登录。/etc/hosts.allow 和 /etc/hosts.deny 可设置允许访问 sshd 进程 IP 列表。 在 /etc/passwd 里设置 /sbin/nologin 禁止某用户登录，即使用 root 用户 su 命令切换用户也无法登陆。 被禁止的用户或 IP 地址，密码认证、公钥认证都无法登录。 只允许sftp登录authorized_keys方式在 authorized_keys 授权文件的公钥开头写上允许使用的命令，只适用于公钥认证。 用户可自己修改授权文件时，权限管控不严格。禁用密码认证并采用C A 扩展，效果好一点。 1command=&quot;internal-sftp&quot; ssh-rsa AAAAB3NzaC1yc2EAAAADA... sshd_config方式严格的权限管控需要由 root 用户更改 sshd_config 文件，用公钥认证或密码认证都无法 ssh 登录。 123456#Subsystem sftp /usr/libexec/openssh/sftp-serverSubsystem sftp internal-sftpMatch User user1 ChrootDirectory /home ForceCommand internal-sftp CA扩展OpenSSH 5.4 以上版本支持 CA 扩展，客户端、服务器需要同时支持才可用。 大量的服务器需要使用公钥认证登录 user1@A 时，可使用 CA 证书认证。 用户认证的基本流程是：用一台服务器 C（也可以是 A 本身）的一个私钥，对客户端的用户公钥签名，user1@A 的授权文件里只需保存 C 的一个签名公钥。]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>OpenSSH</category>
+      </categories>
+      <tags>
+        <tag>ssh</tag>
+        <tag>公钥</tag>
+        <tag>互信</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Xlight FTP Server最新版破解方式]]></title>
+    <url>%2Fposts%2F9ecaf4f0.html</url>
+    <content type="text"><![CDATA[官方30天全功能试用，思路就是无限试用。 实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 %WINDIR%\Temp 目录仔细观察，只能告诉这么多了。]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>sftp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[破解ExcelMailer邮件群发工具]]></title>
+    <url>%2Fposts%2Fb5bc6bba.html</url>
+    <content type="text"><![CDATA[其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。 不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。 氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附件），比如 ExcelMailer 这个 Excel 插件，含有拆分数据和邮件群发的功能，刚好满足 OL 们的基本需求。 ExcelMailer 授权费￥100，未授权的时候，发送邮件会带尾巴广告。瞅了一眼程序的dll文件，看到了作者的数据库密码（生日）等信息，也知道它读取注册表哪个位置检查PassCode授权码，对于糙快猛理念的我，破解它的注册机制太tmd麻烦了，直接去掉尾巴内容不就完事。 ExcelMailer v3.8.1.8 版本，破解去掉邮件尾巴信息： 用二进制编辑器打开 ExcelMailer.dll 跳转到地址 001DDE80，把第一个 3B 20 替换为 00 00，即131 0A 00 0A 00 3B 20 3B 20 3B 20 变成131 0A 00 0A 00 00 00 3B 20 3B 20 测试1秒间隔，发送了94封邮件，都正常发出。]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>mail</tag>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[解除VMware Horizon Client客户端驱动器重定向的只读限制]]></title>
+    <url>%2Fposts%2F32014289.html</url>
+    <content type="text"><![CDATA[虽然虚拟桌面的管理员在域控里配置了只读限制，但是解除限制太过简单了，去VMWare官方官网搜索 Configure Client Drive Redirection 相关信息可参考。 当然没这么简单，官网答案只能解除第一层限制，还有第二层呢，具体实现方式暂时不便于公开。]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>虚拟桌面</tag>
+        <tag>破解</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[皇帝的新装——如何绕过深信服VSP防泄密安全桌面]]></title>
+    <url>%2Fposts%2Fb3197d94.html</url>
+    <content type="text"><![CDATA[做项目的时候，总会遇到一些视数据为生命的甲方，各种加密限制，各种网络隔离，与操作系统、其他软件还各种兼容性问题，给工作带来很大不便，比如亿赛通、深信服VSP安全桌面等，在我看来就如皇帝的新装，绕过限制只是分分钟的事情。 深信服VSP安全桌面这个产品在政府部门使用得比较多，属于XP时代的产品吧，用过这么多软件，没见过这么烂的软件，用户体验、兼容性令人嗤之以鼻，当下Windows 10当道，VSP还不支持…… 言归正传，因为我的环境很多，各种操作系统，使用VSP过程中总能发现一些“奇怪”现象，比如： Administrator用户可以同时在本地桌面和安全桌面打开IE等多标签的程序，但User用户则不行； IE代理有时候无法修改，始终被VSP劫持，导致无法添加例外地址； 飞鸽、飞信、内网通等多种局域网通讯工具，有时候能从VSP安全桌面里发送消息到本地桌面，但无法传文件； …… 根据各种迹象，我构想出系统层、网络层、中间人、跳转、中转、提权、软件层、服务层、共享内存等多种绕过限制的模式，并验证了几种方式均成功，花式狂虐VSP。 系统层，如果你是Windows Server系统，可以多用户登录，在VSP安全桌面里，mstsc远程登录127.0.0.2到另一个用户，剩下的我不多说。如果没有Server系统，破解Windows XP、Windows7-10全系列操作系统变成多用户登录也是很简单的事。 中转，如果有一台服务器，能在本地桌面和VSP安全桌面同时访问，那么在VSP安全桌面里把数据传输到该服务器，然后本地桌面再从服务器下载。 网络、软件、服务层，前面不是提到局域网通讯工具能从VSP安全桌面里发送消息到本地桌面么？那可以在安全桌面里启动http、ftp服务提供下载么？答案是不行。但反过来呢？哈哈……在本地桌面搭建FTP等文件服务，在VSP安全桌面里使用FTP客户端连接127.0.0.1即可传文件。熟悉操作系统及网络的同学都知道电脑有个lo网卡，有IPv6地址，出去的网卡只有一个，利用回环或者IPv6隧道的特性绕过VSP的沙盒~ 中间人的方式较为复杂，不推荐，无非就是iptables、3proxy代理、burp等工具做一些DNAT、SNAT，就不多言。乌云上有一篇利用中间人绕过VSP限制的帖子《看我如何利用burp大法绕过深信服SSL VPN访问权限控制》，原文没有了，这里有个暂存的 https://www.secpulse.com/archives/50144.html 网址，但是这个方式太过复杂了，本机环境无法完成，普通用户难以复制。 提权，VSP可以配置提供下载安全桌面里文件的权限，解决思路是“破解”，有简单的方式能绕过，就不搞这些费心思的事情了。 最容易实现的是方法3，练手写个 python 脚本搭建只能本机连接的匿名 FTP 服务器，在本地桌面运行脚本启动服务后，在 VSP 安全桌面里用 IE 或者资源管理器打开 ftp://127.0.0.1 即可传文件： 123456789101112131415161718#!/usr/bin/env python# -*- coding: gb18030 -*-########################################## Usage: python FtpServer.py# Author: oicu# Required: pip install pyftpdlib#########################################from pyftpdlib.authorizers import DummyAuthorizerfrom pyftpdlib.handlers import FTPHandlerfrom pyftpdlib.servers import FTPServerauthorizer = DummyAuthorizer()authorizer.add_anonymous('C:/pub', perm='elradfmwMT')handler = FTPHandlerhandler.authorizer = authorizerserver = FTPServer(('127.0.0.1', 21), handler)server.serve_forever()]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[AIX系统用shell取前一天日期]]></title>
+    <url>%2Fposts%2Fc51bd946.html</url>
+    <content type="text"><![CDATA[写这篇博文原因是同事被新浪博客的一篇文章误导了。前年我也看过那篇文章，当时碰巧发现了问题，但只是自己在电脑上做了笔记，为了不让更多人被误导，在此写一文。 这篇误导大众的文章是：http://blog.sina.com.cn/s/blog_541a3cf10101expx.html文章内取AIX系统前一天日期的命令 TZ=aaa24 date +%Y%m%d 是错误的！小时数为 0~7 点时，得到的是大前天的日期。我估计作者早上都在睡觉的吧，晚上的特例没错误就当标准了。 正确用法是： AIX里取前一天的日期，16是由（24×1-8）获得TZ=BEIST+16 date +%Y%m%d AIX里取前两天的日期，40是由（24×2-8）获得TZ=BEIST+40 date +%Y%m%d AIX里取下一天的日期，32是由（24×1+8）获得，注意2个地方的正负号。TZ=BEIST-32 date +%Y%m%d 前N天12X=24*N-8TZ=BEIST+X 下N天12Y=24*N+8TZ=BEIST-Y]]></content>
+      <categories>
+        <category>Batch</category>
+      </categories>
+      <tags>
+        <tag>AIX</tag>
+        <tag>shell</tag>
+        <tag>date</tag>
+      </tags>
+  </entry>
+</search>
