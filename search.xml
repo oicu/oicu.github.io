@@ -47,9 +47,9 @@
         <category>Excel</category>
       </categories>
       <tags>
+        <tag>Excel</tag>
         <tag>破解</tag>
         <tag>mail</tag>
-        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -60,8 +60,8 @@
         <category>Software</category>
       </categories>
       <tags>
-        <tag>虚拟桌面</tag>
         <tag>破解</tag>
+        <tag>虚拟桌面</tag>
       </tags>
   </entry>
   <entry>
@@ -86,6 +86,42 @@
         <tag>AIX</tag>
         <tag>shell</tag>
         <tag>date</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Excel分类汇总的多种方式]]></title>
+    <url>%2Fposts%2Feeb65806.html</url>
+    <content type="text"><![CDATA[原文链接：http://www.newsmth.net/bbstcon.php?board=OfficeSoft&amp;gid=111331 其实这篇回复在2015年9月，时间很久远了，看到blog文章太少弄来充数。 一说到处理Excel数据，根据某列的分类汇总计算，往往初学者都首先想到公式，其实公式是最不明智的选择，首先应该考虑的是透视表和分类汇总功能。 问题：发信人: xinwo (六爻占卜), 信区: OfficeSoft标 题: excel中如何把很多行中某一列信息相同的行提取出来同时对某一列发信站: 水木社区 (Thu Sep 10 08:40:35 2015), 站内 Type value size A 5 1 B 4 3 A 3 4 C 6 6 如何把type里相同的行，比如都等于A的两行，所对应的value相加，即第一行的5和第三行的3加起来？怎么用公式啊？ 解答： 法1：标题行添加筛选，然后排序A列，数据-分类汇总。 法2：透视表 法3：公式 D2=IF(COUNTIF(A$1:A2,A2)&gt;1,&quot;&quot;,SUMIF(A:A,A2,B:B)) 往下填充 法4：SQL 法5：另存为csv文件，用awk脚本处理1awk -F ',' 'NR&gt;1&#123;a[$1]+=$2&#125; END&#123;for(i in a)printf "%s %d\n",i,a[i]&#125;' a.csv 法6：VBA（略）]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+        <tag>汇总</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Excel根据条件找到最大值]]></title>
+    <url>%2Fposts%2F2083236c.html</url>
+    <content type="text"><![CDATA[久没更新blog，来一篇证明我还在。 发信人: CiJianSN (此间少年), 信区: OfficeSoft标 题: 问个excel的函数根据一列去找最大值发信站: 水木社区 (Fri Jun 9 12:27:22 2017), 站内 表格大概这样 姓名 科目 成绩 张三 数学 90 李四 英语 75 张三 数学 81 王二 数学 36 大妞 数学 45 三胖 语文 75 大妞 语文 87 王二 数学 65 老王 英语 98 张三 数学 78 王二 语文 74 大妞 数学 75 李萍 语文 45 张三 语文 87 张三 英语 45 张三 语文 66 李四 英语 98 张三 英语 98 要求找出第一列 每个人、每个科目 出现的最高分，这个函数怎么写？ 比如张三的数学成绩中 90 最高，就获得这样的列表 姓名 科目 最高分 张三 数学 90 发信人: oicu (Oh! I see you!), 信区: OfficeSoft标 题: Re: 问个excel的函数根据一列去找最大值发信站: 水木社区 (Sat Jun 10 21:41:33 2017), 站内 写个毛线公式。鄙人最不想用的方式就是公式。 法一：透视表，最大值。 法二：自定义3级排序，其中成绩降序，删除重复项，完工。推荐！ 法三：如果想不开，非要用公式……{=LARGE(IF($A$2:$A$19&amp;$B$2:$B$19=A2&amp;B2,$C$2:$C$19,0),1)}或者{=MAX(IF(($A$2:$A$19=A2)*($B$2:$B$19=B2),$C$2:$C$19))}然后填充。]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[在AIX系统安装svn客户端]]></title>
+    <url>%2Fposts%2F1997d5d0.html</url>
+    <content type="text"><![CDATA[某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。 首先，解决 VisualSVN 的 SSL 证书问题：http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/否则使用 svn 命令时不能永久保存证书，每次使用 svn 命令都会提示或奔溃。 在 Linux 和 Windows 安装 svn 客户端都简单，但在 AIX 上就稍微麻烦点，由于同一个系统里有多个用户，编译这种麻烦事肯定是排除的，优先考虑使用 rpm 安装。 由于低版本的 svn 客户端 checkout 之后，在本地每个文件夹都生成 .svn 隐藏目录，svn 1.7 及之后的版本在本地的 working copy 只有根目录有一个 .svn 目录，取代以前的所有的目录下都有 .svn 目录的方式。因此推荐使用 subversion 1.7 之后的版本。 AIX 系统用的 rpm 包可以从以下网站获取：http://www.oss4aix.org/download/RPMS/subversion/http://www.perzl.org/aix/index.php?n=Main.Subversionftp://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/subversion/http://www.bullfreeware.com/ ibm 网站提供的 svn 版本较新，但是不能使用 http/https 访问 VisualSVN 服务器的库，排除！perzl 网站是 svn 官网推荐的 Windows 编译版本，但版本较旧，截止发文，最新的只有 v1.8.5-1。oss4aix 网站的版本比 prezl 的新一点，我最终选用的是 subversion-1.8.10-2.aix5.3.ppc.rpm 这个包。未测试 bullfreeware 网站的包。 依赖关系（Package dependencies）：prezl 及 bullfreeware 网站列有依赖关系供参考，每个版本的 subversion 依赖都不一样，根据具体来安装。依赖包不用安装太新的，满足最低要求即可！否则一个依赖一个，装个没完。svn 1.8 之前的版本使用 http/https 访问需要安装 neon 依赖，1.8 及之后版本弃用 neon 而改使用 serf。serf 的版本越新越好，旧版本可能处理 SSL 证书会有问题，我选用 oss4aix 网站的 serf-1.2.1-2.aix5.1.ppc.rpm 因为只是安装客户端，如果提示要依赖 httpd（ibm 网站的版本要），使用 --nodeps 参数：1rpm -ivh --nodeps subversion-1.8.10-2.aix5.3.ppc.rpm 我所用的 AIX 7.1 系统并没有使用 UTF-8 编码！使用 svn 客户端遇到中文文件名无法检出，处理方法为（不推荐）：12export LC_ALL=export LC_CTYPE=&quot;Zh_CN.GB18030&quot; 用 locale 命令查看，把其他 LC_* 环境变量设置为 C 或者 en_US。不要设置 LANG 这个环境变量！ rpm -qa 查看已经安装的包：123456789101112131415161718zlib-1.2.8-1file-5.28-1libgcc-4.5.4-1apr-1.5.2-2apr-util-1.5.4-1file-libs-5.28-1gettext-0.19.7-1expat-2.1.0-1sqlite-3.9.2.0-1db4-4.7.25-2openssl-1.0.1t-1serf-1.2.1-2libiconv-1.14-2info-5.2-1readline-6.3-5subversion-1.8.10-2python-2.7.5-1gdbm-1.8.3-5 对应的 rpm 包是：123456789101112131415161718apr-1.5.2-2.aix5.2.ppc.rpmapr-util-1.5.4-1.aix5.1.ppc.rpmdb4-4.7.25-2.aix5.1.ppc.rpmexpat-2.1.0-1.aix5.1.ppc.rpmfile-5.28-1.aix5.1.ppc.rpmfile-libs-5.28-1.aix5.1.ppc.rpmgettext-0.19.7-1.aix6.1.ppc.rpminfo-5.2-1.aix5.1.ppc.rpmlibgcc-4.5.4-1.aix7.1.ppc.rpmlibiconv-1.14-2.aix5.1.ppc.rpmopenssl-1.0.1t-1.aix5.1.ppc.rpmreadline-6.3-5.aix5.1.ppc.rpmserf-1.2.1-2.aix5.1.ppc.rpmsqlite-3.9.2.0-1.aix5.1.ppc.rpmsubversion-1.8.10-2.aix5.3.ppc.rpmzlib-1.2.8-1.aix6.1.ppc.rpmpython-2.7.5-1.aix6.1.ppc.rpmgdbm-1.8.3-5.aix5.2.ppc.rpm 特别注意 libgcc 这个包对应的版本！我尝试装其他版本都不行，只好装这个 aix7.1 的。 如果没设置 LIBPATH 变量，或虽然设置了但所有动态库路径里都不产生库版本冲突时，svn可正常运行。检查动态库是否有冲突：ldd /usr/bin/svn有冲突需要修改程序运行时查找动态库的路径顺序，/opt/freeware/lib 顺序必须在前LIBPATH=/opt/freeware/lib:$LIBPATHexport 这个设置放到 .profile 里的话，可能会影响编译或者其他程序的运行。 由于在 .profile 里更改全局环境变量 LC_CTYPE 会带来其他影响，建议创建一个脚本先修改 LIBPATH（不能export），并 alias svn 为这个脚本，顺便解决中文文件名、中文备注乱码的问题。12345#!/bin/sh# Author: oicu# Usage: alias svn='/opt/freeware/bin/svn.sh'LIBPATH=/opt/freeware/lib:$LIBPATHenv LC_CTYPE=zh_CN /opt/freeware/bin/svn "$@" locale 命令查看环境的变量设置为：12345678LANG=en_USLC_COLLATE=&quot;en_US&quot;LC_CTYPE=&quot;en_US&quot;LC_MONETARY=&quot;en_US&quot;LC_NUMERIC=&quot;en_US&quot;LC_TIME=&quot;en_US&quot;LC_MESSAGES=&quot;en_US&quot;LC_ALL=]]></content>
+      <categories>
+        <category>Software</category>
+        <category>svn</category>
+      </categories>
+      <tags>
+        <tag>svn</tag>
+        <tag>AIX</tag>
       </tags>
   </entry>
 </search>
