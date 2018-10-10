@@ -60,8 +60,8 @@
         <category>Software</category>
       </categories>
       <tags>
-        <tag>破解</tag>
         <tag>虚拟桌面</tag>
+        <tag>破解</tag>
       </tags>
   </entry>
   <entry>
@@ -163,6 +163,17 @@
       </categories>
       <tags>
         <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[AIX、Linux、Windows计算文件MD5、SHA1哈希校验码]]></title>
+    <url>%2Fposts%2Fb8c9236b.html</url>
+    <content type="text"><![CDATA[MD5文件格式常用文件校验码是 crc、md5、sha1、sha256，本文以最简单的 md5 为例（虽然过时了）。文件校验码只和文件内容有关，不因文件名、修改时间戳的变化而变化。如果FTP跨平台传输文本文件，一定要选择bin模式，不然该文本文件的md5校验会失败。md5文件的扩展名没有强制规定，但建议使用 .md5 或者 .txt 扩展名。一个md5文件可包括多行。如果手动编写md5文件，那么 md5 值与文件名之间只能 1 到 2 个空格。md5文件格式：1&lt;md5校验码&gt;&lt;空格&gt;&lt;空格或*符号&gt;&lt;文件名或绝对路径、相对路径&gt;一个md5文件对应一个文件的格式示例：1582ff16e322241cc6157cf70378a3dec abc.tar.gz一个md5文件对应多个文件的格式示例：1261b06996a32bc1c40c7393648fe55fb2 def.zip072550c6cf640100a35a68e8cde7afb8 ghi.zip在 Windows 系统用 git-bash 里的 md5sum 命令创建的文件格式示例：15b895d01cbd357162df92f33603ca7a8 *abc.zipAIXAIX系统计算文件md5或者sha1的命令是 csum1234567csum filename #默认使用md5算法，文件名可用通配符，生成filename的md5码，并显示csum -o md5values file1 file2 #将file1 file2 的md5码和文件名写入md5values文件。csum -i md5values #将md5values内纪录的md5值与目前生成的值进行校验。csum -h SHA1 filename #使用sha1算法，要大写！csum -h SHA1 -o sha1values file1 file2csum -h SHA1 -i sha1valuesLinuxLinux系统计算文件md5命令是 md5sum123md5sum file1 #生成file1的md5码并显示，文件名可用通配符md5sum file1 &gt;f1md5 #将file1的md5码写入f1md5文件md5sum -c f1md5 #校验f1md5文件内的md5码与目前生成的值是否匹配。Linux系统计算文件sha1命令是 sha1sum123sha1sum filenamesha1sum filename &gt;sha1filesha1sum -c sha1file参数说明：123-b, --binary 二进制模式读取，*NIX默认为二进制模式-c, --check 根据文件检查文件-t, --text 文本模式读取（默认），编译为Windows版本时才有文本模式WindowsWindows系统计算文件md5、sha1、sha256的命令是 certutil，但哈希结果带空格。123certutil -hashfile filename MD5certutil -hashfile filename SHA1certutil -hashfile filename SHA256Windows 系统下有各种语言编写的 md5 码生成器，比较小巧的如 Hash.exe建议安装 git-bash 用 md5sum 命令创建 md5 文件，尽量不要手动创建。]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+      <tags>
+        <tag>哈希</tag>
       </tags>
   </entry>
   <entry>
