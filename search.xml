@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[批处理修改无损音乐的cue文件内容]]></title>
+    <url>%2Fposts%2F7f19841a.html</url>
+    <content type="text"><![CDATA[原文链接：http://www.newsmth.net/nForum/article/DOS/21969?s=21969今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？刚好迁移了新博客，把内容转过来写吧。1234567891011发信人: coreqq (风起云涌), 信区: DOS标 题: 问个复杂点的批处理发信站: 水木社区 (Mon Jan 4 23:12:37 2010), 站内两个文件a.txt,b.txta中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，……请问如何写？以下代码保存为批处理文件，比如 convert-cue.bat123456789101112131415161718@echo off::Code by oicu#lsxk.org 2010-01-05, for cmd@Windowstype nul&gt;c.txtSETLOCAL ENABLEDELAYEDEXPANSIONFOR /F "delims=" %%a in (b.txt) do ( echo.%%a | findstr /i "Track[0-9]" &gt;NUL &amp;&amp; ( set swap=%%a set swap=!swap:Track=! FOR /F "tokens=1,2* delims=." %%i in ('type a.txt^| findstr /i "!swap!"') do ( echo. TITLE "%%j"&gt;&gt;c.txt ) ) || ( echo.%%a&gt;&gt;c.txt ))ENDLOCALgoto :eof以下就用水木网友 javame 提供的内容做示例。清单 a.txt 如下，不要有空行等多余的无关信息1234567891001.成长的岁月02.流不完的泪03.愿你莫忘记04.飘往山那边05.岁月的歌06.应该不应该07.分手08.梦儿难忘记09.请你别忘记10.舞女原 cue 文件内容如下：123456789101112131415161718192021222324252627282930313233343536373839404142434445REM DISCID 8308500AREM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;PERFORMER &quot;龙飘飘&quot;TITLE &quot;最好的龙飘飘CD2&quot;FILE &quot;CDImage2.wav&quot; WAVE TRACK 01 AUDIO TITLE &quot;Track01&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 00:00:00 TRACK 02 AUDIO TITLE &quot;Track02&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 03:55:10 TRACK 03 AUDIO TITLE &quot;Track03&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 08:14:13 TRACK 04 AUDIO TITLE &quot;Track04&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 11:41:03 TRACK 05 AUDIO TITLE &quot;Track05&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 14:25:74 TRACK 06 AUDIO TITLE &quot;Track06&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 18:40:71 TRACK 07 AUDIO TITLE &quot;Track07&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 22:22:41 TRACK 08 AUDIO TITLE &quot;Track08&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 25:55:18 TRACK 09 AUDIO TITLE &quot;Track09&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 28:47:45 TRACK 10 AUDIO TITLE &quot;Track10&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 31:49:61执行批处理后，得到新的文件 c.txt，注意 TITLE 都已经替换了。123456789101112131415161718192021222324252627282930313233343536373839404142434445REM DISCID 8308500AREM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;PERFORMER &quot;龙飘飘&quot;TITLE &quot;最好的龙飘飘CD2&quot;FILE &quot;CDImage2.wav&quot; WAVE TRACK 01 AUDIO TITLE &quot;成长的岁月&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 00:00:00 TRACK 02 AUDIO TITLE &quot;流不完的泪&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 03:55:10 TRACK 03 AUDIO TITLE &quot;愿你莫忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 08:14:13 TRACK 04 AUDIO TITLE &quot;飘往山那边&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 11:41:03 TRACK 05 AUDIO TITLE &quot;岁月的歌&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 14:25:74 TRACK 06 AUDIO TITLE &quot;应该不应该&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 18:40:71 TRACK 07 AUDIO TITLE &quot;分手&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 22:22:41 TRACK 08 AUDIO TITLE &quot;梦儿难忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 25:55:18 TRACK 09 AUDIO TITLE &quot;请你别忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 28:47:45 TRACK 10 AUDIO TITLE &quot;舞女&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 31:49:61]]></content>
+      <categories>
+        <category>Batch</category>
+      </categories>
+      <tags>
+        <tag>批处理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Hello World]]></title>
     <url>%2Fposts%2F4a17b156.html</url>
     <content type="text"><![CDATA[Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.Quick StartCreate a new post1$ hexo new "My New Post"More info: WritingRun server1$ hexo serverMore info: ServerGenerate static files1$ hexo generateMore info: GeneratingDeploy to remote sites1$ hexo deployMore info: Deployment]]></content>
@@ -60,8 +71,8 @@
         <category>Software</category>
       </categories>
       <tags>
-        <tag>虚拟桌面</tag>
         <tag>破解</tag>
+        <tag>虚拟桌面</tag>
       </tags>
   </entry>
   <entry>
@@ -194,17 +205,6 @@
       <tags>
         <tag>VPN</tag>
         <tag>ssh</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title><![CDATA[批处理修改无损音乐的cue文件内容]]></title>
-    <url>%2Fposts%2F7f19841a.html</url>
-    <content type="text"><![CDATA[原文链接：http://www.newsmth.net/nForum/article/DOS/21969?s=21969今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？刚好迁移了新博客，把内容转过来写吧。1234567891011发信人: coreqq (风起云涌), 信区: DOS标 题: 问个复杂点的批处理发信站: 水木社区 (Mon Jan 4 23:12:37 2010), 站内两个文件a.txt,b.txta中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，……请问如何写？以下代码保存为批处理文件，比如 convert-cue.bat123456789101112131415161718@echo off::Code by oicu#lsxk.org 2010-01-05, for cmd@Windowstype nul&gt;c.txtSETLOCAL ENABLEDELAYEDEXPANSIONFOR /F "delims=" %%a in (b.txt) do ( echo.%%a | findstr /i "Track[0-9]" &gt;NUL &amp;&amp; ( set swap=%%a set swap=!swap:Track=! FOR /F "tokens=1,2* delims=." %%i in ('type a.txt^| findstr /i "!swap!"') do ( echo. TITLE "%%j"&gt;&gt;c.txt ) ) || ( echo.%%a&gt;&gt;c.txt ))ENDLOCALgoto :eof以下就用水木网友 javame 提供的内容做示例。清单 a.txt 如下，不要有空行等多余的无关信息1234567891001.成长的岁月02.流不完的泪03.愿你莫忘记04.飘往山那边05.岁月的歌06.应该不应该07.分手08.梦儿难忘记09.请你别忘记10.舞女原 cue 文件内容如下：123456789101112131415161718192021222324252627282930313233343536373839404142434445REM DISCID 8308500AREM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;PERFORMER &quot;龙飘飘&quot;TITLE &quot;最好的龙飘飘CD2&quot;FILE &quot;CDImage2.wav&quot; WAVE TRACK 01 AUDIO TITLE &quot;Track01&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 00:00:00 TRACK 02 AUDIO TITLE &quot;Track02&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 03:55:10 TRACK 03 AUDIO TITLE &quot;Track03&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 08:14:13 TRACK 04 AUDIO TITLE &quot;Track04&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 11:41:03 TRACK 05 AUDIO TITLE &quot;Track05&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 14:25:74 TRACK 06 AUDIO TITLE &quot;Track06&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 18:40:71 TRACK 07 AUDIO TITLE &quot;Track07&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 22:22:41 TRACK 08 AUDIO TITLE &quot;Track08&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 25:55:18 TRACK 09 AUDIO TITLE &quot;Track09&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 28:47:45 TRACK 10 AUDIO TITLE &quot;Track10&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 31:49:61执行批处理后，得到新的文件 c.txt，注意 TITLE 都已经替换了。123456789101112131415161718192021222324252627282930313233343536373839404142434445REM DISCID 8308500AREM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;PERFORMER &quot;龙飘飘&quot;TITLE &quot;最好的龙飘飘CD2&quot;FILE &quot;CDImage2.wav&quot; WAVE TRACK 01 AUDIO TITLE &quot;成长的岁月&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 00:00:00 TRACK 02 AUDIO TITLE &quot;流不完的泪&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 03:55:10 TRACK 03 AUDIO TITLE &quot;愿你莫忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 08:14:13 TRACK 04 AUDIO TITLE &quot;飘往山那边&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 11:41:03 TRACK 05 AUDIO TITLE &quot;岁月的歌&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 14:25:74 TRACK 06 AUDIO TITLE &quot;应该不应该&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 18:40:71 TRACK 07 AUDIO TITLE &quot;分手&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 22:22:41 TRACK 08 AUDIO TITLE &quot;梦儿难忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 25:55:18 TRACK 09 AUDIO TITLE &quot;请你别忘记&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 28:47:45 TRACK 10 AUDIO TITLE &quot;舞女&quot; PERFORMER &quot;龙飘飘&quot; INDEX 01 31:49:61]]></content>
-      <categories>
-        <category>Batch</category>
-      </categories>
-      <tags>
-        <tag>批处理</tag>
       </tags>
   </entry>
 </search>
