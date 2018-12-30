@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://oicu.github.io/about/index.html</loc>
+    
+    <lastmod>2018-12-30T19:43:29.898Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://oicu.github.io/posts/dd913a8b.html</loc>
     
     <lastmod>2018-12-17T02:37:36.858Z</lastmod>
@@ -75,13 +82,6 @@
     <loc>https://oicu.github.io/posts/85e81d0c.html</loc>
     
     <lastmod>2018-10-18T11:31:28.765Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://oicu.github.io/about/index.html</loc>
-    
-    <lastmod>2018-10-18T11:23:18.877Z</lastmod>
     
   </url>
   
