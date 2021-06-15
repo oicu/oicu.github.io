@@ -91,8 +91,8 @@
         <category>Software</category>
       </categories>
       <tags>
-        <tag>虚拟桌面</tag>
         <tag>破解</tag>
+        <tag>虚拟桌面</tag>
       </tags>
   </entry>
   <entry>
@@ -278,7 +278,7 @@
   <entry>
     <title><![CDATA[Windows系统自带的端口映射port mapper]]></title>
     <url>%2Fposts%2F330f2b1e.html</url>
-    <content type="text"><![CDATA[VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 tcppm 和 udppm 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP/2003/Win7/2008 上都可以使用。增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：123netsh interface portproxy add v4tov4 ^listenport=6022 listenaddress=1.2.3.4 ^connectport=22 connectaddress=192.168.1.100删除端口映射：netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4查看已存在的端口映射：netsh interface portproxy show v4tov4查看端口是否已在监听：netstat -ano | find &quot;6022&quot;测试端口是否连通telnet 1.2.3.4 6022注意入站防火墙设置。]]></content>
+    <content type="text"><![CDATA[VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 tcppm 和 udppm 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP/2003/Win7/2008 上都可以使用。增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：123netsh interface portproxy add v4tov4 ^listenport=6022 listenaddress=1.2.3.4 ^connectport=22 connectaddress=192.168.1.100listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。删除端口映射：netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4查看已存在的端口映射：netsh interface portproxy show v4tov4查看端口是否已在监听：netstat -ano | find &quot;6022&quot;测试端口是否连通telnet 1.2.3.4 6022注意入站防火墙设置。]]></content>
       <categories>
         <category>Tech</category>
       </categories>
