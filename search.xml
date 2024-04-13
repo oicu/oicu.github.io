@@ -43,47 +43,6 @@
       </categories>
   </entry>
   <entry>
-    <title>利用SSH隧道让内网机器上互联网的方法</title>
-    <url>/posts/5405ba2b.html</url>
-    <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
-<p>背景是这样的：某局域网里有一台Linux机子，不能访问外网，但防火墙（路由器）留了一个可以从外网访问内网的端口（ssh或者vpn都可以）。</p>
-<p>目的：利用这个单向端口，配合外网的一台Linux主机，让内网的Linux主机可以访问外网，进一步还可以让整个局域网都能访问外网。</p>
-<span id="more"></span>
-
-<hr>
-<p>发信人: oicu (Oh! I see you!), 信区: LinuxApp<br>标  题: Re: 求让内网机器可以上互联网的方案<br>发信站: 水木社区 (Tue Jan 20 17:47:42 2015), 站内</p>
-<p>不需要反向ssh，用VPN over SSH，需要root权限。</p>
-<p>【环境】<br>outerB：Deepin 2013，eth0 192.168.1.100<br>模拟网关：Windows 7，eth0 192.168.1.101<br>innerA：CentOS 6.4，eth0 192.168.19.128</p>
-<p>【模拟VPN连入内网】<br>1、Windows7安装VMware11。<br>2、安装innerA虚拟机，用host网络模拟不能上外网。<br>3、Win7通过netsh设置端口映射到innerA，比如6022端口映射到22：</p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">101</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">19</span>.<span class="number">128</span></span><br></pre></td></tr></table></figure>
-<p>我这里实际只是模拟路由器端口映射的方式，懒得折腾VPN，只需innerA不能上网即可。</p>
-<p>【配置服务器】<br>先设置innerA的sshd_config配置：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br></pre></td></tr></table></figure>
-<p><code>/etc/init.d/sshd restart</code></p>
-<p>在outerB和innerA都安装tunctl<br><code>yum install tunctl</code><br>或者<br><code>sudo apt-get install uml-utilities</code><br>可以先sftp把包传到innerA，dpkg或者rpm安装。</p>
-<p>On the outerB:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo ssh -NTCf -w 0:1 <span class="string">&#x27;root@192.168.1.101 -p 6022&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">ip addr show tun0</span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> tun0 up</span><br><span class="line">sudo ip addr add 10.0.0.100/32 peer 10.0.0.200 dev tun0</span><br><span class="line">sudo iptables -t nat -A POSTROUTING -s 10.0.0.200/32 -o eth0 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-
-<p>On the innerA:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr show tun1</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> tun1 up</span><br><span class="line">ip addr add 10.0.0.200/32 peer 10.0.0.100 dev tun1</span><br><span class="line">ip route replace default via 10.0.0.200</span><br></pre></td></tr></table></figure>
-<p>最后这个网关ip用10.0.0.100也可～</p>
-<p>innerA可以上网了，那内网其他电脑也不成问题，innerA再加一条iptables规则：<br><code>iptables -t nat -A POSTROUTING -s 192.168.19.0/32 -o eth0 -j MASQUERADE</code><br>其他电脑把网关改为innerA的局域网IP即可，添加路由也可以。<br>这种情况当然不用考虑改路由器的设置了，要给你上网还何必有这些麻烦？</p>
-<blockquote>
-<p>【 在 oolong (乌龙茶) 的大作中提到: 】<br>所有机器都是 ubuntu linux 14.04<br>［需求］<br>一台内网的机器innerA，有固定的ip，但没有外网连接<br>一台外网的机器outerB，有固定的公网ip，通过vpn连入内网，可以ssh到innerA<br>这样的设置，有没有可能让innerA正常访问到互联网？<br>［目前解决方案］</p>
-<ol>
-<li>先建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
-<li>在innerA上建立socks<br>innerA$ ssh -NfD 3128 -p 7001 localhost</li>
-<li>使用tsocks可以上网，如果命令需要sudo，则需要使用root账号<br>方案的问题在于1.DNS，2.cron job都没法执行，比如ntp什么的<br>［尝试过但失败的sshuttle方案］</li>
-<li>建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
-<li>sshuttle<br>innerA$ sshuttle –dns -r localhost:7001 0&#x2F;0<br>这时候所有到innerA的ssh连线都断了，无法使用。奇怪的是曾经在 outerB 和<br>outerC（as innerA) 上测试过，outerC 可以完全使用outerB的网络<br>求大神指点目前情况下的解决方案！</li>
-</ol>
-</blockquote>
-]]></content>
-      <categories>
-        <category>VPN</category>
-      </categories>
-  </entry>
-  <entry>
     <title>VPN over SSH, connect two networks</title>
     <url>/posts/53cdf09b.html</url>
     <content><![CDATA[<p>Download <a href="https://github.com/oicu/vpn-over-ssh">svpn.sh</a></p>
@@ -297,6 +256,47 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
+    <title>利用SSH隧道让内网机器上互联网的方法</title>
+    <url>/posts/5405ba2b.html</url>
+    <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
+<p>背景是这样的：某局域网里有一台Linux机子，不能访问外网，但防火墙（路由器）留了一个可以从外网访问内网的端口（ssh或者vpn都可以）。</p>
+<p>目的：利用这个单向端口，配合外网的一台Linux主机，让内网的Linux主机可以访问外网，进一步还可以让整个局域网都能访问外网。</p>
+<span id="more"></span>
+
+<hr>
+<p>发信人: oicu (Oh! I see you!), 信区: LinuxApp<br>标  题: Re: 求让内网机器可以上互联网的方案<br>发信站: 水木社区 (Tue Jan 20 17:47:42 2015), 站内</p>
+<p>不需要反向ssh，用VPN over SSH，需要root权限。</p>
+<p>【环境】<br>outerB：Deepin 2013，eth0 192.168.1.100<br>模拟网关：Windows 7，eth0 192.168.1.101<br>innerA：CentOS 6.4，eth0 192.168.19.128</p>
+<p>【模拟VPN连入内网】<br>1、Windows7安装VMware11。<br>2、安装innerA虚拟机，用host网络模拟不能上外网。<br>3、Win7通过netsh设置端口映射到innerA，比如6022端口映射到22：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">101</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">19</span>.<span class="number">128</span></span><br></pre></td></tr></table></figure>
+<p>我这里实际只是模拟路由器端口映射的方式，懒得折腾VPN，只需innerA不能上网即可。</p>
+<p>【配置服务器】<br>先设置innerA的sshd_config配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br></pre></td></tr></table></figure>
+<p><code>/etc/init.d/sshd restart</code></p>
+<p>在outerB和innerA都安装tunctl<br><code>yum install tunctl</code><br>或者<br><code>sudo apt-get install uml-utilities</code><br>可以先sftp把包传到innerA，dpkg或者rpm安装。</p>
+<p>On the outerB:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo ssh -NTCf -w 0:1 <span class="string">&#x27;root@192.168.1.101 -p 6022&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">ip addr show tun0</span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> tun0 up</span><br><span class="line">sudo ip addr add 10.0.0.100/32 peer 10.0.0.200 dev tun0</span><br><span class="line">sudo iptables -t nat -A POSTROUTING -s 10.0.0.200/32 -o eth0 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<p>On the innerA:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr show tun1</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> tun1 up</span><br><span class="line">ip addr add 10.0.0.200/32 peer 10.0.0.100 dev tun1</span><br><span class="line">ip route replace default via 10.0.0.200</span><br></pre></td></tr></table></figure>
+<p>最后这个网关ip用10.0.0.100也可～</p>
+<p>innerA可以上网了，那内网其他电脑也不成问题，innerA再加一条iptables规则：<br><code>iptables -t nat -A POSTROUTING -s 192.168.19.0/32 -o eth0 -j MASQUERADE</code><br>其他电脑把网关改为innerA的局域网IP即可，添加路由也可以。<br>这种情况当然不用考虑改路由器的设置了，要给你上网还何必有这些麻烦？</p>
+<blockquote>
+<p>【 在 oolong (乌龙茶) 的大作中提到: 】<br>所有机器都是 ubuntu linux 14.04<br>［需求］<br>一台内网的机器innerA，有固定的ip，但没有外网连接<br>一台外网的机器outerB，有固定的公网ip，通过vpn连入内网，可以ssh到innerA<br>这样的设置，有没有可能让innerA正常访问到互联网？<br>［目前解决方案］</p>
+<ol>
+<li>先建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>在innerA上建立socks<br>innerA$ ssh -NfD 3128 -p 7001 localhost</li>
+<li>使用tsocks可以上网，如果命令需要sudo，则需要使用root账号<br>方案的问题在于1.DNS，2.cron job都没法执行，比如ntp什么的<br>［尝试过但失败的sshuttle方案］</li>
+<li>建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>sshuttle<br>innerA$ sshuttle –dns -r localhost:7001 0&#x2F;0<br>这时候所有到innerA的ssh连线都断了，无法使用。奇怪的是曾经在 outerB 和<br>outerC（as innerA) 上测试过，outerC 可以完全使用outerB的网络<br>求大神指点目前情况下的解决方案！</li>
+</ol>
+</blockquote>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
     <title>打车软件Uber打开后卡在U界面</title>
     <url>/posts/a5a90057.html</url>
     <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
@@ -342,6 +342,33 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
+    <title>Win7远程桌面连接提示“您的凭据不工作”的解决方法</title>
+    <url>/posts/742f0a33.html</url>
+    <content><![CDATA[<p>以前折腾过Easy Sysprep封装Ghost版本Win7镜像，也用这个镜像测试安装过几台笔记本电脑，今天恰好要在其中一台开启远程桌面，却发现其他Win7电脑怎样都远程登录不上。</p>
+<p>Ghost封装的系统稳定性差一直广受诟病，尽管是自己亲手封装的，但还是保持怀疑，现在思考是否因为Ghost系统带来的问题已经不重要，解决问题才是重点，于是开始摸索解决。</p>
+<span id="more"></span>
+<p>为了避免和以前的凭据冲突，把Win7客户端电脑里的Windows凭据全删除了，注册表里的远程桌面的历史记录也清空了，检查了远程桌面客户端设置，RD网关服务器是自动或者关闭的（没有用域和RD网关）。</p>
+<p>要远程登录的Win7服务器改了IP重启系统，确认防火墙没问题，远程桌面允许任意版本连接（为了XP能连），甚至新建了用户。</p>
+<p>结果使用Win7系统的远程桌面客户端连接这台Win7，全都提示“您的凭据不工作”，用户名和密码都是正确的啊，怎么就连接不上？</p>
+<p>到微软官网扒文，有这么个提示信息：<br><a href="http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection">http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection</a></p>
+<p>尝试更改服务器的组策略：<br>gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; 系统 -&gt; 凭据分配 -&gt; 允许分配保存的凭据用于仅NTLM服务器身份验证 -&gt; 选择“已启用” -&gt; 单击“显示”输入“TERMSRV&#x2F;*” -&gt; 运行命令 gpupdate &#x2F;force 强制更新组策略。</p>
+<p>失败。</p>
+<p>在客户端电脑先添加Windows凭据：<br>控制面板 -&gt; 凭据管理器 -&gt; 添加Windows凭据 -&gt; 输入服务器的IP地址、用户、密码。</p>
+<p>还是失败！</p>
+<p>安卓手机上安装有几个RDP远程工具，全部拿来测试，继续失败！</p>
+<p>除了这几台Win7本子，其他Windows系统就仅有虚拟机里的XP，剩下都是Linux，使用虚拟机里的XP远程登录却成功了……泪奔~</p>
+<p>继续测试，在Linux下使用Remmina客户端连接，安全选项如果使用“商协”则登录失败，指定RDP类型则登录成功，猜测是验证出的问题，只是Win7的远程桌面客户端没安全设置这个选项，只能在服务器上着手，摸索一番，在组策略里找到了。</p>
+<p><strong>Windows 7服务器修改步骤：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; Windows组件 -&gt; 远程桌面服务 -&gt;</span><br><span class="line">远程桌面会话主机 -&gt; 安全 -&gt; 远程(RDP)连接要求使用指定的安全层，启用并把安全层改为RDP。</span><br></pre></td></tr></table></figure>
+<p>另，如果是Server 2008 R2服务器设置可能不一样，看下终端服务器配置的RDP-TCP设置。</p>
+<p>再次使用Win7的远程桌面客户端连接Win7服务器，正常登录，问题解决。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2017-03-31 18:36 m15692411613</span><br><span class="line">哈哈。厉害了，找了好久的教程，终于解决了</span><br><span class="line"></span><br><span class="line">2016-06-06 11:27 zhoujiang0307</span><br><span class="line">牛逼啊大师兄，网上找了那么多方法，还是你的最后一个方法解决了，原创支持，</span><br><span class="line"></span><br><span class="line">2016-03-25 11:16 巴拿马圈圈</span><br><span class="line">卧槽，实在是太感谢了 您真是太牛逼了</span><br><span class="line"></span><br><span class="line">2015-11-24 09:35 windless</span><br><span class="line">用最后的方法解决了!!!</span><br><span class="line">感谢！</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>System</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Google打不开怎么办？用nginx搭建本地Google搜索网站！</title>
     <url>/posts/5b4bdfdb.html</url>
     <content><![CDATA[<p>在国外VPS上搭建Google反向代理网站是很简单的事情，但风险是自己的VPS也可能被墙！</p>
@@ -370,30 +397,22 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
-    <title>Win7远程桌面连接提示“您的凭据不工作”的解决方法</title>
-    <url>/posts/742f0a33.html</url>
-    <content><![CDATA[<p>以前折腾过Easy Sysprep封装Ghost版本Win7镜像，也用这个镜像测试安装过几台笔记本电脑，今天恰好要在其中一台开启远程桌面，却发现其他Win7电脑怎样都远程登录不上。</p>
-<p>Ghost封装的系统稳定性差一直广受诟病，尽管是自己亲手封装的，但还是保持怀疑，现在思考是否因为Ghost系统带来的问题已经不重要，解决问题才是重点，于是开始摸索解决。</p>
+    <title>谈谈SolidWorks的后门事件</title>
+    <url>/posts/9458357e.html</url>
+    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
+<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
 <span id="more"></span>
-<p>为了避免和以前的凭据冲突，把Win7客户端电脑里的Windows凭据全删除了，注册表里的远程桌面的历史记录也清空了，检查了远程桌面客户端设置，RD网关服务器是自动或者关闭的（没有用域和RD网关）。</p>
-<p>要远程登录的Win7服务器改了IP重启系统，确认防火墙没问题，远程桌面允许任意版本连接（为了XP能连），甚至新建了用户。</p>
-<p>结果使用Win7系统的远程桌面客户端连接这台Win7，全都提示“您的凭据不工作”，用户名和密码都是正确的啊，怎么就连接不上？</p>
-<p>到微软官网扒文，有这么个提示信息：<br><a href="http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection">http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection</a></p>
-<p>尝试更改服务器的组策略：<br>gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; 系统 -&gt; 凭据分配 -&gt; 允许分配保存的凭据用于仅NTLM服务器身份验证 -&gt; 选择“已启用” -&gt; 单击“显示”输入“TERMSRV&#x2F;*” -&gt; 运行命令 gpupdate &#x2F;force 强制更新组策略。</p>
-<p>失败。</p>
-<p>在客户端电脑先添加Windows凭据：<br>控制面板 -&gt; 凭据管理器 -&gt; 添加Windows凭据 -&gt; 输入服务器的IP地址、用户、密码。</p>
-<p>还是失败！</p>
-<p>安卓手机上安装有几个RDP远程工具，全部拿来测试，继续失败！</p>
-<p>除了这几台Win7本子，其他Windows系统就仅有虚拟机里的XP，剩下都是Linux，使用虚拟机里的XP远程登录却成功了……泪奔~</p>
-<p>继续测试，在Linux下使用Remmina客户端连接，安全选项如果使用“商协”则登录失败，指定RDP类型则登录成功，猜测是验证出的问题，只是Win7的远程桌面客户端没安全设置这个选项，只能在服务器上着手，摸索一番，在组策略里找到了。</p>
-<p><strong>Windows 7服务器修改步骤：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; Windows组件 -&gt; 远程桌面服务 -&gt;</span><br><span class="line">远程桌面会话主机 -&gt; 安全 -&gt; 远程(RDP)连接要求使用指定的安全层，启用并把安全层改为RDP。</span><br></pre></td></tr></table></figure>
-<p>另，如果是Server 2008 R2服务器设置可能不一样，看下终端服务器配置的RDP-TCP设置。</p>
-<p>再次使用Win7的远程桌面客户端连接Win7服务器，正常登录，问题解决。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2017-03-31 18:36 m15692411613</span><br><span class="line">哈哈。厉害了，找了好久的教程，终于解决了</span><br><span class="line"></span><br><span class="line">2016-06-06 11:27 zhoujiang0307</span><br><span class="line">牛逼啊大师兄，网上找了那么多方法，还是你的最后一个方法解决了，原创支持，</span><br><span class="line"></span><br><span class="line">2016-03-25 11:16 巴拿马圈圈</span><br><span class="line">卧槽，实在是太感谢了 您真是太牛逼了</span><br><span class="line"></span><br><span class="line">2015-11-24 09:35 windless</span><br><span class="line">用最后的方法解决了!!!</span><br><span class="line">感谢！</span><br></pre></td></tr></table></figure>
+
+<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
+<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
+<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
+<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
+<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
+<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
+<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
 ]]></content>
       <categories>
-        <category>System</category>
+        <category>私人日志</category>
       </categories>
   </entry>
   <entry>
@@ -453,40 +472,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
-    <title>谈谈SolidWorks的后门事件</title>
-    <url>/posts/9458357e.html</url>
-    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
-<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
-<span id="more"></span>
-
-<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
-<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
-<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
-<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
-<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
-<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
-<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
-]]></content>
-      <categories>
-        <category>私人日志</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Windows 10的开始菜单打不开</title>
-    <url>/posts/85e81d0c.html</url>
-    <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
-<p>尝试网上很多方法，又是重启又是改注册表、改组策略，通通都无效！</p>
-<p>最终还是上大杀器：管理员身份运行PowerShell，输入以下一行命令进行修复。</p>
-<span id="more"></span>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-AppxPackage</span> | <span class="keyword">ForEach</span> &#123;<span class="built_in">Add-AppxPackage</span> <span class="literal">-DisableDevelopmentMode</span> <span class="literal">-Register</span> <span class="string">&quot;<span class="variable">$</span>(<span class="variable">$_</span>.InstallLocation)\AppxManifest.xml&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>System</category>
-      </categories>
-  </entry>
-  <entry>
     <title>AIX、Linux、Windows计算文件MD5、SHA1哈希校验码</title>
     <url>/posts/b8c9236b.html</url>
     <content><![CDATA[<h1 id="MD5文件格式"><a href="#MD5文件格式" class="headerlink" title="MD5文件格式"></a>MD5文件格式</h1><blockquote>
@@ -533,31 +518,19 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>用js脚本提取合并多个excel表格</title>
-    <url>/posts/f6330333.html</url>
-    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
-<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
-<blockquote>
-<p>注：用js脚本处理表格需要电脑安装有excel。</p>
-</blockquote>
+    <title>Windows 10的开始菜单打不开</title>
+    <url>/posts/85e81d0c.html</url>
+    <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
+<p>尝试网上很多方法，又是重启又是改注册表、改组策略，通通都无效！</p>
+<p>最终还是上大杀器：管理员身份运行PowerShell，输入以下一行命令进行修复。</p>
 <span id="more"></span>
 
-<p>老样子，先描述需求：</p>
-<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
-<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
-<p>3、执行js脚本的过程及结果。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
-<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-AppxPackage</span> | <span class="keyword">ForEach</span> &#123;<span class="built_in">Add-AppxPackage</span> <span class="literal">-DisableDevelopmentMode</span> <span class="literal">-Register</span> <span class="string">&quot;<span class="variable">$</span>(<span class="variable">$_</span>.InstallLocation)\AppxManifest.xml&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
-        <category>Excel</category>
+        <category>System</category>
       </categories>
-      <tags>
-        <tag>Excel</tag>
-      </tags>
   </entry>
   <entry>
     <title>VisualSVN自签SSL证书导致svn客户端coredump或不能永久接受证书</title>
@@ -609,6 +582,33 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
       <tags>
         <tag>svn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>用js脚本提取合并多个excel表格</title>
+    <url>/posts/f6330333.html</url>
+    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
+<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
+<blockquote>
+<p>注：用js脚本处理表格需要电脑安装有excel。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>老样子，先描述需求：</p>
+<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
+<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
+<p>3、执行js脚本的过程及结果。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
+<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -1601,6 +1601,42 @@ table th:nth-of-type(4) {
       </tags>
   </entry>
   <entry>
+    <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
+    <url>/posts/dd913a8b.html</url>
+    <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
+<p>文件数量不大、用户数不多的环境，用 SFTP 协议就可以，防火墙都只需配置一个端口，没 FTP 那么麻烦。</p>
+<p>我们都知道 Linux 发行版基本都自带 SFTP 客户端和服务端，只需在 Windows 系统安装 SFTP 服务端即可。其实适用于 Windows 系统的 SFTP 服务器软件不少，但免费、不限制连接数、不限制用户数的不多。很久没做软件集合了，以下列几个挑选出来的软件，好几个都是单文件免安装的。</p>
+<span id="more"></span>
+
+<h1 id="OpenSSH-for-Windows"><a href="#OpenSSH-for-Windows" class="headerlink" title="OpenSSH for Windows"></a>OpenSSH for Windows</h1><p><a href="https://winscp.net/eng/docs/guide_windows_openssh_server">https://winscp.net/eng/docs/guide_windows_openssh_server</a><br><a href="https://github.com/PowerShell/Win32-OpenSSH/releases">https://github.com/PowerShell/Win32-OpenSSH/releases</a></p>
+<h1 id="FreeSSHD-SFTP-Server"><a href="#FreeSSHD-SFTP-Server" class="headerlink" title="FreeSSHD SFTP Server"></a>FreeSSHD SFTP Server</h1><p><a href="http://www.freesshd.com/">http://www.freesshd.com/</a></p>
+<p>最新的版本是 2013-01-23 的 freeSSHd 1.3.1 和 freeFTPd 1.0.13</p>
+<p>freeFTPd 或者 freeSSHd 都可以设置 sftp 用户，但不能像 xlight 那样细分权限，都是读写权限！</p>
+<p>freeSSHd 的 sftp，所有用户只有一个 sftp 的主目录。<br>freeFTPd 的 sftp，可以给不同的用户设定不同的目录。</p>
+<p>freeSSHd 可以设置系统账号、公钥、密码的登录方式，不像 xlight 只能在密码、公钥里二选一。<br>freeFTPd 可以设置系统账号、密码、匿名的登录方式。</p>
+<p>freeSSHd 容易出现用户登录验证失败问题，每次更改设置需要 unload 退出。不支持中文目录。支持 scp 命令。</p>
+<h1 id="Core-Free-Mini-SFTP-Server"><a href="#Core-Free-Mini-SFTP-Server" class="headerlink" title="Core Free Mini SFTP Server"></a>Core Free Mini SFTP Server</h1><p><a href="http://www.coreftp.com/server/">http://www.coreftp.com/server/</a></p>
+<p>Mini版才是免费的，最新版本 2018-10-01 v2.19</p>
+<p>单文件单用户免安装版，可开启scp，支持设置UTF-8，中文才不会显示乱码，但无法进入中文目录。</p>
+<h1 id="SolarWinds-SFTP-Server"><a href="#SolarWinds-SFTP-Server" class="headerlink" title="SolarWinds SFTP Server"></a>SolarWinds SFTP Server</h1><p><a href="https://www.solarwinds.com/free-tools/free-sftp-server">https://www.solarwinds.com/free-tools/free-sftp-server</a></p>
+<p>最新版本 2013-04-23</p>
+<p>随便填写个信息才能下载，可能有 4GB 大小限制。可作为服务运行，另外有 TFTP 服务端。</p>
+<p>XP系统里安装出错，未测试。</p>
+<h1 id="Syncplify-me-MicroServer"><a href="#Syncplify-me-MicroServer" class="headerlink" title="Syncplify.me MicroServer"></a>Syncplify.me MicroServer</h1><p><a href="https://www.syncplify.me/microserver.html">https://www.syncplify.me/microserver.html</a></p>
+<p>最新版本 2017-03-07 v2.0.0</p>
+<p>单文件单用户免安装版，Micro才是免费版，默认中文无乱码。登录有banner提示，可能会影响自动登录。</p>
+<h1 id="Rebex-Tiny-Sftp-Server"><a href="#Rebex-Tiny-Sftp-Server" class="headerlink" title="Rebex Tiny Sftp Server"></a>Rebex Tiny Sftp Server</h1><p><a href="http://labs.rebex.net/tiny-sftp-server">http://labs.rebex.net/tiny-sftp-server</a></p>
+<p>最新版本 2018-05-23 v1.0.5</p>
+<p>Rebex Tiny SFTP服务器是一款小型，极简主义的单用户SFTP服务器，用于测试目的。免费用于商业和非商业用途。</p>
+<p>XP系统里打不开程序，用配置文件，不方便使用。</p>
+<h1 id="Xlight-FTP-Server"><a href="#Xlight-FTP-Server" class="headerlink" title="Xlight FTP Server"></a>Xlight FTP Server</h1><p>我个人使用的 Xlight FTP Server 做 SFTP 服务端，虽然它不是免费软件，但这个国产精品简单易用。只是比较影响使用的缺点是：同一个账号不能同时启用密码和公钥验证。本博客提供有长期试用 <a href="https://oicu.github.io/posts/9ecaf4f0.html">Xlight SFTP</a> 的方法。</p>
+<p>推荐：Xlight &gt; FreeSSHD &gt; Core Mini SFTP</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+  </entry>
+  <entry>
     <title>用gost透明代理让内网服务器访问互联网</title>
     <url>/posts/79dd54ad.html</url>
     <content><![CDATA[<p>昨天在水木看到个问题“没有网关的root权限，怎样让内网服务器联网？”</p>
@@ -1643,41 +1679,5 @@ table th:nth-of-type(4) {
         <tag>VPN</tag>
         <tag>代理</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
-    <url>/posts/dd913a8b.html</url>
-    <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
-<p>文件数量不大、用户数不多的环境，用 SFTP 协议就可以，防火墙都只需配置一个端口，没 FTP 那么麻烦。</p>
-<p>我们都知道 Linux 发行版基本都自带 SFTP 客户端和服务端，只需在 Windows 系统安装 SFTP 服务端即可。其实适用于 Windows 系统的 SFTP 服务器软件不少，但免费、不限制连接数、不限制用户数的不多。很久没做软件集合了，以下列几个挑选出来的软件，好几个都是单文件免安装的。</p>
-<span id="more"></span>
-
-<h1 id="OpenSSH-for-Windows"><a href="#OpenSSH-for-Windows" class="headerlink" title="OpenSSH for Windows"></a>OpenSSH for Windows</h1><p><a href="https://winscp.net/eng/docs/guide_windows_openssh_server">https://winscp.net/eng/docs/guide_windows_openssh_server</a><br><a href="https://github.com/PowerShell/Win32-OpenSSH/releases">https://github.com/PowerShell/Win32-OpenSSH/releases</a></p>
-<h1 id="FreeSSHD-SFTP-Server"><a href="#FreeSSHD-SFTP-Server" class="headerlink" title="FreeSSHD SFTP Server"></a>FreeSSHD SFTP Server</h1><p><a href="http://www.freesshd.com/">http://www.freesshd.com/</a></p>
-<p>最新的版本是 2013-01-23 的 freeSSHd 1.3.1 和 freeFTPd 1.0.13</p>
-<p>freeFTPd 或者 freeSSHd 都可以设置 sftp 用户，但不能像 xlight 那样细分权限，都是读写权限！</p>
-<p>freeSSHd 的 sftp，所有用户只有一个 sftp 的主目录。<br>freeFTPd 的 sftp，可以给不同的用户设定不同的目录。</p>
-<p>freeSSHd 可以设置系统账号、公钥、密码的登录方式，不像 xlight 只能在密码、公钥里二选一。<br>freeFTPd 可以设置系统账号、密码、匿名的登录方式。</p>
-<p>freeSSHd 容易出现用户登录验证失败问题，每次更改设置需要 unload 退出。不支持中文目录。支持 scp 命令。</p>
-<h1 id="Core-Free-Mini-SFTP-Server"><a href="#Core-Free-Mini-SFTP-Server" class="headerlink" title="Core Free Mini SFTP Server"></a>Core Free Mini SFTP Server</h1><p><a href="http://www.coreftp.com/server/">http://www.coreftp.com/server/</a></p>
-<p>Mini版才是免费的，最新版本 2018-10-01 v2.19</p>
-<p>单文件单用户免安装版，可开启scp，支持设置UTF-8，中文才不会显示乱码，但无法进入中文目录。</p>
-<h1 id="SolarWinds-SFTP-Server"><a href="#SolarWinds-SFTP-Server" class="headerlink" title="SolarWinds SFTP Server"></a>SolarWinds SFTP Server</h1><p><a href="https://www.solarwinds.com/free-tools/free-sftp-server">https://www.solarwinds.com/free-tools/free-sftp-server</a></p>
-<p>最新版本 2013-04-23</p>
-<p>随便填写个信息才能下载，可能有 4GB 大小限制。可作为服务运行，另外有 TFTP 服务端。</p>
-<p>XP系统里安装出错，未测试。</p>
-<h1 id="Syncplify-me-MicroServer"><a href="#Syncplify-me-MicroServer" class="headerlink" title="Syncplify.me MicroServer"></a>Syncplify.me MicroServer</h1><p><a href="https://www.syncplify.me/microserver.html">https://www.syncplify.me/microserver.html</a></p>
-<p>最新版本 2017-03-07 v2.0.0</p>
-<p>单文件单用户免安装版，Micro才是免费版，默认中文无乱码。登录有banner提示，可能会影响自动登录。</p>
-<h1 id="Rebex-Tiny-Sftp-Server"><a href="#Rebex-Tiny-Sftp-Server" class="headerlink" title="Rebex Tiny Sftp Server"></a>Rebex Tiny Sftp Server</h1><p><a href="http://labs.rebex.net/tiny-sftp-server">http://labs.rebex.net/tiny-sftp-server</a></p>
-<p>最新版本 2018-05-23 v1.0.5</p>
-<p>Rebex Tiny SFTP服务器是一款小型，极简主义的单用户SFTP服务器，用于测试目的。免费用于商业和非商业用途。</p>
-<p>XP系统里打不开程序，用配置文件，不方便使用。</p>
-<h1 id="Xlight-FTP-Server"><a href="#Xlight-FTP-Server" class="headerlink" title="Xlight FTP Server"></a>Xlight FTP Server</h1><p>我个人使用的 Xlight FTP Server 做 SFTP 服务端，虽然它不是免费软件，但这个国产精品简单易用。只是比较影响使用的缺点是：同一个账号不能同时启用密码和公钥验证。本博客提供有长期试用 <a href="https://oicu.github.io/posts/9ecaf4f0.html">Xlight SFTP</a> 的方法。</p>
-<p>推荐：Xlight &gt; FreeSSHD &gt; Core Mini SFTP</p>
-]]></content>
-      <categories>
-        <category>Software</category>
-      </categories>
   </entry>
 </search>
