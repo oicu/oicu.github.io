@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"oicu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="网上看到一文《Nginx正向代理让无法直接上网的机器通过代理上网》，说是在阿里云平台买了几台ECS，但是只要其中一台开通了公网，由于要初始化系统环境，需要网络安装相关依赖，于是使用Nginx搭建代理服务器。 看完觉得Nginx功能还是挺多的，只不过这么个做法太low了，https代理没法搞，配置完代理服务器还得在无外网IP的服务器上设置shell环境变量或者apt&#x2F;yum的配置，遇到不支">
+<meta property="og:type" content="article">
+<meta property="og:title" content="没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网">
+<meta property="og:url" content="https://oicu.github.io/posts/9a9556bd.html">
+<meta property="og:site_name" content="Oh! I see you!">
+<meta property="og:description" content="网上看到一文《Nginx正向代理让无法直接上网的机器通过代理上网》，说是在阿里云平台买了几台ECS，但是只要其中一台开通了公网，由于要初始化系统环境，需要网络安装相关依赖，于是使用Nginx搭建代理服务器。 看完觉得Nginx功能还是挺多的，只不过这么个做法太low了，https代理没法搞，配置完代理服务器还得在无外网IP的服务器上设置shell环境变量或者apt&#x2F;yum的配置，遇到不支">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2015-07-03T12:16:13.000Z">
+<meta property="article:modified_time" content="2018-10-18T12:11:03.923Z">
+<meta property="article:author" content="oicu">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://oicu.github.io/posts/9a9556bd.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网 | Oh! I see you!</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Oh! I see you!</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Hi! ppmm~~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/9a9556bd.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="oicu">
+      <meta itemprop="description" content="只有想不到，没有做不到">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Oh! I see you!">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2015-07-03 20:16:13" itemprop="dateCreated datePublished" datetime="2015-07-03T20:16:13+08:00">2015-07-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/VPN/" itemprop="url" rel="index"><span itemprop="name">VPN</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/9a9556bd.html" class="post-meta-item leancloud_visitors" data-flag-title="没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>网上看到一文《Nginx正向代理让无法直接上网的机器通过代理上网》，说是在阿里云平台买了几台ECS，但是只要其中一台开通了公网，由于要初始化系统环境，需要网络安装相关依赖，于是使用Nginx搭建代理服务器。</p>
+<p>看完觉得Nginx功能还是挺多的，只不过这么个做法太low了，https代理没法搞，配置完代理服务器还得在无外网IP的服务器上设置shell环境变量或者apt&#x2F;yum的配置，遇到不支持代理的软件还更麻烦，这种情况怎么也得来个“全局代理”吧，还有什么做法比更改默认网关更全局呢？看完下文，你只需一台开通公网IP的ECS，就可以让同区域只有内网IP的其他ECS服务器访问公网了。</p>
+<span id="more"></span>
+
+<hr>
+<p>年初刚学习使用ssh登录的时候，了解到ssh隧道可以当vpn使用，练手写了个bash脚本：<br><a target="_blank" rel="noopener" href="https://github.com/oicu/vpn-over-ssh">https://github.com/oicu/vpn-over-ssh</a></p>
+<p>这里补充一博文，解释一下这个脚本的作用，首次设置步骤较为繁琐，耐心点。</p>
+<p>svpn.sh脚本功能：<br>1、在 ssh客户端 运行，建立ssh隧道并在 服务端和客户端 各添加tun网卡。<br>2、在 ssh服务端 添加&#x2F;删除路由或更改默认网关。<br>3、在 ssh客户端 添加&#x2F;删除路由或更改默认网关。<br>4、在 ssh服务端 配置iptables做snat，tun网卡ip源地址转换，并更改mtu。<br>5、在 ssh客户端 配置iptables做snat，tun网卡ip源地址转换，并更改mtu。<br>6、在 ssh服务端 配置iptables做snat，局域网ip源地址转换。<br>7、在 ssh客户端 配置iptables做snat，局域网ip源地址转换。</p>
+<p>运行过程需要输入2次ssh密码，如果使用公钥登录则没那么麻烦。</p>
+<p>我列了3种网络拓扑，因为脚本写得粗糙也不方便再优化，不同网络需要对脚本里添加路由、更改默认网关、配置iptables的语句进行修改。步骤4-7全部设置也没有影响，主要是第2、3步选用改路由还是改网关。</p>
+<hr>
+<p>脚本开头定义了几个变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">SERVER_SSH_PORT=&quot;22&quot;		#服务端ssh端口</span><br><span class="line">SERVER_SSH_IP=&quot;1.2.3.4&quot;		#服务端ip，如果是路由器，需要做端口映射</span><br><span class="line">CLIENT_ETHERNET=&quot;eth0&quot;		#客户端物理网卡名</span><br><span class="line">SERVER_ETHERNET=&quot;eth0&quot;		#服务端物理网卡名</span><br><span class="line">CLIENT_TUNNEL=&quot;tun2&quot;		#自定义的客户端tun网卡名，tun+数字</span><br><span class="line">SERVER_TUNNEL=&quot;tun1&quot;		#自定义的服务端tun网卡名，不能和客户端相同</span><br><span class="line">CLIENT_TUN_IP=&quot;10.0.0.2&quot;	#自定义的客户端tun网卡IP</span><br><span class="line">SERVER_TUN_IP=&quot;10.0.0.1&quot;	#自定义的服务端tun网卡IP，不能和客户端相同</span><br><span class="line">CLIENT_NET=&quot;192.168.2.0/24&quot;	#客户端所在局域网网段</span><br><span class="line">CLIENT_GATEWAY=&quot;192.168.2.1&quot;	#客户端现在的网关</span><br><span class="line">SERVER_NET=&quot;192.168.1.0/24&quot;	#服务端所在局域网网段，有可能和客户端相同</span><br><span class="line">SERVER_GATEWAY=&quot;192.168.1.1&quot;	#服务端现在的网关，有可能和客户端相同</span><br></pre></td></tr></table></figure>
+<p>如果有多张物理网卡，要根据情况选用。</p>
+<hr>
+<p>脚本默认适用的网络：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C --&gt; A --&gt; 路由器1 &lt;-- 互联网 --&gt; 路由器2 &lt;-- B &lt;-- D</span><br></pre></td></tr></table></figure>
+
+<p>A和C在一个局域网，B和D在一个局域网，如何像使用VPN一样，让2个子网互通呢？<br>即让C和D相互访问呢？</p>
+<p>1、首先A和B需要是Linux系统，都需要有root权限。<br>2、两个局域网的网段不能一样，网络规划好。<br>3、至少有一个路由器有外网IP，有外网IP的一方作为服务端。假设路由器2有外网IP，那么B当作ssh服务器，在路由器2上做端口映射到B。A作为ssh客户端，在A上放 <code>svpn.sh</code> 脚本，根据两边的网络，更改那几个变量。<br>4、A和B都需安装的软件：<br>   CentOS:         <code>yum install tunctl iptables</code><br>   Debian&#x2F;Ubuntu:  <code>sudo apt-get install uml-utilities iptables</code><br>5、脚本里所有<code>iptables</code>命令都启用（默认是全启用）。<br>6、脚本里都使用添加&#x2F;删除路由的命令，而不用更改默认网关的命令，否则访问本地局域<br>   网数据得到对端绕一圈（默认是使用路由）。<br>7、ssh服务端还需要更改配置<code>/etc/ssh/sshd_config</code>，前2行是必须的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br><span class="line">ClientAliveInterval 30</span><br><span class="line">ClientAliveCountMax 6</span><br></pre></td></tr></table></figure>
+<p>8、脚本外的操作：C或路由器1上添加对端局域网的访问路由，网关设置为A的局域网IP，如果局域网还有E、F其他电脑，在路由器上设置就不用在每台电脑上都设定。<br>9、脚本外的操作：D或路由器2上添加对端局域网的访问路由，网关设置为B的局域网IP。</p>
+<p>有网友建议通过 bonding 增加可用性。通过 <code>runit/ daemontools</code> 跑起来。一下跑16个进程，然后把16个接口做802.1ad或者xor bonding成一个接口用。但因为我对这个脚本的定位是即用即开，不用即关，所以没研究。</p>
+<hr>
+<p>另一种网络拓扑：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">C --&gt; A --&gt; 路由器 &lt;-- 互联网 --&gt;  B</span><br></pre></td></tr></table></figure>
+
+<p>A、C都限制不能上外网，但路由器的22端口映射到A，B在外网可以ssh登录A，只需在B执行svpn.sh脚本，A就能上外网了，C配置默认网关为A的局域网IP，也能上外网了。只要留一个ssh端口，就能够突破网络封锁！</p>
+<hr>
+<p>再来一种网络拓扑：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A &lt;-- 互联网 --&gt; B --&gt; GFW</span><br></pre></td></tr></table></figure>
+
+<p>A在国内，B是国外的VPS，在A配置执行svpn.sh脚本，A就能科学上网了。</p>
+<hr>
+<p>回到主题，无外网IP的阿里云ECS服务器怎么访问外网呢？网络拓扑简化为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A &lt;--&gt; B &lt;-- 互联网 --&gt; D</span><br></pre></td></tr></table></figure>
+
+<p>A服务器没有外网IP，当作ssh服务端。<br>B有外网IP，当作ssh客户端，svpn脚本放在B执行。<br>D是外网的电脑&#x2F;服务器。</p>
+<p>使用以下配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">SERVER_SSH_PORT=&quot;22&quot;		#A的ssh端口</span><br><span class="line">SERVER_SSH_IP=&quot;10.111.1.222&quot;	#A的内网ip</span><br><span class="line">CLIENT_ETHERNET=&quot;eth1&quot;		#B的外网物理网卡</span><br><span class="line">CLIENT_TUNNEL=&quot;tun2&quot;		#自定义的客户端tun网卡名，tun+数字</span><br><span class="line">SERVER_TUNNEL=&quot;tun1&quot;		#自定义的服务端tun网卡名，不能和客户端相同</span><br><span class="line">CLIENT_TUN_IP=&quot;192.168.169.2&quot;	#因为阿里云内网使用A类，所以这里用C类</span><br><span class="line">SERVER_TUN_IP=&quot;192.168.169.1&quot;</span><br><span class="line">SERVER_GATEWAY=&quot;10.111.1.254&quot;	#A的默认网关</span><br></pre></td></tr></table></figure>
+<p>有几个变量没有使用到，脚本内含有这几个没使用变量的行注释或删除。</p>
+<p>然后在B服务器上运行svpn.sh脚本，脚本会修改A的默认网关，在B用iptables做snat，A就可以访问外网了！</p>
+<p>如果有2台无外网流量的ECS服务器要同时访问外网呢？一台用一个脚本，只是tun网卡用另一组：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CLIENT_TUNNEL=&quot;tun4&quot;</span><br><span class="line">SERVER_TUNNEL=&quot;tun3&quot;</span><br></pre></td></tr></table></figure>
+<p>又多了第3台呢？tun网卡名称都递增+1即可。</p>
+<hr>
+<p>这里贴个可用于阿里云的简化版脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line"><span class="comment">#FileName:    svpn.sh</span></span><br><span class="line"><span class="comment">#Author:      oicu</span></span><br><span class="line"><span class="comment">#Blog:        http://oicu.cc.blog.163.com/</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line">PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin</span><br><span class="line"><span class="built_in">export</span> PATH</span><br><span class="line"></span><br><span class="line">[ <span class="string">&quot;<span class="subst">$(whoami)</span>&quot;</span> != <span class="string">&#x27;root&#x27;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Run it as root.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1</span><br><span class="line"></span><br><span class="line">SERVER_SSH_PORT=<span class="string">&quot;22&quot;</span>		<span class="comment">#A的ssh端口</span></span><br><span class="line">SERVER_SSH_IP=<span class="string">&quot;10.111.1.222&quot;</span>	<span class="comment">#A的内网ip</span></span><br><span class="line">CLIENT_ETHERNET=<span class="string">&quot;eth1&quot;</span>		<span class="comment">#B的外网物理网卡</span></span><br><span class="line">CLIENT_TUNNEL=<span class="string">&quot;tun2&quot;</span>		<span class="comment">#自定义的客户端tun网卡名，tun+数字</span></span><br><span class="line">SERVER_TUNNEL=<span class="string">&quot;tun1&quot;</span>		<span class="comment">#自定义的服务端tun网卡名，不能和客户端相同</span></span><br><span class="line">CLIENT_TUN_IP=<span class="string">&quot;192.168.169.2&quot;</span>	<span class="comment">#因为阿里云内网使用A类，所以这里用C类</span></span><br><span class="line">SERVER_TUN_IP=<span class="string">&quot;192.168.169.1&quot;</span></span><br><span class="line">SERVER_GATEWAY=<span class="string">&quot;10.111.1.254&quot;</span>	<span class="comment">#A的默认网关</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">start</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ssh -NTCf -o ServerAliveInterval=30 \</span><br><span class="line">    -o ServerAliveCountMax=6 \</span><br><span class="line">    -o ExitOnForwardFailure=<span class="built_in">yes</span> \</span><br><span class="line">    -o Tunnel=point-to-point \</span><br><span class="line">    -w <span class="string">&quot;<span class="variable">$&#123;CLIENT_TUNNEL#tun&#125;</span>:<span class="variable">$&#123;SERVER_TUNNEL#tun&#125;</span>&quot;</span> \</span><br><span class="line">    root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span> <span class="built_in">exit</span> 1; <span class="keyword">fi</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ssh tunnel is working.&quot;</span></span><br><span class="line">ssh -T root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span> &gt; /dev/null 2&gt;&amp;1 &lt;&lt; <span class="string">eeooff</span></span><br><span class="line"><span class="string">    ip route replace default via $&#123;SERVER_GATEWAY&#125;</span></span><br><span class="line"><span class="string">    ip link set $&#123;SERVER_TUNNEL&#125; down</span></span><br><span class="line"><span class="string">    ifconfig $&#123;SERVER_TUNNEL&#125; &gt; /dev/null 2&gt;&amp;1</span></span><br><span class="line"><span class="string">    if [ $? -eq 0 ]; then</span></span><br><span class="line"><span class="string">        echo 1 &gt; /proc/sys/net/ipv4/ip_forward</span></span><br><span class="line"><span class="string">        ip link set $&#123;SERVER_TUNNEL&#125; up</span></span><br><span class="line"><span class="string">        ip addr add $&#123;SERVER_TUN_IP&#125;/32 peer $&#123;CLIENT_TUN_IP&#125; dev $&#123;SERVER_TUNNEL&#125;</span></span><br><span class="line"><span class="string">        ip route replace default via $&#123;SERVER_TUN_IP&#125;</span></span><br><span class="line"><span class="string">    fi</span></span><br><span class="line"><span class="string">    exit</span></span><br><span class="line"><span class="string">eeooff</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span> <span class="built_in">exit</span> 1; <span class="keyword">fi</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;remote start.&quot;</span></span><br><span class="line">ifconfig <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">    ip <span class="built_in">link</span> <span class="built_in">set</span> <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> up</span><br><span class="line">    ip addr add <span class="variable">$&#123;CLIENT_TUN_IP&#125;</span>/32 peer <span class="variable">$&#123;SERVER_TUN_IP&#125;</span> dev <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span></span><br><span class="line">    iptables -t nat -A POSTROUTING -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -o <span class="variable">$&#123;CLIENT_ETHERNET&#125;</span> -j MASQUERADE</span><br><span class="line">    iptables -A FORWARD -p tcp --syn -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -j TCPMSS --set-mss 1356</span><br><span class="line">    ping <span class="variable">$&#123;SERVER_TUN_IP&#125;</span> -i 60 &gt; /dev/null 2&gt;&amp;1 &amp;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;local start.&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">stop-<span class="function"><span class="title">srv</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ssh -T root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span> &gt; /dev/null 2&gt;&amp;1 &lt;&lt; <span class="string">eeooff</span></span><br><span class="line"><span class="string">    ip route replace default via $&#123;SERVER_GATEWAY&#125;</span></span><br><span class="line"><span class="string">    ip link set $&#123;SERVER_TUNNEL&#125; down</span></span><br><span class="line"><span class="string">    exit</span></span><br><span class="line"><span class="string">eeooff</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span> <span class="built_in">echo</span> <span class="string">&quot;remote stop.&quot;</span>; <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">stop</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> down</span><br><span class="line">iptables -t nat -D POSTROUTING -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -o <span class="variable">$&#123;CLIENT_ETHERNET&#125;</span> -j MASQUERADE</span><br><span class="line">iptables -D FORWARD -p tcp --syn -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -j TCPMSS --set-mss 1356</span><br><span class="line">CLIENT_SSH_PID=`ps -ef | grep <span class="string">&#x27;ssh -NTCf -o&#x27;</span> | grep -v grep | <span class="built_in">head</span> -n1 | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>`</span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$&#123;CLIENT_SSH_PID&#125;</span>&quot;</span> ]; <span class="keyword">then</span> <span class="built_in">kill</span> -9 <span class="variable">$&#123;CLIENT_SSH_PID&#125;</span>; <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;`pidof ping`&quot;</span> ]; <span class="keyword">then</span> pidof ping | xargs <span class="built_in">kill</span> -9; <span class="keyword">fi</span></span><br><span class="line">&#125; &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">usage</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;usage:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    <span class="variable">$0</span> -start&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    <span class="variable">$0</span> -stop&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;for ssh:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    nohup <span class="variable">$0</span> -start &gt; /dev/null 2&gt;&amp;1&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">    <span class="string">&quot;--start&quot;</span> | <span class="string">&quot;-start&quot;</span>)</span><br><span class="line">        stop</span><br><span class="line">        start</span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;--stop&quot;</span> | <span class="string">&quot;-stop&quot;</span>)</span><br><span class="line">        stop-srv</span><br><span class="line">        stop</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;local stop.&quot;</span></span><br><span class="line">        ;;</span><br><span class="line">    *)</span><br><span class="line">        usage</span><br><span class="line">        ;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>「土豪，请留步~」</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="oicu 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>oicu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://oicu.github.io/posts/9a9556bd.html" title="没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网">https://oicu.github.io/posts/9a9556bd.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/742f0a33.html" rel="prev" title="Win7远程桌面连接提示“您的凭据不工作”的解决方法">
+      <i class="fa fa-chevron-left"></i> Win7远程桌面连接提示“您的凭据不工作”的解决方法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/ec57e3d.html" rel="next" title="Google打不开怎么办？用nginx搭建本地Google搜索网站！">
+      Google打不开怎么办？用nginx搭建本地Google搜索网站！ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="oicu"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">oicu</p>
+  <div class="site-description" itemprop="description">只有想不到，没有做不到</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/oicu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;oicu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:oicu.cc@gmail.com" title="E-Mail → mailto:oicu.cc@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oicu.cc.blog.163.com/" title="http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;" rel="noopener" target="_blank">旧博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">oicu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"Mn0TalrgWNivLyxOVswOE1uz-gzGzoHsz","app_key":"d3pkvLSKmrtoCoi4tTnPrKVB","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

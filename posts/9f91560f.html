@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"oicu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="注：本方法实测支持 VisualSVN 2.1～3.6.x，不过2还需多改Apache的配置，老版本应该抛弃，懒得写了。转载请注明来源，不为别的，就是怕那些无良网站为了流量到处转帖，转丢失内容或者是老版本的内容。  如果不用VisualSVN客户端的话，VisualSVN Server只能在服务器端修改密码，对管理来说很不方便。 网上大部分给 VisualSVN 增加自助修改密码的补丁都是基于">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）">
+<meta property="og:url" content="https://oicu.github.io/posts/9f91560f.html">
+<meta property="og:site_name" content="Oh! I see you!">
+<meta property="og:description" content="注：本方法实测支持 VisualSVN 2.1～3.6.x，不过2还需多改Apache的配置，老版本应该抛弃，懒得写了。转载请注明来源，不为别的，就是怕那些无良网站为了流量到处转帖，转丢失内容或者是老版本的内容。  如果不用VisualSVN客户端的话，VisualSVN Server只能在服务器端修改密码，对管理来说很不方便。 网上大部分给 VisualSVN 增加自助修改密码的补丁都是基于">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://oicu.github.io/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/Subversion%E5%AF%86%E7%A0%81%E4%BF%AE%E6%94%B9.jpg">
+<meta property="og:image" content="https://oicu.github.io/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E8%B6%85%E9%93%BE%E6%8E%A5.jpg">
+<meta property="article:published_time" content="2016-11-22T17:25:46.000Z">
+<meta property="article:modified_time" content="2018-10-09T14:07:20.238Z">
+<meta property="article:author" content="oicu">
+<meta property="article:tag" content="svn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://oicu.github.io/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/Subversion%E5%AF%86%E7%A0%81%E4%BF%AE%E6%94%B9.jpg">
+
+<link rel="canonical" href="https://oicu.github.io/posts/9f91560f.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版） | Oh! I see you!</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Oh! I see you!</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Hi! ppmm~~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/9f91560f.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="oicu">
+      <meta itemprop="description" content="只有想不到，没有做不到">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Oh! I see you!">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-23 01:25:46" itemprop="dateCreated datePublished" datetime="2016-11-23T01:25:46+08:00">2016-11-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/9f91560f.html" class="post-meta-item leancloud_visitors" data-flag-title="VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>注：本方法实测支持 VisualSVN 2.1～3.6.x，不过2还需多改Apache的配置，老版本应该抛弃，懒得写了。<br>转载请注明来源，不为别的，就是怕那些无良网站为了流量到处转帖，转丢失内容或者是老版本的内容。</p>
+</blockquote>
+<p>如果不用VisualSVN客户端的话，VisualSVN Server只能在服务器端修改密码，对管理来说很不方便。</p>
+<p>网上大部分给 VisualSVN 增加自助修改密码的补丁都是基于 2.5.x 版本的，也有几个用于 3.5.x&#x2F;3.6.x 版本，多数还是用 cgi 方式，而且要么像 csdn 那样藏着掖着，要么也没个详细的说明。</p>
+<span id="more"></span>
+
+<p>VisualSVN Server 帐号及密码保存在 htpasswd 文件里，除了 cgi 有以下几种修改方式：</p>
+<p>1、使用 VisualSVN Server Manager 管理工具重置密码。</p>
+<p>2、通过 WMI 里用 PowerShell 脚本更改。示例如下：<br>来源：<a target="_blank" rel="noopener" href="http://stackoverflow.com/questions/4354356/visualsvn-server-password-change">http://stackoverflow.com/questions/4354356/visualsvn-server-password-change</a></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$svnuser</span> = <span class="built_in">Get-WmiObject</span> <span class="literal">-Namespace</span> Root\VisualSVN `</span><br><span class="line"><span class="literal">-ComputerName</span> svn.hostname.com `</span><br><span class="line"><span class="literal">-query</span> <span class="string">&quot;select * from VisualSVN_User where name = &#x27;username&#x27;&quot;</span></span><br><span class="line"><span class="variable">$svnuser</span>.SetPassword(<span class="string">&#x27;123456&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>3、使用 Windows 版 Apache 的 htpasswd.exe 命令更改。<br>来源：<a target="_blank" rel="noopener" href="http://www.cnblogs.com/rgqancy/p/4679881.html">http://www.cnblogs.com/rgqancy/p/4679881.html</a><br>该方法是使用 php 页面来调用 htpasswd.exe 修改密码，方便用户通过网页修改，下面讲解配置要点。</p>
+<p>我使用的操作系统是 Windows Server 2008R2 x64，安装了 VisualSVN Server 3.5.6 x64 带 Apache 2.2.31 x64 的版本，默认安装路径。</p>
+<p>从 Apache 官方网站下载完整的 Apache 2.2.31 x64 版本，从里面提取一个文件 htpasswd.exe 放到<br><code>C:\Program Files\VisualSVN Server\bin\htpasswd.exe</code></p>
+<p>Apache 2.2.x 要以 handler 方式加载 php 模块，只有 php 5.2-5.4 的 Thread Safe 版本才带 php5apache2_2.dll 文件，php 5.5 及之后的版本只能和 Apache 2.4.x 搭配了，所以选定 php 5.4 版本。</p>
+<p><strong>特别注意，如果用 VisualSVN Server x64 就必须找 x64 的 php！</strong><br>否则 Apache 加载 php 模块会提示错误 Cannot load php5apache2_2.dll into server<br><a target="_blank" rel="noopener" href="http://oicu.cc.blog.163.com/blog/static/123039471201610229952552/">http://oicu.cc.blog.163.com/blog/static/123039471201610229952552/</a><br>因为 Apache x64 无法使用 php x86。</p>
+<p>使用 32 位版本的 VisualSVN Server 比较简单，因为 php 官网都是 x86 版本:<br><a target="_blank" rel="noopener" href="http://windows.php.net/downloads/releases/archives/">http://windows.php.net/downloads/releases/archives/</a></p>
+<p>使用 64 位版本的 VisualSVN Server 就得找第三方编译的 php x64 版本了，提供两个下载：<br><a target="_blank" rel="noopener" href="https://www.anindya.com/php-5-4-12-and-5-3-22-x64-64-bit-for-windows/">https://www.anindya.com/php-5-4-12-and-5-3-22-x64-64-bit-for-windows/</a><br><a target="_blank" rel="noopener" href="http://www.apachelounge.com/viewtopic.php?t=6123">http://www.apachelounge.com/viewtopic.php?t=6123</a></p>
+<p>我下载的是 php-5.4.36-Win32-VC9-x64.zip，下载后解压到 <code>C:\Program Files\VisualSVN Server\php</code> 文件夹。把 php.ini-production 文件重命名为 php.ini 即可，其他不用配置。</p>
+<p>修改空文件 <code>C:\Program Files\VisualSVN Server\conf\httpd-custom.conf</code><br>内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">LoadModule php5_module &quot;php/php5apache2_2.dll&quot;</span><br><span class="line">&lt;IfModule php5_module&gt;</span><br><span class="line">    AddType application/x-httpd-php .php</span><br><span class="line">    DirectoryIndex index.html index.php</span><br><span class="line">&lt;/IfModule&gt;</span><br><span class="line"># 配置 php.ini 的路径</span><br><span class="line">PHPIniDir &quot;php&quot;</span><br></pre></td></tr></table></figure>
+
+<p>新建一个 php 文件放到 <code>C:\Program Files\VisualSVN Server\htdocs\pw\index.php</code><br>内容如下（做了一点小修改，增加返回及跳转页面的处理）：</p>
+<blockquote>
+<p>有2个变量要根据实际文件的路径更改，$passwdfile和$command</p>
+</blockquote>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$username</span> = <span class="variable">$_SERVER</span>[<span class="string">&quot;PHP_AUTH_USER&quot;</span>]; <span class="comment">//经过 AuthType Basic 认证的用户名</span></span><br><span class="line"><span class="variable">$authed_pass</span> = <span class="variable">$_SERVER</span>[<span class="string">&quot;PHP_AUTH_PW&quot;</span>]; <span class="comment">//经过 AuthType Basic 认证的密码</span></span><br><span class="line"><span class="variable">$input_oldpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;oldpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;oldpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//从界面上输入的原密码</span></span><br><span class="line"><span class="variable">$newpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;newpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;newpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//界面上输入的新密码</span></span><br><span class="line"><span class="variable">$repeatpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;repeatpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;repeatpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//界面上输入的重复密码</span></span><br><span class="line"><span class="variable">$action</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;action&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;action&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//以hide方式提交到服务器的action</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$action</span>!=<span class="string">&quot;modify&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;view&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$authed_pass</span>!=<span class="variable">$input_oldpass</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;oldpasswrong&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$newpass</span>)) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;passempty&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$newpass</span>!=<span class="variable">$repeatpass</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;passnotsame&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;modify&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta http-equiv=<span class="string">&quot;Content-Type&quot;</span> content=<span class="string">&quot;text/html; charset=GBK&quot;</span>&gt;</span><br><span class="line">    &lt;title&gt;Subversion 在线自助密码修改&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">//action=view 显示普通的输入信息</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;view&quot;</span>) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language = <span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">loginIn</span>(<span class="params">myform</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> newpass=myform.newpass.value;</span><br><span class="line">    <span class="keyword">var</span> repeatpass=myform.repeatpass.value;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newpass==<span class="string">&quot;&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;请输入密码！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (repeatpass==<span class="string">&quot;&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;请重复输入密码！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newpass!=repeatpass) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;两次输入密码不一致，请重新输入！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">&lt;style type=<span class="string">&quot;text/css&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line">    table &#123;</span><br><span class="line">        border: <span class="number">1</span>px solid <span class="comment">#CCCCCC;</span></span><br><span class="line">        background-color: <span class="comment">#f9f9f9;</span></span><br><span class="line">        text-align: center;</span><br><span class="line">        vertical-align: middle;</span><br><span class="line">        font-size: <span class="number">9</span>pt;</span><br><span class="line">        line-height: <span class="number">15</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">    th &#123;</span><br><span class="line">        font-weight: bold;</span><br><span class="line">        line-height: <span class="number">20</span>px;</span><br><span class="line">        border-top-width: <span class="number">1</span>px;</span><br><span class="line">        border-right-width: <span class="number">1</span>px;</span><br><span class="line">        border-bottom-width: <span class="number">1</span>px;</span><br><span class="line">        border-left-width: <span class="number">1</span>px;</span><br><span class="line">        border-bottom-style: solid;</span><br><span class="line">        color: <span class="comment">#333333;</span></span><br><span class="line">        background-color: f6f6f6;</span><br><span class="line">    &#125;</span><br><span class="line">    input&#123;</span><br><span class="line">        height: <span class="number">18</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">    .button &#123;</span><br><span class="line">        height: <span class="number">20</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">--&gt;</span><br><span class="line">&lt;/style&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;&lt;br&gt;&lt;br&gt;</span><br><span class="line">&lt;form method=<span class="string">&quot;post&quot;</span>&gt;</span><br><span class="line">&lt;input type=<span class="string">&quot;hidden&quot;</span> name=<span class="string">&quot;action&quot;</span> value=<span class="string">&quot;modify&quot;</span>/&gt;</span><br><span class="line">&lt;table width=<span class="string">&quot;220&quot;</span> cellpadding=<span class="string">&quot;3&quot;</span> cellspacing=<span class="string">&quot;8&quot;</span> align=<span class="string">&quot;center&quot;</span>&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;th colspan=<span class="number">2</span>&gt;Subversion 密码修改&lt;/th&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;用 户 名：&lt;/td&gt;</span><br><span class="line">&lt;td align=<span class="string">&quot;left&quot;</span>&gt; <span class="meta">&lt;?php</span> <span class="keyword">echo</span> <span class="variable">$username</span><span class="meta">?&gt;</span>&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;原 密 码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=oldpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;用户密码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=newpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;确认密码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=repeatpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td colspan=<span class="number">2</span>&gt;</span><br><span class="line">&lt;input onclick=<span class="string">&quot;return loginIn(this.form)&quot;</span> <span class="class"><span class="keyword">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">type</span>=<span class="title">submit</span> <span class="title">value</span>=&quot;修 改&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;<span class="title">input</span> <span class="title">name</span>=&quot;<span class="title">reset</span>&quot; <span class="title">type</span>=<span class="title">reset</span> <span class="title">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">value</span>=&quot;取 消&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;<span class="title">input</span> <span class="title">onclick</span>=&quot;<span class="title">window</span>.<span class="title">location</span>.<span class="title">href</span>=&#x27;/&#x27;&quot; <span class="title">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">type</span>=&quot;<span class="title">button</span>&quot; <span class="title">value</span>=&quot;返 回&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">td</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">tr</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">table</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">form</span>&gt;</span></span><br><span class="line"><span class="class">&lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">&#125; <span class="title">else</span> <span class="title">if</span> ($<span class="title">action</span> == &quot;<span class="title">oldpasswrong</span>&quot;) </span>&#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;原密码错误&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;passempty&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;请输入新密码&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;passnotsame&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;两次输入密码不一致，请重新输入&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$passwdfile</span>=<span class="string">&quot;D:\Repositories\htpasswd&quot;</span>;</span><br><span class="line">    <span class="variable">$command</span>=<span class="string">&#x27;&quot;C:\Program Files\VisualSVN Server\bin\htpasswd.exe&quot; -b &#x27;</span>.<span class="variable">$passwdfile</span>.<span class="string">&quot; &quot;</span>.<span class="variable">$username</span>.<span class="string">&#x27; &quot;&#x27;</span>.<span class="variable">$newpass</span>.<span class="string">&#x27;&quot;&#x27;</span>;</span><br><span class="line">    <span class="title function_ invoke__">system</span>(<span class="variable">$command</span>, <span class="variable">$result</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$result</span>==<span class="number">0</span>) &#123;</span><br><span class="line">        <span class="variable">$msg_succ</span>=<span class="string">&quot;用户[&quot;</span>.<span class="variable">$username</span>.<span class="string">&quot;]密码修改成功，请用新密码登陆&quot;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$msg</span>=<span class="string">&quot;用户[&quot;</span>.<span class="variable">$username</span>.<span class="string">&quot;]密码修改失败，返回值为&quot;</span>.<span class="variable">$result</span>.<span class="string">&quot;，请和管理员联系&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$msg_succ</span>)) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language=<span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="title function_ invoke__">alert</span>(<span class="string">&quot;&lt;?php echo <span class="subst">$msg_succ</span>?&gt;&quot;</span>);</span><br><span class="line">window.location.href=<span class="string">&quot;/&quot;</span></span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$msg</span>)) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language=<span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="title function_ invoke__">alert</span>(<span class="string">&quot;&lt;?php echo <span class="subst">$msg</span>?&gt;&quot;</span>);</span><br><span class="line">window.location.href=<span class="string">&quot;&lt;?php echo <span class="subst">$_SERVER</span>[&quot;</span>PHP_SELF<span class="string">&quot;]?&gt;&quot;</span></span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在header增加超链接麻烦，所以我就在页脚增加修改密码的链接，<br>修改文件 <code>C:\Program Files\VisualSVN Server\WebUI\index.html</code><br>内容如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">footer</span>&gt;</span></span><br><span class="line">Powered by <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;http://www.visualsvn.com/server/&quot;</span>&gt;</span>VisualSVN Server<span class="tag">&lt;/<span class="name">a</span>&gt;</span>. <span class="symbol">&amp;copy;</span> 2005-2016 VisualSVN Limited.</span><br><span class="line"><span class="tag">&lt;<span class="name">br</span> /&gt;</span><span class="tag">&lt;<span class="name">br</span> /&gt;</span><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;/pw&quot;</span>&gt;</span>自助修改密码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">footer</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>完工。</p>
+<p>效果图如下：</p>
+<p><img src="/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/Subversion%E5%AF%86%E7%A0%81%E4%BF%AE%E6%94%B9.jpg"></p>
+<p><img src="/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E8%B6%85%E9%93%BE%E6%8E%A5.jpg"></p>
+<blockquote>
+<p>建议用Chrome、Firefox浏览器。<br>适用于VisualSVN Server 2.1~3.6最新版，2系列还需要改apache的httpd.conf。<br>已经修复密码带特殊字符 ^ 时的问题，博客里公开的是基础版本。增强版增加了密码复杂度、密码到期时间、信息录入等功能。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>「土豪，请留步~」</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="oicu 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>oicu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://oicu.github.io/posts/9f91560f.html" title="VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）">https://oicu.github.io/posts/9f91560f.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/svn/" rel="tag"># svn</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/59917b37.html" rel="prev" title="Apache加载php模块提示错误Cannot load php5apache2_2.dll into server">
+      <i class="fa fa-chevron-left"></i> Apache加载php模块提示错误Cannot load php5apache2_2.dll into server
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/1997d5d0.html" rel="next" title="在AIX系统安装svn客户端">
+      在AIX系统安装svn客户端 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="oicu"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">oicu</p>
+  <div class="site-description" itemprop="description">只有想不到，没有做不到</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/oicu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;oicu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:oicu.cc@gmail.com" title="E-Mail → mailto:oicu.cc@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oicu.cc.blog.163.com/" title="http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;" rel="noopener" target="_blank">旧博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">oicu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"Mn0TalrgWNivLyxOVswOE1uz-gzGzoHsz","app_key":"d3pkvLSKmrtoCoi4tTnPrKVB","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

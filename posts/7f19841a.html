@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"oicu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="原文链接：http:&#x2F;&#x2F;www.newsmth.net&#x2F;nForum&#x2F;article&#x2F;DOS&#x2F;21969?s&#x3D;21969 今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！                           千万不要跟程序猿说：你的代码有bug。他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。你要跟他这么说：这个程序怎么运行的跟">
+<meta property="og:type" content="article">
+<meta property="og:title" content="批处理修改无损音乐的cue文件内容">
+<meta property="og:url" content="https://oicu.github.io/posts/7f19841a.html">
+<meta property="og:site_name" content="Oh! I see you!">
+<meta property="og:description" content="原文链接：http:&#x2F;&#x2F;www.newsmth.net&#x2F;nForum&#x2F;article&#x2F;DOS&#x2F;21969?s&#x3D;21969 今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！                           千万不要跟程序猿说：你的代码有bug。他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。你要跟他这么说：这个程序怎么运行的跟">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-10-10T12:48:04.000Z">
+<meta property="article:modified_time" content="2018-10-11T11:31:11.618Z">
+<meta property="article:author" content="oicu">
+<meta property="article:tag" content="批处理">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://oicu.github.io/posts/7f19841a.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>批处理修改无损音乐的cue文件内容 | Oh! I see you!</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Oh! I see you!</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Hi! ppmm~~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/7f19841a.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="oicu">
+      <meta itemprop="description" content="只有想不到，没有做不到">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Oh! I see you!">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          批处理修改无损音乐的cue文件内容
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-10-10 20:48:04" itemprop="dateCreated datePublished" datetime="2018-10-10T20:48:04+08:00">2018-10-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Batch/" itemprop="url" rel="index"><span itemprop="name">Batch</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/7f19841a.html" class="post-meta-item leancloud_visitors" data-flag-title="批处理修改无损音乐的cue文件内容" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>原文链接：<a target="_blank" rel="noopener" href="http://www.newsmth.net/nForum/article/DOS/21969?s=21969">http://www.newsmth.net/nForum/article/DOS/21969?s=21969</a></p>
+<p>今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！</p>
+<blockquote class="blockquote-center">
+            <i class="fa fa-quote-left"></i>
+            <p>千万不要跟程序猿说：你的代码有bug。<br>他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。<br>你要跟他这么说：这个程序怎么运行的跟预期不一样，是我操作有问题吗？<br>程序猿就会第一反应：我擦，这是不是出bug了？</p>
+
+            <i class="fa fa-quote-right"></i>
+          </blockquote>
+
+<p>刚好迁移了新博客，把内容转过来写吧。</p>
+<span id="more"></span>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">发信人: coreqq (风起云涌), 信区: DOS</span><br><span class="line">标  题: 问个复杂点的批处理</span><br><span class="line">发信站: 水木社区 (Mon Jan  4 23:12:37 2010), 站内</span><br><span class="line"></span><br><span class="line">两个文件a.txt,b.txt</span><br><span class="line"></span><br><span class="line">a中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)</span><br><span class="line">b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）</span><br><span class="line">现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，…</span><br><span class="line">…</span><br><span class="line">请问如何写？</span><br></pre></td></tr></table></figure>
+
+<p>以下代码保存为批处理文件，比如 <code>convert-cue.bat</code></p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2010</span>-<span class="number">01</span>-<span class="number">05</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;<span class="variable">!swap!</span>&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line">            <span class="built_in">echo</span>.    <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>翻看了以前的代码，虽然结果无误，觉得还是有必要优化一下避免特例情况出错：</p>
+<figure class="highlight bat"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2018</span>-<span class="number">10</span>-<span class="number">11</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line"><span class="comment">        rem 因为截取方式不准确，还是使用替换，直到得到2位数字</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:TITLE=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:&quot;=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=!swap: =!</span><br><span class="line"><span class="comment">        rem 搜索时，在行首搜索数字并带点，比如 01.</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;^^<span class="variable">!swap!</span>\.&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line"><span class="comment">            rem 根据实际情况调整缩进的空格</span></span><br><span class="line">            <span class="built_in">echo</span>.     <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>以下就用水木网友 <code>javame</code> 提供的内容做示例。</p>
+<p>清单 <code>a.txt</code> 如下，<strong>不要有空行等多余的无关信息</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">01.成长的岁月</span><br><span class="line">02.流不完的泪</span><br><span class="line">03.愿你莫忘记</span><br><span class="line">04.飘往山那边</span><br><span class="line">05.岁月的歌</span><br><span class="line">06.应该不应该</span><br><span class="line">07.分手</span><br><span class="line">08.梦儿难忘记</span><br><span class="line">09.请你别忘记</span><br><span class="line">10.舞女</span><br></pre></td></tr></table></figure>
+
+<p>原 cue 文件内容 <code>b.txt</code> 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;Track01&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;Track02&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;Track03&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;Track04&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;Track05&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;Track06&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;Track07&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;Track08&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;Track09&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;Track10&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>执行批处理后，得到新的文件 <code>c.txt</code>，注意 <code>TITLE</code> 都已经替换了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;成长的岁月&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;流不完的泪&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;愿你莫忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;飘往山那边&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;岁月的歌&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;应该不应该&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;分手&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;梦儿难忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;请你别忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;舞女&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>实在看不下多年前的批处理版本，最后再写个 Shell 版本，直接修改 <code>b.txt</code> 不生成 <code>c.txt</code>。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> LINE</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    TITLE=`<span class="built_in">echo</span> <span class="variable">$&#123;LINE#*.&#125;</span> | <span class="built_in">tr</span> -d <span class="string">&#x27;\r&#x27;</span>`</span><br><span class="line">    sed -i <span class="string">&#x27;s#TITLE &quot;Track&#x27;</span><span class="variable">$&#123;LINE%%.*&#125;</span><span class="string">&#x27;&quot;#TITLE &quot;&#x27;</span><span class="variable">$&#123;TITLE&#125;</span><span class="string">&#x27;&quot;#g&#x27;</span> b.txt</span><br><span class="line"><span class="keyword">done</span> &lt; a.txt</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>「土豪，请留步~」</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="oicu 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>oicu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://oicu.github.io/posts/7f19841a.html" title="批处理修改无损音乐的cue文件内容">https://oicu.github.io/posts/7f19841a.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%89%B9%E5%A4%84%E7%90%86/" rel="tag"># 批处理</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/4a17b156.html" rel="prev" title="Hello World">
+      <i class="fa fa-chevron-left"></i> Hello World
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/dd913a8b.html" rel="next" title="用于Windows系统的免费SFTP服务器-Free SFTP Servers">
+      用于Windows系统的免费SFTP服务器-Free SFTP Servers <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="oicu"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">oicu</p>
+  <div class="site-description" itemprop="description">只有想不到，没有做不到</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/oicu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;oicu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:oicu.cc@gmail.com" title="E-Mail → mailto:oicu.cc@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oicu.cc.blog.163.com/" title="http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;" rel="noopener" target="_blank">旧博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">oicu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"Mn0TalrgWNivLyxOVswOE1uz-gzGzoHsz","app_key":"d3pkvLSKmrtoCoi4tTnPrKVB","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

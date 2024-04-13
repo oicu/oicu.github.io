@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"oicu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="SSH PubkeyAuthentication  “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSH公钥认证登录">
+<meta property="og:url" content="https://oicu.github.io/posts/45030.html">
+<meta property="og:site_name" content="Oh! I see you!">
+<meta property="og:description" content="SSH PubkeyAuthentication  “互信”只是公钥认证的一个特例。 2台服务器相互使用公钥认证登录，才叫互信。 本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。 由谁操作原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-08-24T09:07:35.000Z">
+<meta property="article:modified_time" content="2021-04-07T10:27:41.856Z">
+<meta property="article:author" content="oicu">
+<meta property="article:tag" content="ssh">
+<meta property="article:tag" content="公钥">
+<meta property="article:tag" content="互信">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://oicu.github.io/posts/45030.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SSH公钥认证登录 | Oh! I see you!</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Oh! I see you!</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Hi! ppmm~~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/45030.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="oicu">
+      <meta itemprop="description" content="只有想不到，没有做不到">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Oh! I see you!">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SSH公钥认证登录
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-24 17:07:35" itemprop="dateCreated datePublished" datetime="2018-08-24T17:07:35+08:00">2018-08-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Tech/" itemprop="url" rel="index"><span itemprop="name">Tech</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Tech/OpenSSH/" itemprop="url" rel="index"><span itemprop="name">OpenSSH</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/45030.html" class="post-meta-item leancloud_visitors" data-flag-title="SSH公钥认证登录" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>8 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>SSH PubkeyAuthentication</p>
+</blockquote>
+<p><strong>“互信”只是公钥认证的一个特例。</strong> 2台服务器相互使用公钥认证登录，才叫互信。</p>
+<p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
+<h1 id="由谁操作"><a href="#由谁操作" class="headerlink" title="由谁操作"></a>由谁操作</h1><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
+<p>管理公钥认证就如管理密码一样，需要绝对清楚各个系统之间的交互关系。</p>
+<span id="more"></span>
+
+<h1 id="生成密钥对"><a href="#生成密钥对" class="headerlink" title="生成密钥对"></a>生成密钥对</h1><blockquote>
+<p>带 <code>.pub</code> 结尾的是公钥，可以任意公开。不带 .pub 结尾的是私钥，可设置私钥的密码，<strong>私钥不能泄露</strong>。<br>服务器之间的公钥认证，如果设置私钥密码，当服务器系统重启后需要人工处理才能正常使用。<br>主机密钥对与用户密钥对生成方法一样，只是文件名、保存位置、用户属组不同。</p>
+</blockquote>
+<h2 id="RSA密钥对"><a href="#RSA密钥对" class="headerlink" title="RSA密钥对"></a>RSA密钥对</h2><p>登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure>
+
+
+<p>按照提示一直按回车，将会在 ~&#x2F;.ssh 目录下生成 2 个文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<h2 id="ed25519密钥对"><a href="#ed25519密钥对" class="headerlink" title="ed25519密钥对"></a>ed25519密钥对</h2><p>OpenSSH 6.5 之后的版本支持新的 ed25519 加密算法，可代替 RSA 算法。</p>
+<p>登录服务器 A 的用户 user1，生成非对称加密 ed25519 密钥对，无需指定密钥长度：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
+
+<p>按照提示一直按回车，将会在 ~&#x2F;.ssh 目录下生成 2 个文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure>
+
+<h1 id="授权公钥"><a href="#授权公钥" class="headerlink" title="授权公钥"></a>授权公钥</h1><blockquote>
+<p>通俗的解释：一个手指就是一个私钥，对应的指纹特征就是公钥，系统就相当于门禁。授权公钥的过程就相当于录入指纹！可以使用不同的手指打开一个门，也可以同一个手指打开多个门。</p>
+</blockquote>
+<p>把 user1@A 的公钥添加到 user2@B 的 <strong>~&#x2F;.ssh&#x2F;authorized_keys</strong> 授权文件里，user1@A 即可免密码登录 user2@B。</p>
+<h2 id="使用ssh-copy-id"><a href="#使用ssh-copy-id" class="headerlink" title="使用ssh-copy-id"></a>使用ssh-copy-id</h2><p>登录服务器 A 的 user1 用户操作。</p>
+<h3 id="Linux-Unix"><a href="#Linux-Unix" class="headerlink" title="Linux&#x2F;Unix"></a>Linux&#x2F;Unix</h3><p>Linux 服务器默认有 ssh-copy-id 命令，AIX 服务器的 ssh 版本低，没有该命令。</p>
+<blockquote>
+<p>-i 参数后指定的是<strong>用户公钥</strong>。<br>用户公钥和用户私钥需在同一目录。</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
+
+<p>端口不是22时需要用以下这种写法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub <span class="string">&#x27;user2@192.168.1.2 -p 22&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="MacOSX"><a href="#MacOSX" class="headerlink" title="MacOSX"></a>MacOSX</h3><p>Mac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line"><span class="built_in">chmod</span> +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure>
+<p>or</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure>
+
+<h2 id="手动编辑（不推荐）"><a href="#手动编辑（不推荐）" class="headerlink" title="手动编辑（不推荐）"></a>手动编辑（不推荐）</h2><p>登录服务器 B 的 user2 用户操作。</p>
+<p>首先把 user1@A 的公钥传输到 user2@B 的某一个目录下。</p>
+<p>如果没有 ~&#x2F;.ssh 目录则需新建。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; <span class="built_in">mkdir</span> ~/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 700 ~/.ssh</span><br><span class="line"><span class="built_in">cat</span> ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">rm</span> ~/yourname.pub</span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h2 id="管道操作"><a href="#管道操作" class="headerlink" title="管道操作"></a>管道操作</h2><p>登录服务器 A 的 user1 用户操作。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 <span class="string">&quot;umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user2@192.168.1.2 <span class="string">&#x27;(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span></span><br><span class="line"><span class="string">cat &gt;&gt; ~/.ssh/authorized_keys&#x27;</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<h1 id="检查权限"><a href="#检查权限" class="headerlink" title="检查权限"></a>检查权限</h1><h2 id="登录端"><a href="#登录端" class="headerlink" title="登录端"></a>登录端</h2><p>服务器 A 的 user1 用户，只对私钥文件的权限敏感，检查私钥的权限是否为600：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+
+<h2 id="被登录端"><a href="#被登录端" class="headerlink" title="被登录端"></a>被登录端</h2><p>登录服务器 B 的 user2 用户操作。</p>
+<p>检查目录权限是否为700：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld ~/.ssh</span><br></pre></td></tr></table></figure>
+
+<p>检查授权文件的权限是否为600：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>检查用户主目录的权限是否为700&#x2F;750&#x2F;755：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>还要检查目录及文件的属主。</p>
+</blockquote>
+<h1 id="SSH原理"><a href="#SSH原理" class="headerlink" title="SSH原理"></a>SSH原理</h1><h2 id="默认配置文件"><a href="#默认配置文件" class="headerlink" title="默认配置文件"></a>默认配置文件</h2><p>与服务端相关的目录、文件：</p>
+<style>
+table th:nth-of-type(1) {
+    width: 20%;
+}
+table th:nth-of-type(2) {
+    width: 25%;
+}
+table th:nth-of-type(3) {
+    width: 15%;
+}
+table th:nth-of-type(4) {
+    width: 15%;
+}
+</style>
+
+<table>
+<thead>
+<tr>
+<th align="left">目录</th>
+<th align="left">文件名</th>
+<th align="left">用户属组</th>
+<th align="left">权限</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">&#x2F;etc&#x2F;ssh</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">sshd_config</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">服务器全局设置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ecdsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机ecdsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ecdsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机ecdsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ed25519_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机ed25519私钥，可与rsa同时启用，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ed25519_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机ed25519公钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_rsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机rsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_rsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机rsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_dsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机dsa私钥，安全原因，OpenSSH 7.0弃用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_dsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机dsa公钥，弃用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机rsa私钥，SSH1协议使用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机rsa公钥，SSH1协议使用</td>
+</tr>
+<tr>
+<td align="left">~&#x2F;.ssh</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">authorized_keys</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">授权文件，保存其他服务器的用户公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_dsa</td>
+<td align="left">-</td>
+<td align="left">-</td>
+<td align="left">无效文件</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_dsa.pub</td>
+<td align="left">-</td>
+<td align="left">-</td>
+<td align="left">无效文件</td>
+</tr>
+<tr>
+<td align="left">&#x2F;home</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">$HOME</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700&#x2F;750&#x2F;755</td>
+<td align="left">Linux系统，除 root 用户</td>
+</tr>
+</tbody></table>
+<p>与客户端相关的目录、文件：</p>
+<table>
+<thead>
+<tr>
+<th align="left">目录</th>
+<th align="left">文件名</th>
+<th align="left">用户属组</th>
+<th align="left">权限</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">&#x2F;etc&#x2F;ssh</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_config</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">客户端全局设置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_known_hosts</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">全局授权主机列表，可选</td>
+</tr>
+<tr>
+<td align="left">~&#x2F;.ssh</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">config</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户配置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_rsa</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户rsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_rsa.pub</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">用户rsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_ed25519</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户ed25519私钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_ed25519.pub</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">用户ed25519公钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">known_hosts</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">授权主机列表，保存其他服务器的主机公钥</td>
+</tr>
+</tbody></table>
+<h2 id="公钥文件"><a href="#公钥文件" class="headerlink" title="公钥文件"></a>公钥文件</h2><p>每个公钥只有一行，常用4个字段，空格分隔，详见 <strong>sshd(8) manpage</strong> 帮助的 <strong>AUTHORIZED_KEYS FILE FORMAT</strong> 章节。</p>
+<p>格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">options keytype base64-encoded-key comment</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如 from 指定来源 ip，command 指定允许的命令（可选，需要禁止密码登录）</li>
+<li>加密类型，如 ssh-rsa</li>
+<li>公钥内容</li>
+<li>备注</li>
+</ul>
+<blockquote>
+<p>公钥文件扩展名常用 .pub<br>公钥内容的加密类型要用<strong>小写</strong>，比如 ssh-rsa、ssh-ed25519<br>备注常用个人邮箱、用户名@主机名、用户名@IP</p>
+</blockquote>
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">from=&quot;10.0.0.?,*.example.com,192.168.0.0/24&quot;,no-X11-forwarding ssh-rsa AB3Nz...EN8w== user@example.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="授权文件"><a href="#授权文件" class="headerlink" title="授权文件"></a>授权文件</h2><p>authorized_keys 文件用于 SSH 服务端！推荐使用权限 600，不严谨使用 644 也行。</p>
+<p>服务器一般不保留用户公钥 .pub 文件，需要用额外方式登记各系统之间的授权关系。</p>
+<p>授权登录服务器的用户公钥都全部记录到 authorized_keys 文件里，每个用户公钥一行。</p>
+<p>从服务器上每个受影响的 authorized_keys 文件移除对应的用户公钥即可撤销登录权限。</p>
+<blockquote>
+<p>ssh 服务器使用 OpenSSH 时，支持限制来源 IP，增强安全性。Dropbear 不支持该功能。</p>
+</blockquote>
+<p>只允许 10.0.0.2 主机的任意用户使用公钥认证登录到本用户的 authorized_keys 示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">from=&quot;10.0.0.2&quot; ssh-rsa AB3Nz...EN8w== user@example.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="授权主机列表"><a href="#授权主机列表" class="headerlink" title="授权主机列表"></a>授权主机列表</h2><p>known_hosts 文件用于 SSH 客户端！</p>
+<p>当前用户登录过的服务器的主机公钥全部记录到 known_hosts 文件，每个主机公钥一行。</p>
+<p>当下次访问相同计算机时，OpenSSH 会核对公钥，如果公钥不同，OpenSSH 会发出警告或拒绝登录，避免你受到 DNS劫持、中间人攻击。</p>
+<p>格式与授权文件有差异，不建议手工编辑。</p>
+<h3 id="删除授权的主机公钥"><a href="#删除授权的主机公钥" class="headerlink" title="删除授权的主机公钥"></a>删除授权的主机公钥</h3><p>删除 known_hosts 文件里指定服务器（比如192.168.0.100）的主机公钥的命令，可用于自动化脚本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>不管是否命中，都会自动重新备份 known_hosts.old<br>known_hosts 文件里有格式错误的行时，删除失败，不会备份。</p>
+</blockquote>
+<h3 id="默认自动保存主机公钥"><a href="#默认自动保存主机公钥" class="headerlink" title="默认自动保存主机公钥"></a>默认自动保存主机公钥</h3><p>在 ~&#x2F;.ssh&#x2F;config 里增加 StrictHostKeyChecking 选项：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host *</span><br><span class="line">        StrictHostKeyChecking no</span><br><span class="line">        UserKnownHostsFile /dev/null</span><br></pre></td></tr></table></figure>
+
+<p>或者在 ssh&#x2F;sftp&#x2F;scp 命令行里使用参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>先删除后再默认添加服务器主机公钥的缺点是登录时会延迟。<br>UserKnownHostsFile 是可选的，使用 &#x2F;dev&#x2F;null“黑洞文件”保存主机公钥。</p>
+</blockquote>
+<h3 id="获取集群主机公钥"><a href="#获取集群主机公钥" class="headerlink" title="获取集群主机公钥"></a>获取集群主机公钥</h3><p>利用 ssh-keyscan 获取集群机器 SSH 公钥指纹。</p>
+<p>首先准备好需要获取公钥指纹的 IP 或 HOSTNAME 列表文件 hostlist.txt</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1</span><br><span class="line">127.0.0.2</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keyscan -f hostlist.txt 1&gt;&gt;~/.ssh/known_hosts 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>而后将 ~&#x2F;.ssh&#x2F;known_hosts 用 scp 拷贝到 hostlist.txt 中的所有机器上即可。</p>
+<h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="访问关系"><a href="#访问关系" class="headerlink" title="访问关系"></a>访问关系</h2><p>user1@A 要登录 user2@B、user3@C、user4@D，那么 user1 的用户公钥需要全部存放到 B、C、D 对应的用户的授权文件里。</p>
+<p>user2@B、user3@C、user4@D 都要登录 user1@A，那么 user2、user3、user4 的用户公钥都需要存放到 user1 的授权文件里。</p>
+<h2 id="多节点服务器"><a href="#多节点服务器" class="headerlink" title="多节点服务器"></a>多节点服务器</h2><p>多台服务器，使用 DMZ &#x2F; NAT &#x2F; HA 等技术对外使用同一个 IP 或者域名提供服务，当服务器切换后，由于目标服务器的主机公钥变化，构造人为的中间人攻击模型，客户端验证 known_hosts 失败并拒绝登录。</p>
+<p>解决办法有以下几个，任选其一：</p>
+<ul>
+<li>服务器复用主机密钥对，即 &#x2F;etc&#x2F;ssh&#x2F; 目录里的配置保存一致。</li>
+<li>客户端每次都删除 known_hosts 里的主机公钥，登录时重新记录。</li>
+<li>客户端不使用浮动的 IP 访问服务器，而是使用各台服务器私有的 IP 访问。需要通过其他方式判断服务器集群活动的主节点，故不推荐该法。</li>
+</ul>
+<h2 id="系统克隆"><a href="#系统克隆" class="headerlink" title="系统克隆"></a>系统克隆</h2><p>克隆虚拟机会有安全问题，比如 user1@A 公钥认证登录 user2@B，B 系统克隆得到 C，那么 user1@A 可以公钥认证登录 user2@C。</p>
+<ul>
+<li>无密钥复用的特殊要求时候，一般建议克隆虚拟机、系统磁盘后重新生成主机密钥对。</li>
+<li>删除所有用户的 .ssh 目录。</li>
+</ul>
+<p>参考命令及文件属组：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key</span><br><span class="line">ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key</span><br><span class="line">ssh-keygen -t rsa -b 2048 -f /etc/ssh/ssh_host_rsa_key</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-rw-r-----. 1 root ssh_keys    227 Aug 29  2017 ssh_host_ecdsa_key</span><br><span class="line">-rw-r--r--. 1 root root        162 Aug 29  2017 ssh_host_ecdsa_key.pub</span><br><span class="line">-rw-r-----. 1 root ssh_keys    387 Aug 29  2017 ssh_host_ed25519_key</span><br><span class="line">-rw-r--r--. 1 root root         82 Aug 29  2017 ssh_host_ed25519_key.pub</span><br><span class="line">-rw-r-----. 1 root ssh_keys   1675 Aug 29  2017 ssh_host_rsa_key</span><br><span class="line">-rw-r--r--. 1 root root        382 Aug 29  2017 ssh_host_rsa_key.pub</span><br></pre></td></tr></table></figure>
+
+<h2 id="主备客户端"><a href="#主备客户端" class="headerlink" title="主备客户端"></a>主备客户端</h2><p>如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。</p>
+<h2 id="小权用户"><a href="#小权用户" class="headerlink" title="小权用户"></a>小权用户</h2><p>建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 &#x2F;home、$HOME 的属组、权限，导致公钥认证失效。</p>
+<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#chmod og+x /home</span></span><br><span class="line"><span class="variable">$chmod</span> og-w <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p># 开头的行代表用 root 权限执行，$ 代表用户权限执行。</p>
+</blockquote>
+<h2 id="密码有效期"><a href="#密码有效期" class="headerlink" title="密码有效期"></a>密码有效期</h2><ul>
+<li>用户密码设置有效期，到期后也无法用公钥认证登录。</li>
+<li>非 root 用户公钥认证登录后无法更改用户密码，拥有密码即拥有当前用户的最高权限。</li>
+<li>公钥认证登录时，用私钥密码代替用户密码，私钥密码可随时修改。</li>
+<li>更改用户密码、私钥密码都不影响别的公钥认证登录。</li>
+</ul>
+<h2 id="禁止密码认证"><a href="#禁止密码认证" class="headerlink" title="禁止密码认证"></a>禁止密码认证</h2><p>root 用户编辑 &#x2F;etc&#x2F;ssh&#x2F;sshd_config 文件，禁止所有用户（包括 root）使用密码认证方式登录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication no    # 密码认证，默认 yes</span><br><span class="line">PermitEmptyPasswords no      # 空密码登录，默认 no</span><br></pre></td></tr></table></figure>
+
+<p>使用 Match User 可让某些选项只对该用户生效，比如除了 abc 用户外，其他用户都可以用密码登录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure>
+
+<h2 id="限制root用户登录"><a href="#限制root用户登录" class="headerlink" title="限制root用户登录"></a>限制root用户登录</h2><p>&#x2F;etc&#x2F;ssh&#x2F;sshd_config 的可选项 PermitRootLogin 可以限定 root 用户通过 ssh 的登录方式。</p>
+<table>
+<thead>
+<tr>
+<th align="left">参数类别</th>
+<th align="left">是否允许ssh登陆</th>
+<th align="left">登录方式</th>
+<th align="left">交互shell</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">yes</td>
+<td align="left">允许</td>
+<td align="left">没有限制</td>
+<td align="left">没有限制</td>
+</tr>
+<tr>
+<td align="left">without-password</td>
+<td align="left">允许</td>
+<td align="left">除密码以外</td>
+<td align="left">没有限制</td>
+</tr>
+<tr>
+<td align="left">forced-commands-only</td>
+<td align="left">允许</td>
+<td align="left">仅允许使用密钥</td>
+<td align="left">仅允许已授权的命令</td>
+</tr>
+<tr>
+<td align="left">no</td>
+<td align="left">不允许</td>
+<td align="left">N&#x2F;A</td>
+<td align="left">N&#x2F;A</td>
+</tr>
+<tr>
+<td align="left">prohibit-password</td>
+<td align="left">允许</td>
+<td align="left">除密码以外</td>
+<td align="left">没有限制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>OpenSSH 7.0 开始调整默认选项从 yes 到 prohibit-password（without-password 的同义且语义改良参数）。<br>PasswordAuthentication 的优先级比 PermitRootLogin 高。</p>
+</blockquote>
+<h2 id="禁止用户登录"><a href="#禁止用户登录" class="headerlink" title="禁止用户登录"></a>禁止用户登录</h2><p>&#x2F;etc&#x2F;ssh&#x2F;sshd_config 的可选项 AllowUsers 和 Denyusers 可设置用户白名单、黑名单。</p>
+<p>除了可以禁止某个用户登录，还可以针对固定的 IP 进行禁止登录。&#x2F;etc&#x2F;hosts.allow 和 &#x2F;etc&#x2F;hosts.deny 可设置允许访问 sshd 进程 IP 列表。</p>
+<p>在 &#x2F;etc&#x2F;passwd 里设置 &#x2F;sbin&#x2F;nologin 禁止某用户登录，即使用 root 用户 su 命令切换用户也无法登陆。</p>
+<blockquote>
+<p>被禁止的用户或 IP 地址，密码认证、公钥认证都无法登录。</p>
+</blockquote>
+<h2 id="只允许sftp登录"><a href="#只允许sftp登录" class="headerlink" title="只允许sftp登录"></a>只允许sftp登录</h2><blockquote>
+<p>建议 sftp 只用于维护操作，不当文件服务器使用，因为有最大连接数限制。</p>
+</blockquote>
+<h3 id="authorized-keys方式"><a href="#authorized-keys方式" class="headerlink" title="authorized_keys方式"></a>authorized_keys方式</h3><p>在 authorized_keys 授权文件的公钥开头写上允许使用的命令，只适用于公钥认证。</p>
+<p>用户可自己修改授权文件时，权限管控不严格。禁用密码认证并采用 CA 扩展，效果好一点。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">command=&quot;internal-sftp&quot; ssh-rsa AAAAB3NzaC1yc2EAAAADA...</span><br></pre></td></tr></table></figure>
+
+<h3 id="sshd-config方式"><a href="#sshd-config方式" class="headerlink" title="sshd_config方式"></a>sshd_config方式</h3><p>严格的权限管控需要由 root 用户更改 sshd_config 文件，用公钥认证或密码认证都无法 ssh 登录。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#Subsystem       sftp    /usr/libexec/openssh/sftp-server</span><br><span class="line">Subsystem        sftp    internal-sftp</span><br><span class="line"></span><br><span class="line">Match User user1</span><br><span class="line">        ChrootDirectory /home</span><br><span class="line">        ForceCommand internal-sftp</span><br></pre></td></tr></table></figure>
+
+<h1 id="CA扩展"><a href="#CA扩展" class="headerlink" title="CA扩展"></a>CA扩展</h1><p>OpenSSH 5.4 以上版本支持 CA 扩展，客户端、服务器需要同时支持才可用。</p>
+<p>大量的服务器需要使用公钥认证登录 user1@A 时，可使用 CA 证书认证。</p>
+<p>用户认证的基本流程是：用一台服务器 C（也可以是 A 本身）的一个私钥，对客户端的用户公钥签名，user1@A 的授权文件里只需保存 C 的一个签名公钥。</p>
+<p>CA 扩展更方便的控制用户证书里使用的登录用户名、X11 转发、SSH 代理转发、端口转发、来源 IP 地址、PTY 等。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>「土豪，请留步~」</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="oicu 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>oicu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://oicu.github.io/posts/45030.html" title="SSH公钥认证登录">https://oicu.github.io/posts/45030.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ssh/" rel="tag"># ssh</a>
+              <a href="/tags/%E5%85%AC%E9%92%A5/" rel="tag"># 公钥</a>
+              <a href="/tags/%E4%BA%92%E4%BF%A1/" rel="tag"># 互信</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/9ecaf4f0.html" rel="prev" title="Xlight FTP Server最新版破解方式">
+      <i class="fa fa-chevron-left"></i> Xlight FTP Server最新版破解方式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/4a17b156.html" rel="next" title="Hello World">
+      Hello World <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%B1%E8%B0%81%E6%93%8D%E4%BD%9C"><span class="nav-number">1.</span> <span class="nav-text">由谁操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E5%AF%B9"><span class="nav-number">2.</span> <span class="nav-text">生成密钥对</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#RSA%E5%AF%86%E9%92%A5%E5%AF%B9"><span class="nav-number">2.1.</span> <span class="nav-text">RSA密钥对</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ed25519%E5%AF%86%E9%92%A5%E5%AF%B9"><span class="nav-number">2.2.</span> <span class="nav-text">ed25519密钥对</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8E%88%E6%9D%83%E5%85%AC%E9%92%A5"><span class="nav-number">3.</span> <span class="nav-text">授权公钥</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8ssh-copy-id"><span class="nav-number">3.1.</span> <span class="nav-text">使用ssh-copy-id</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux-Unix"><span class="nav-number">3.1.1.</span> <span class="nav-text">Linux&#x2F;Unix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MacOSX"><span class="nav-number">3.1.2.</span> <span class="nav-text">MacOSX</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E7%BC%96%E8%BE%91%EF%BC%88%E4%B8%8D%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">手动编辑（不推荐）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%A1%E9%81%93%E6%93%8D%E4%BD%9C"><span class="nav-number">3.3.</span> <span class="nav-text">管道操作</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A3%80%E6%9F%A5%E6%9D%83%E9%99%90"><span class="nav-number">4.</span> <span class="nav-text">检查权限</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%99%BB%E5%BD%95%E7%AB%AF"><span class="nav-number">4.1.</span> <span class="nav-text">登录端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A2%AB%E7%99%BB%E5%BD%95%E7%AB%AF"><span class="nav-number">4.2.</span> <span class="nav-text">被登录端</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SSH%E5%8E%9F%E7%90%86"><span class="nav-number">5.</span> <span class="nav-text">SSH原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">5.1.</span> <span class="nav-text">默认配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AC%E9%92%A5%E6%96%87%E4%BB%B6"><span class="nav-number">5.2.</span> <span class="nav-text">公钥文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%88%E6%9D%83%E6%96%87%E4%BB%B6"><span class="nav-number">5.3.</span> <span class="nav-text">授权文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%88%E6%9D%83%E4%B8%BB%E6%9C%BA%E5%88%97%E8%A1%A8"><span class="nav-number">5.4.</span> <span class="nav-text">授权主机列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E6%8E%88%E6%9D%83%E7%9A%84%E4%B8%BB%E6%9C%BA%E5%85%AC%E9%92%A5"><span class="nav-number">5.4.1.</span> <span class="nav-text">删除授权的主机公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E8%87%AA%E5%8A%A8%E4%BF%9D%E5%AD%98%E4%B8%BB%E6%9C%BA%E5%85%AC%E9%92%A5"><span class="nav-number">5.4.2.</span> <span class="nav-text">默认自动保存主机公钥</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E9%9B%86%E7%BE%A4%E4%B8%BB%E6%9C%BA%E5%85%AC%E9%92%A5"><span class="nav-number">5.4.3.</span> <span class="nav-text">获取集群主机公钥</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-number">6.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E5%85%B3%E7%B3%BB"><span class="nav-number">6.1.</span> <span class="nav-text">访问关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%8A%82%E7%82%B9%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">6.2.</span> <span class="nav-text">多节点服务器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%85%8B%E9%9A%86"><span class="nav-number">6.3.</span> <span class="nav-text">系统克隆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E5%A4%87%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="nav-number">6.4.</span> <span class="nav-text">主备客户端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E6%9D%83%E7%94%A8%E6%88%B7"><span class="nav-number">6.5.</span> <span class="nav-text">小权用户</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%86%E7%A0%81%E6%9C%89%E6%95%88%E6%9C%9F"><span class="nav-number">6.6.</span> <span class="nav-text">密码有效期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%81%E6%AD%A2%E5%AF%86%E7%A0%81%E8%AE%A4%E8%AF%81"><span class="nav-number">6.7.</span> <span class="nav-text">禁止密码认证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%90%E5%88%B6root%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95"><span class="nav-number">6.8.</span> <span class="nav-text">限制root用户登录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A6%81%E6%AD%A2%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95"><span class="nav-number">6.9.</span> <span class="nav-text">禁止用户登录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AA%E5%85%81%E8%AE%B8sftp%E7%99%BB%E5%BD%95"><span class="nav-number">6.10.</span> <span class="nav-text">只允许sftp登录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#authorized-keys%E6%96%B9%E5%BC%8F"><span class="nav-number">6.10.1.</span> <span class="nav-text">authorized_keys方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sshd-config%E6%96%B9%E5%BC%8F"><span class="nav-number">6.10.2.</span> <span class="nav-text">sshd_config方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CA%E6%89%A9%E5%B1%95"><span class="nav-number">7.</span> <span class="nav-text">CA扩展</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="oicu"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">oicu</p>
+  <div class="site-description" itemprop="description">只有想不到，没有做不到</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/oicu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;oicu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:oicu.cc@gmail.com" title="E-Mail → mailto:oicu.cc@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oicu.cc.blog.163.com/" title="http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;" rel="noopener" target="_blank">旧博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">oicu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"Mn0TalrgWNivLyxOVswOE1uz-gzGzoHsz","app_key":"d3pkvLSKmrtoCoi4tTnPrKVB","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

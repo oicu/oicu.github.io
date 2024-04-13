@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-180x180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"oicu.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。 首先，解决 VisualSVN 的 SSL 证书问题：http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;blog&#x2F;static&#x2F;1230394712016101344729540&#x2F;否则使用 svn 命令时不能永久保存证书，每">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在AIX系统安装svn客户端">
+<meta property="og:url" content="https://oicu.github.io/posts/1997d5d0.html">
+<meta property="og:site_name" content="Oh! I see you!">
+<meta property="og:description" content="某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。 首先，解决 VisualSVN 的 SSL 证书问题：http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;blog&#x2F;static&#x2F;1230394712016101344729540&#x2F;否则使用 svn 命令时不能永久保存证书，每">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-11-23T06:07:49.000Z">
+<meta property="article:modified_time" content="2018-10-09T05:40:51.927Z">
+<meta property="article:author" content="oicu">
+<meta property="article:tag" content="svn">
+<meta property="article:tag" content="AIX">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://oicu.github.io/posts/1997d5d0.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>在AIX系统安装svn客户端 | Oh! I see you!</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Oh! I see you!</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Hi! ppmm~~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://oicu.github.io/posts/1997d5d0.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="oicu">
+      <meta itemprop="description" content="只有想不到，没有做不到">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Oh! I see you!">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在AIX系统安装svn客户端
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-23 14:07:49" itemprop="dateCreated datePublished" datetime="2016-11-23T14:07:49+08:00">2016-11-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Software/" itemprop="url" rel="index"><span itemprop="name">Software</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Software/svn/" itemprop="url" rel="index"><span itemprop="name">svn</span></a>
+                </span>
+            </span>
+
+          
+            <span id="/posts/1997d5d0.html" class="post-meta-item leancloud_visitors" data-flag-title="在AIX系统安装svn客户端" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。</p>
+<p>首先，解决 VisualSVN 的 SSL 证书问题：<br><a target="_blank" rel="noopener" href="http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/">http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/</a><br>否则使用 svn 命令时不能永久保存证书，每次使用 svn 命令都会提示或奔溃。</p>
+<span id="more"></span>
+
+<p>在 Linux 和 Windows 安装 svn 客户端都简单，但在 AIX 上就稍微麻烦点，由于同一个系统里有多个用户，编译这种麻烦事肯定是排除的，优先考虑使用 rpm 安装。</p>
+<p>由于低版本的 svn 客户端 checkout 之后，在本地每个文件夹都生成 .svn 隐藏目录，svn 1.7 及之后的版本在本地的 working copy 只有根目录有一个 .svn 目录，取代以前的所有的目录下都有 .svn 目录的方式。因此推荐使用 subversion 1.7 之后的版本。</p>
+<p>AIX 系统用的 rpm 包可以从以下网站获取：<br><a target="_blank" rel="noopener" href="http://www.oss4aix.org/download/RPMS/subversion/">http://www.oss4aix.org/download/RPMS/subversion/</a><br><a target="_blank" rel="noopener" href="http://www.perzl.org/aix/index.php?n=Main.Subversion">http://www.perzl.org/aix/index.php?n=Main.Subversion</a><br><a href="ftp://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/subversion/">ftp://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/subversion/</a><br><a target="_blank" rel="noopener" href="http://www.bullfreeware.com/">http://www.bullfreeware.com/</a></p>
+<p>ibm 网站提供的 svn 版本较新，但是不能使用 http&#x2F;https 访问 VisualSVN 服务器的库，排除！<br>perzl 网站是 svn 官网推荐的 Windows 编译版本，但版本较旧，截止发文，最新的只有 v1.8.5-1。<br>oss4aix 网站的版本比 prezl 的新一点，我最终选用的是 <code>subversion-1.8.10-2.aix5.3.ppc.rpm</code> 这个包。<br>未测试 bullfreeware 网站的包。</p>
+<p>依赖关系（Package dependencies）：<br>prezl 及 bullfreeware 网站列有依赖关系供参考，每个版本的 subversion 依赖都不一样，根据具体来安装。依赖包不用安装太新的，满足最低要求即可！否则一个依赖一个，装个没完。<br>svn 1.8 之前的版本使用 http&#x2F;https 访问需要安装 neon 依赖，1.8 及之后版本弃用 neon 而改使用 serf。<br>serf 的版本越新越好，旧版本可能处理 SSL 证书会有问题，我选用 oss4aix 网站的 <code>serf-1.2.1-2.aix5.1.ppc.rpm</code></p>
+<p>因为只是安装客户端，如果提示要依赖 httpd（ibm 网站的版本要），使用 <code>--nodeps</code> 参数：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rpm -ivh --nodeps subversion-1.8.10-2.aix5.3.ppc.rpm</span><br></pre></td></tr></table></figure>
+
+
+<p>我所用的 AIX 7.1 系统并没有使用 UTF-8 编码！使用 svn 客户端遇到中文文件名无法检出，处理方法为（不推荐）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export LC_ALL=</span><br><span class="line">export LC_CTYPE=&quot;Zh_CN.GB18030&quot;</span><br></pre></td></tr></table></figure>
+<p>用 <code>locale</code> 命令查看，把其他 LC_* 环境变量设置为 C 或者 en_US。<br>不要设置 LANG 这个环境变量！</p>
+<p>rpm -qa 查看已经安装的包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">zlib-1.2.8-1</span><br><span class="line">file-5.28-1</span><br><span class="line">libgcc-4.5.4-1</span><br><span class="line">apr-1.5.2-2</span><br><span class="line">apr-util-1.5.4-1</span><br><span class="line">file-libs-5.28-1</span><br><span class="line">gettext-0.19.7-1</span><br><span class="line">expat-2.1.0-1</span><br><span class="line">sqlite-3.9.2.0-1</span><br><span class="line">db4-4.7.25-2</span><br><span class="line">openssl-1.0.1t-1</span><br><span class="line">serf-1.2.1-2</span><br><span class="line">libiconv-1.14-2</span><br><span class="line">info-5.2-1</span><br><span class="line">readline-6.3-5</span><br><span class="line">subversion-1.8.10-2</span><br><span class="line">python-2.7.5-1</span><br><span class="line">gdbm-1.8.3-5</span><br></pre></td></tr></table></figure>
+
+
+<p>对应的 rpm 包是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">apr-1.5.2-2.aix5.2.ppc.rpm</span><br><span class="line">apr-util-1.5.4-1.aix5.1.ppc.rpm</span><br><span class="line">db4-4.7.25-2.aix5.1.ppc.rpm</span><br><span class="line">expat-2.1.0-1.aix5.1.ppc.rpm</span><br><span class="line">file-5.28-1.aix5.1.ppc.rpm</span><br><span class="line">file-libs-5.28-1.aix5.1.ppc.rpm</span><br><span class="line">gettext-0.19.7-1.aix6.1.ppc.rpm</span><br><span class="line">info-5.2-1.aix5.1.ppc.rpm</span><br><span class="line">libgcc-4.5.4-1.aix7.1.ppc.rpm</span><br><span class="line">libiconv-1.14-2.aix5.1.ppc.rpm</span><br><span class="line">openssl-1.0.1t-1.aix5.1.ppc.rpm</span><br><span class="line">readline-6.3-5.aix5.1.ppc.rpm</span><br><span class="line">serf-1.2.1-2.aix5.1.ppc.rpm</span><br><span class="line">sqlite-3.9.2.0-1.aix5.1.ppc.rpm</span><br><span class="line">subversion-1.8.10-2.aix5.3.ppc.rpm</span><br><span class="line">zlib-1.2.8-1.aix6.1.ppc.rpm</span><br><span class="line">python-2.7.5-1.aix6.1.ppc.rpm</span><br><span class="line">gdbm-1.8.3-5.aix5.2.ppc.rpm</span><br></pre></td></tr></table></figure>
+
+
+<p>特别注意 libgcc 这个包对应的版本！我尝试装其他版本都不行，只好装这个 aix7.1 的。</p>
+<p>如果没设置 LIBPATH 变量，或虽然设置了但所有动态库路径里都不产生库版本冲突时，svn可正常运行。<br>检查动态库是否有冲突：<br><code>ldd /usr/bin/svn</code><br>有冲突需要修改程序运行时查找动态库的路径顺序，&#x2F;opt&#x2F;freeware&#x2F;lib 顺序必须在前<br><code>LIBPATH=/opt/freeware/lib:$LIBPATH</code><br>export 这个设置放到 .profile 里的话，可能会影响编译或者其他程序的运行。</p>
+<p><strong>由于在 .profile 里更改全局环境变量 LC_CTYPE 会带来其他影响，建议创建一个脚本先修改 LIBPATH（不能export），并 alias svn 为这个脚本，顺便解决中文文件名、中文备注乱码的问题。</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="comment"># Author: oicu</span></span><br><span class="line"><span class="comment"># Usage:  alias svn=&#x27;/opt/freeware/bin/svn.sh&#x27;</span></span><br><span class="line">LIBPATH=/opt/freeware/lib:<span class="variable">$LIBPATH</span></span><br><span class="line"><span class="built_in">env</span> LC_CTYPE=zh_CN /opt/freeware/bin/svn <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p><code>locale</code> 命令查看环境的变量设置为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">LANG=en_US</span><br><span class="line">LC_COLLATE=&quot;en_US&quot;</span><br><span class="line">LC_CTYPE=&quot;en_US&quot;</span><br><span class="line">LC_MONETARY=&quot;en_US&quot;</span><br><span class="line">LC_NUMERIC=&quot;en_US&quot;</span><br><span class="line">LC_TIME=&quot;en_US&quot;</span><br><span class="line">LC_MESSAGES=&quot;en_US&quot;</span><br><span class="line">LC_ALL=</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>「土豪，请留步~」</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="oicu 微信支付">
+        <p>微信支付</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>oicu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://oicu.github.io/posts/1997d5d0.html" title="在AIX系统安装svn客户端">https://oicu.github.io/posts/1997d5d0.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/svn/" rel="tag"># svn</a>
+              <a href="/tags/AIX/" rel="tag"># AIX</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/9f91560f.html" rel="prev" title="VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）">
+      <i class="fa fa-chevron-left"></i> VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/2083236c.html" rel="next" title="Excel根据条件找到最大值">
+      Excel根据条件找到最大值 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="oicu"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">oicu</p>
+  <div class="site-description" itemprop="description">只有想不到，没有做不到</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/oicu" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;oicu" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:oicu.cc@gmail.com" title="E-Mail → mailto:oicu.cc@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://oicu.cc.blog.163.com/" title="http:&#x2F;&#x2F;oicu.cc.blog.163.com&#x2F;" rel="noopener" target="_blank">旧博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">oicu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+<script>
+  (function() {
+    function leancloudSelector(url) {
+      url = encodeURI(url);
+      return document.getElementById(url).querySelector('.leancloud-visitors-count');
+    }
+
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = decodeURI(visitors.id);
+      var title = visitors.dataset.flagTitle;
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            leancloudSelector(url).innerText = counter.time + 1;
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .catch(error => {
+                console.error('Failed to save visitor count', error);
+              });
+          } else {
+              Counter('post', '/classes/Counter', { title, url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.error('Failed to create', error);
+                });
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return decodeURI(element.id);
+      });
+
+      Counter('get', '/classes/Counter?where=' + encodeURIComponent(JSON.stringify({ url: { '$in': entries } })))
+        .then(response => response.json())
+        .then(({ results }) => {
+          for (let url of entries) {
+            let target = results.find(item => item.url === url);
+            leancloudSelector(url).innerText = target ? target.time : 0;
+          }
+        })
+        .catch(error => {
+          console.error('LeanCloud Counter Error', error);
+        });
+    }
+
+    let { app_id, app_key, server_url } = {"enable":true,"app_id":"Mn0TalrgWNivLyxOVswOE1uz-gzGzoHsz","app_key":"d3pkvLSKmrtoCoi4tTnPrKVB","server_url":null,"security":false};
+    function fetchData(api_server) {
+      var Counter = (method, url, data) => {
+        return fetch(`${api_server}/1.1${url}`, {
+          method,
+          headers: {
+            'X-LC-Id'     : app_id,
+            'X-LC-Key'    : app_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        if (CONFIG.hostname !== location.hostname) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    }
+
+    let api_server = app_id.slice(-9) !== '-MdYXbMMI' ? server_url : `https://${app_id.slice(0, 8).toLowerCase()}.api.lncldglobal.com`;
+
+    if (api_server) {
+      fetchData(api_server);
+    } else {
+      fetch('https://app-router.leancloud.cn/2/route?appId=' + app_id)
+        .then(response => response.json())
+        .then(({ api_server }) => {
+          fetchData('https://' + api_server);
+        });
+    }
+  })();
+</script>
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
