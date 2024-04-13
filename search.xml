@@ -1,48 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>群晖DSM不能启动资源监控的修复</title>
-    <url>/posts/345c2616.html</url>
-    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
-<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
-<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
-<span id="more"></span>
-
-<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
-<p>思考一番，莫非是非正常断电关机造成的影响？</p>
-<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
-<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
-<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
-<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
-<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
-]]></content>
-      <categories>
-        <category>Tech</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Windows系统自带的端口映射port mapper</title>
-    <url>/posts/330f2b1e.html</url>
-    <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
-<p>Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP&#x2F;2003&#x2F;Win7&#x2F;2008 上都可以使用。现在只支持 TCP。</p>
-<span id="more"></span>
-<p>增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：</p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">1</span>.<span class="number">2</span>.<span class="number">3</span>.<span class="number">4</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">100</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。</p>
-</blockquote>
-<p>删除端口映射：<br><code>netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4</code></p>
-<p>查看已存在的端口映射：<br><code>netsh interface portproxy show v4tov4</code></p>
-<p>查看端口是否已在监听：<br><code>netstat -ano | find &quot;6022&quot;</code></p>
-<p>测试端口是否连通<br><code>telnet 1.2.3.4 6022</code></p>
-<p>注意入站防火墙设置。</p>
-]]></content>
-      <categories>
-        <category>Tech</category>
-      </categories>
-  </entry>
-  <entry>
     <title>利用SSH隧道让内网机器上互联网的方法</title>
     <url>/posts/5405ba2b.html</url>
     <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
@@ -81,6 +39,71 @@
 ]]></content>
       <categories>
         <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>群晖DSM不能启动资源监控的修复</title>
+    <url>/posts/345c2616.html</url>
+    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
+<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
+<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
+<span id="more"></span>
+
+<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
+<p>思考一番，莫非是非正常断电关机造成的影响？</p>
+<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
+<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
+<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
+<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
+<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>打车软件Uber打开后卡在U界面</title>
+    <url>/posts/a5a90057.html</url>
+    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
+<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
+<span id="more"></span>
+
+<p>不少网友在使用过程中出现以下问题：</p>
+<ul>
+<li>“uber为啥安卓上打开就卡在开机画面？”</li>
+<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
+<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
+<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
+<li>“uber打车软件登录后，就卡在那里了。”</li>
+<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
+<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
+<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
+<li>“安卓版本的怎么进不了等车界面？”</li>
+<li>“一些手机安装了没有绑定支付宝的选择。”</li>
+<li>“更改密码要登录官方网站。”</li>
+<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
+<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
+<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
+</ul>
+<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
+<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
+<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
+<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
+<ol>
+<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
+<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
+</ol>
+<p>再多说几句Uber的烂点：</p>
+<ol>
+<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
+<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
+<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
+<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
+</ol>
+<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
       </categories>
   </entry>
   <entry>
@@ -297,48 +320,25 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>打车软件Uber打开后卡在U界面</title>
-    <url>/posts/a5a90057.html</url>
-    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
-<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
+    <title>Windows系统自带的端口映射port mapper</title>
+    <url>/posts/330f2b1e.html</url>
+    <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
+<p>Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP&#x2F;2003&#x2F;Win7&#x2F;2008 上都可以使用。现在只支持 TCP。</p>
 <span id="more"></span>
+<p>增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">1</span>.<span class="number">2</span>.<span class="number">3</span>.<span class="number">4</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">100</span></span><br></pre></td></tr></table></figure>
 
-<p>不少网友在使用过程中出现以下问题：</p>
-<ul>
-<li>“uber为啥安卓上打开就卡在开机画面？”</li>
-<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
-<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
-<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
-<li>“uber打车软件登录后，就卡在那里了。”</li>
-<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
-<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
-<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
-<li>“安卓版本的怎么进不了等车界面？”</li>
-<li>“一些手机安装了没有绑定支付宝的选择。”</li>
-<li>“更改密码要登录官方网站。”</li>
-<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
-<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
-<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
-</ul>
-<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
-<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
-<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
-<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
-<ol>
-<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
-<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
-</ol>
-<p>再多说几句Uber的烂点：</p>
-<ol>
-<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
-<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
-<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
-<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
-</ol>
-<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
+<blockquote>
+<p>listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。</p>
+</blockquote>
+<p>删除端口映射：<br><code>netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4</code></p>
+<p>查看已存在的端口映射：<br><code>netsh interface portproxy show v4tov4</code></p>
+<p>查看端口是否已在监听：<br><code>netstat -ano | find &quot;6022&quot;</code></p>
+<p>测试端口是否连通<br><code>telnet 1.2.3.4 6022</code></p>
+<p>注意入站防火墙设置。</p>
 ]]></content>
       <categories>
-        <category>Software</category>
+        <category>Tech</category>
       </categories>
   </entry>
   <entry>
@@ -370,7 +370,7 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
   </entry>
   <entry>
     <title>Google打不开怎么办？用nginx搭建本地Google搜索网站！</title>
-    <url>/posts/ec57e3d.html</url>
+    <url>/posts/5b4bdfdb.html</url>
     <content><![CDATA[<p>在国外VPS上搭建Google反向代理网站是很简单的事情，但风险是自己的VPS也可能被墙！</p>
 <p>如果会使用GoAgent、ShadowSocks等代理，访问Google自然也不成问题。</p>
 <p>但ss帐号不可能随便公布，猪队友跑完你的流量就等着哭吧，还有小白不会用代理怎办！</p>
@@ -453,25 +453,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
-    <title>谈谈SolidWorks的后门事件</title>
-    <url>/posts/9458357e.html</url>
-    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
-<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
-<span id="more"></span>
-
-<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
-<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
-<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
-<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
-<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
-<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
-<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
-]]></content>
-      <categories>
-        <category>私人日志</category>
-      </categories>
-  </entry>
-  <entry>
     <title>AIX、Linux、Windows计算文件MD5、SHA1哈希校验码</title>
     <url>/posts/b8c9236b.html</url>
     <content><![CDATA[<h1 id="MD5文件格式"><a href="#MD5文件格式" class="headerlink" title="MD5文件格式"></a>MD5文件格式</h1><blockquote>
@@ -518,6 +499,25 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
+    <title>谈谈SolidWorks的后门事件</title>
+    <url>/posts/9458357e.html</url>
+    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
+<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
+<span id="more"></span>
+
+<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
+<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
+<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
+<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
+<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
+<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
+<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
+]]></content>
+      <categories>
+        <category>私人日志</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Windows 10的开始菜单打不开</title>
     <url>/posts/85e81d0c.html</url>
     <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
@@ -531,6 +531,33 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       <categories>
         <category>System</category>
       </categories>
+  </entry>
+  <entry>
+    <title>用js脚本提取合并多个excel表格</title>
+    <url>/posts/f6330333.html</url>
+    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
+<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
+<blockquote>
+<p>注：用js脚本处理表格需要电脑安装有excel。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>老样子，先描述需求：</p>
+<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
+<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
+<p>3、执行js脚本的过程及结果。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
+<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+      </tags>
   </entry>
   <entry>
     <title>VisualSVN自签SSL证书导致svn客户端coredump或不能永久接受证书</title>
@@ -582,33 +609,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
       <tags>
         <tag>svn</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>用js脚本提取合并多个excel表格</title>
-    <url>/posts/f6330333.html</url>
-    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
-<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
-<blockquote>
-<p>注：用js脚本处理表格需要电脑安装有excel。</p>
-</blockquote>
-<span id="more"></span>
-
-<p>老样子，先描述需求：</p>
-<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
-<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
-<p>3、执行js脚本的过程及结果。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
-<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Excel</category>
-      </categories>
-      <tags>
-        <tag>Excel</tag>
       </tags>
   </entry>
   <entry>
@@ -1011,6 +1011,20 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
+    <title>Xlight FTP Server最新版破解方式</title>
+    <url>/posts/9ecaf4f0.html</url>
+    <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
+<p>实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 <code>%WINDIR%\Temp</code> 目录仔细观察，只能告诉这么多了。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>sftp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>破解ExcelMailer邮件群发工具</title>
     <url>/posts/b5bc6bba.html</url>
     <content><![CDATA[<p>其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。</p>
@@ -1036,22 +1050,8 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>Xlight FTP Server最新版破解方式</title>
-    <url>/posts/9ecaf4f0.html</url>
-    <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
-<p>实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 <code>%WINDIR%\Temp</code> 目录仔细观察，只能告诉这么多了。</p>
-]]></content>
-      <categories>
-        <category>Software</category>
-      </categories>
-      <tags>
-        <tag>破解</tag>
-        <tag>sftp</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>SSH公钥认证登录</title>
-    <url>/posts/45030.html</url>
+    <url>/posts/36269104.html</url>
     <content><![CDATA[<blockquote>
 <p>SSH PubkeyAuthentication</p>
 </blockquote>
