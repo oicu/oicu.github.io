@@ -21,6 +21,47 @@
       </categories>
   </entry>
   <entry>
+    <title>利用SSH隧道让内网机器上互联网的方法</title>
+    <url>/posts/5405ba2b.html</url>
+    <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
+<p>背景是这样的：某局域网里有一台Linux机子，不能访问外网，但防火墙（路由器）留了一个可以从外网访问内网的端口（ssh或者vpn都可以）。</p>
+<p>目的：利用这个单向端口，配合外网的一台Linux主机，让内网的Linux主机可以访问外网，进一步还可以让整个局域网都能访问外网。</p>
+<span id="more"></span>
+
+<hr>
+<p>发信人: oicu (Oh! I see you!), 信区: LinuxApp<br>标  题: Re: 求让内网机器可以上互联网的方案<br>发信站: 水木社区 (Tue Jan 20 17:47:42 2015), 站内</p>
+<p>不需要反向ssh，用VPN over SSH，需要root权限。</p>
+<p>【环境】<br>outerB：Deepin 2013，eth0 192.168.1.100<br>模拟网关：Windows 7，eth0 192.168.1.101<br>innerA：CentOS 6.4，eth0 192.168.19.128</p>
+<p>【模拟VPN连入内网】<br>1、Windows7安装VMware11。<br>2、安装innerA虚拟机，用host网络模拟不能上外网。<br>3、Win7通过netsh设置端口映射到innerA，比如6022端口映射到22：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">101</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">19</span>.<span class="number">128</span></span><br></pre></td></tr></table></figure>
+<p>我这里实际只是模拟路由器端口映射的方式，懒得折腾VPN，只需innerA不能上网即可。</p>
+<p>【配置服务器】<br>先设置innerA的sshd_config配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br></pre></td></tr></table></figure>
+<p><code>/etc/init.d/sshd restart</code></p>
+<p>在outerB和innerA都安装tunctl<br><code>yum install tunctl</code><br>或者<br><code>sudo apt-get install uml-utilities</code><br>可以先sftp把包传到innerA，dpkg或者rpm安装。</p>
+<p>On the outerB:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo ssh -NTCf -w 0:1 <span class="string">&#x27;root@192.168.1.101 -p 6022&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">ip addr show tun0</span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> tun0 up</span><br><span class="line">sudo ip addr add 10.0.0.100/32 peer 10.0.0.200 dev tun0</span><br><span class="line">sudo iptables -t nat -A POSTROUTING -s 10.0.0.200/32 -o eth0 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<p>On the innerA:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr show tun1</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> tun1 up</span><br><span class="line">ip addr add 10.0.0.200/32 peer 10.0.0.100 dev tun1</span><br><span class="line">ip route replace default via 10.0.0.200</span><br></pre></td></tr></table></figure>
+<p>最后这个网关ip用10.0.0.100也可～</p>
+<p>innerA可以上网了，那内网其他电脑也不成问题，innerA再加一条iptables规则：<br><code>iptables -t nat -A POSTROUTING -s 192.168.19.0/32 -o eth0 -j MASQUERADE</code><br>其他电脑把网关改为innerA的局域网IP即可，添加路由也可以。<br>这种情况当然不用考虑改路由器的设置了，要给你上网还何必有这些麻烦？</p>
+<blockquote>
+<p>【 在 oolong (乌龙茶) 的大作中提到: 】<br>所有机器都是 ubuntu linux 14.04<br>［需求］<br>一台内网的机器innerA，有固定的ip，但没有外网连接<br>一台外网的机器outerB，有固定的公网ip，通过vpn连入内网，可以ssh到innerA<br>这样的设置，有没有可能让innerA正常访问到互联网？<br>［目前解决方案］</p>
+<ol>
+<li>先建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>在innerA上建立socks<br>innerA$ ssh -NfD 3128 -p 7001 localhost</li>
+<li>使用tsocks可以上网，如果命令需要sudo，则需要使用root账号<br>方案的问题在于1.DNS，2.cron job都没法执行，比如ntp什么的<br>［尝试过但失败的sshuttle方案］</li>
+<li>建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>sshuttle<br>innerA$ sshuttle –dns -r localhost:7001 0&#x2F;0<br>这时候所有到innerA的ssh连线都断了，无法使用。奇怪的是曾经在 outerB 和<br>outerC（as innerA) 上测试过，outerC 可以完全使用outerB的网络<br>求大神指点目前情况下的解决方案！</li>
+</ol>
+</blockquote>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Windows系统自带的端口映射port mapper</title>
     <url>/posts/330f2b1e.html</url>
     <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
@@ -256,47 +297,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>利用SSH隧道让内网机器上互联网的方法</title>
-    <url>/posts/5405ba2b.html</url>
-    <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
-<p>背景是这样的：某局域网里有一台Linux机子，不能访问外网，但防火墙（路由器）留了一个可以从外网访问内网的端口（ssh或者vpn都可以）。</p>
-<p>目的：利用这个单向端口，配合外网的一台Linux主机，让内网的Linux主机可以访问外网，进一步还可以让整个局域网都能访问外网。</p>
-<span id="more"></span>
-
-<hr>
-<p>发信人: oicu (Oh! I see you!), 信区: LinuxApp<br>标  题: Re: 求让内网机器可以上互联网的方案<br>发信站: 水木社区 (Tue Jan 20 17:47:42 2015), 站内</p>
-<p>不需要反向ssh，用VPN over SSH，需要root权限。</p>
-<p>【环境】<br>outerB：Deepin 2013，eth0 192.168.1.100<br>模拟网关：Windows 7，eth0 192.168.1.101<br>innerA：CentOS 6.4，eth0 192.168.19.128</p>
-<p>【模拟VPN连入内网】<br>1、Windows7安装VMware11。<br>2、安装innerA虚拟机，用host网络模拟不能上外网。<br>3、Win7通过netsh设置端口映射到innerA，比如6022端口映射到22：</p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">101</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">19</span>.<span class="number">128</span></span><br></pre></td></tr></table></figure>
-<p>我这里实际只是模拟路由器端口映射的方式，懒得折腾VPN，只需innerA不能上网即可。</p>
-<p>【配置服务器】<br>先设置innerA的sshd_config配置：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br></pre></td></tr></table></figure>
-<p><code>/etc/init.d/sshd restart</code></p>
-<p>在outerB和innerA都安装tunctl<br><code>yum install tunctl</code><br>或者<br><code>sudo apt-get install uml-utilities</code><br>可以先sftp把包传到innerA，dpkg或者rpm安装。</p>
-<p>On the outerB:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo ssh -NTCf -w 0:1 <span class="string">&#x27;root@192.168.1.101 -p 6022&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">ip addr show tun0</span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> tun0 up</span><br><span class="line">sudo ip addr add 10.0.0.100/32 peer 10.0.0.200 dev tun0</span><br><span class="line">sudo iptables -t nat -A POSTROUTING -s 10.0.0.200/32 -o eth0 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-
-<p>On the innerA:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr show tun1</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> tun1 up</span><br><span class="line">ip addr add 10.0.0.200/32 peer 10.0.0.100 dev tun1</span><br><span class="line">ip route replace default via 10.0.0.200</span><br></pre></td></tr></table></figure>
-<p>最后这个网关ip用10.0.0.100也可～</p>
-<p>innerA可以上网了，那内网其他电脑也不成问题，innerA再加一条iptables规则：<br><code>iptables -t nat -A POSTROUTING -s 192.168.19.0/32 -o eth0 -j MASQUERADE</code><br>其他电脑把网关改为innerA的局域网IP即可，添加路由也可以。<br>这种情况当然不用考虑改路由器的设置了，要给你上网还何必有这些麻烦？</p>
-<blockquote>
-<p>【 在 oolong (乌龙茶) 的大作中提到: 】<br>所有机器都是 ubuntu linux 14.04<br>［需求］<br>一台内网的机器innerA，有固定的ip，但没有外网连接<br>一台外网的机器outerB，有固定的公网ip，通过vpn连入内网，可以ssh到innerA<br>这样的设置，有没有可能让innerA正常访问到互联网？<br>［目前解决方案］</p>
-<ol>
-<li>先建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
-<li>在innerA上建立socks<br>innerA$ ssh -NfD 3128 -p 7001 localhost</li>
-<li>使用tsocks可以上网，如果命令需要sudo，则需要使用root账号<br>方案的问题在于1.DNS，2.cron job都没法执行，比如ntp什么的<br>［尝试过但失败的sshuttle方案］</li>
-<li>建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
-<li>sshuttle<br>innerA$ sshuttle –dns -r localhost:7001 0&#x2F;0<br>这时候所有到innerA的ssh连线都断了，无法使用。奇怪的是曾经在 outerB 和<br>outerC（as innerA) 上测试过，outerC 可以完全使用outerB的网络<br>求大神指点目前情况下的解决方案！</li>
-</ol>
-</blockquote>
-]]></content>
-      <categories>
-        <category>VPN</category>
-      </categories>
-  </entry>
-  <entry>
     <title>打车软件Uber打开后卡在U界面</title>
     <url>/posts/a5a90057.html</url>
     <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
@@ -397,25 +397,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
-    <title>谈谈SolidWorks的后门事件</title>
-    <url>/posts/9458357e.html</url>
-    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
-<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
-<span id="more"></span>
-
-<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
-<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
-<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
-<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
-<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
-<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
-<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
-]]></content>
-      <categories>
-        <category>私人日志</category>
-      </categories>
-  </entry>
-  <entry>
     <title>没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网</title>
     <url>/posts/9a9556bd.html</url>
     <content><![CDATA[<p>网上看到一文《Nginx正向代理让无法直接上网的机器通过代理上网》，说是在阿里云平台买了几台ECS，但是只要其中一台开通了公网，由于要初始化系统环境，需要网络安装相关依赖，于是使用Nginx搭建代理服务器。</p>
@@ -469,6 +450,25 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
 ]]></content>
       <categories>
         <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>谈谈SolidWorks的后门事件</title>
+    <url>/posts/9458357e.html</url>
+    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
+<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
+<span id="more"></span>
+
+<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
+<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
+<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
+<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
+<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
+<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
+<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
+]]></content>
+      <categories>
+        <category>私人日志</category>
       </categories>
   </entry>
   <entry>
@@ -1529,34 +1529,6 @@ table th:nth-of-type(4) {
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/4a17b156.html</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<span id="more"></span>
-
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
-]]></content>
-      <categories>
-        <category>Tech</category>
-        <category>Hexo</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-        <tag>blog</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>批处理修改无损音乐的cue文件内容</title>
     <url>/posts/7f19841a.html</url>
     <content><![CDATA[<p>原文链接：<a href="http://www.newsmth.net/nForum/article/DOS/21969?s=21969">http://www.newsmth.net/nForum/article/DOS/21969?s=21969</a></p>
@@ -1598,6 +1570,34 @@ table th:nth-of-type(4) {
       </categories>
       <tags>
         <tag>批处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/4a17b156.html</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<span id="more"></span>
+
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>Hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
       </tags>
   </entry>
   <entry>
