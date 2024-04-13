@@ -1,0 +1,1683 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>群晖DSM不能启动资源监控的修复</title>
+    <url>/posts/345c2616.html</url>
+    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
+<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
+<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
+<span id="more"></span>
+
+<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
+<p>思考一番，莫非是非正常断电关机造成的影响？</p>
+<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
+<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
+<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
+<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
+<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Windows系统自带的端口映射port mapper</title>
+    <url>/posts/330f2b1e.html</url>
+    <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
+<p>Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP&#x2F;2003&#x2F;Win7&#x2F;2008 上都可以使用。现在只支持 TCP。</p>
+<span id="more"></span>
+<p>增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">1</span>.<span class="number">2</span>.<span class="number">3</span>.<span class="number">4</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">100</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。</p>
+</blockquote>
+<p>删除端口映射：<br><code>netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4</code></p>
+<p>查看已存在的端口映射：<br><code>netsh interface portproxy show v4tov4</code></p>
+<p>查看端口是否已在监听：<br><code>netstat -ano | find &quot;6022&quot;</code></p>
+<p>测试端口是否连通<br><code>telnet 1.2.3.4 6022</code></p>
+<p>注意入站防火墙设置。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>利用SSH隧道让内网机器上互联网的方法</title>
+    <url>/posts/5405ba2b.html</url>
+    <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
+<p>背景是这样的：某局域网里有一台Linux机子，不能访问外网，但防火墙（路由器）留了一个可以从外网访问内网的端口（ssh或者vpn都可以）。</p>
+<p>目的：利用这个单向端口，配合外网的一台Linux主机，让内网的Linux主机可以访问外网，进一步还可以让整个局域网都能访问外网。</p>
+<span id="more"></span>
+
+<hr>
+<p>发信人: oicu (Oh! I see you!), 信区: LinuxApp<br>标  题: Re: 求让内网机器可以上互联网的方案<br>发信站: 水木社区 (Tue Jan 20 17:47:42 2015), 站内</p>
+<p>不需要反向ssh，用VPN over SSH，需要root权限。</p>
+<p>【环境】<br>outerB：Deepin 2013，eth0 192.168.1.100<br>模拟网关：Windows 7，eth0 192.168.1.101<br>innerA：CentOS 6.4，eth0 192.168.19.128</p>
+<p>【模拟VPN连入内网】<br>1、Windows7安装VMware11。<br>2、安装innerA虚拟机，用host网络模拟不能上外网。<br>3、Win7通过netsh设置端口映射到innerA，比如6022端口映射到22：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">101</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">19</span>.<span class="number">128</span></span><br></pre></td></tr></table></figure>
+<p>我这里实际只是模拟路由器端口映射的方式，懒得折腾VPN，只需innerA不能上网即可。</p>
+<p>【配置服务器】<br>先设置innerA的sshd_config配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br></pre></td></tr></table></figure>
+<p><code>/etc/init.d/sshd restart</code></p>
+<p>在outerB和innerA都安装tunctl<br><code>yum install tunctl</code><br>或者<br><code>sudo apt-get install uml-utilities</code><br>可以先sftp把包传到innerA，dpkg或者rpm安装。</p>
+<p>On the outerB:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo ssh -NTCf -w 0:1 <span class="string">&#x27;root@192.168.1.101 -p 6022&#x27;</span></span><br><span class="line"><span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">ip addr show tun0</span><br><span class="line">sudo ip <span class="built_in">link</span> <span class="built_in">set</span> tun0 up</span><br><span class="line">sudo ip addr add 10.0.0.100/32 peer 10.0.0.200 dev tun0</span><br><span class="line">sudo iptables -t nat -A POSTROUTING -s 10.0.0.200/32 -o eth0 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<p>On the innerA:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr show tun1</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> tun1 up</span><br><span class="line">ip addr add 10.0.0.200/32 peer 10.0.0.100 dev tun1</span><br><span class="line">ip route replace default via 10.0.0.200</span><br></pre></td></tr></table></figure>
+<p>最后这个网关ip用10.0.0.100也可～</p>
+<p>innerA可以上网了，那内网其他电脑也不成问题，innerA再加一条iptables规则：<br><code>iptables -t nat -A POSTROUTING -s 192.168.19.0/32 -o eth0 -j MASQUERADE</code><br>其他电脑把网关改为innerA的局域网IP即可，添加路由也可以。<br>这种情况当然不用考虑改路由器的设置了，要给你上网还何必有这些麻烦？</p>
+<blockquote>
+<p>【 在 oolong (乌龙茶) 的大作中提到: 】<br>所有机器都是 ubuntu linux 14.04<br>［需求］<br>一台内网的机器innerA，有固定的ip，但没有外网连接<br>一台外网的机器outerB，有固定的公网ip，通过vpn连入内网，可以ssh到innerA<br>这样的设置，有没有可能让innerA正常访问到互联网？<br>［目前解决方案］</p>
+<ol>
+<li>先建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>在innerA上建立socks<br>innerA$ ssh -NfD 3128 -p 7001 localhost</li>
+<li>使用tsocks可以上网，如果命令需要sudo，则需要使用root账号<br>方案的问题在于1.DNS，2.cron job都没法执行，比如ntp什么的<br>［尝试过但失败的sshuttle方案］</li>
+<li>建立反向tunnel<br>outerB$ ssh -NfR 0.0.0.0:7001:localhost:2 innerA</li>
+<li>sshuttle<br>innerA$ sshuttle –dns -r localhost:7001 0&#x2F;0<br>这时候所有到innerA的ssh连线都断了，无法使用。奇怪的是曾经在 outerB 和<br>outerC（as innerA) 上测试过，outerC 可以完全使用outerB的网络<br>求大神指点目前情况下的解决方案！</li>
+</ol>
+</blockquote>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VPN over SSH, connect two networks</title>
+    <url>/posts/53cdf09b.html</url>
+    <content><![CDATA[<p>Download <a href="https://github.com/oicu/vpn-over-ssh">svpn.sh</a></p>
+<h1 id="vpn-over-ssh"><a href="#vpn-over-ssh" class="headerlink" title="vpn-over-ssh"></a>vpn-over-ssh</h1><p>Poor mans VPN over SSH, script which can help to setup VPN based on <strong>OpenSSH version 4.3+</strong>, creates a ssh tunnel to <strong>connect two networks, require root, works with Linux</strong>.</p>
+<span id="more"></span>
+
+<h1 id="Prerequisites"><a href="#Prerequisites" class="headerlink" title="Prerequisites"></a>Prerequisites</h1><h2 id="Server-Client"><a href="#Server-Client" class="headerlink" title="Server &amp; Client"></a>Server &amp; Client</h2><p>CentOS:<br><code>yum install tunctl</code></p>
+<p>Debian&#x2F;Ubuntu:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo apt-get install uml-utilities</span><br><span class="line">which ip iptables</span><br></pre></td></tr></table></figure>
+<p>The script also need the <code>ip</code> command (from the <code>iproute</code> package) and <code>iptables</code> command (from the <code>iptables</code> package), install them in both the local and remote computers.</p>
+<h2 id="Server"><a href="#Server" class="headerlink" title="Server"></a>Server</h2><p><code>vim /etc/ssh/sshd_config</code></p>
+<blockquote>
+<pre><code>PermitRootLogin yes
+PermitTunnel yes
+ClientAliveInterval 30
+ClientAliveCountMax 6
+</code></pre>
+</blockquote>
+<p>CentOS:<br><code>/etc/init.d/sshd restart</code></p>
+<p>Debian&#x2F;Ubuntu:<br><code>sudo /etc/init.d/ssh restart</code></p>
+<h2 id="Client-not-required"><a href="#Client-not-required" class="headerlink" title="Client (not required)"></a>Client (not required)</h2><p><code>vim /etc/ssh/ssh_config</code></p>
+<blockquote>
+<pre><code>ServerAliveInterval 30
+ServerAliveCountMax 6
+</code></pre>
+</blockquote>
+<h1 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h1><p>Edit <strong>svpn.sh</strong>, just run it on client.</p>
+<blockquote>
+<pre><code>SERVER_SSH_PORT=&quot;22&quot;
+SERVER_SSH_IP=&quot;1.2.3.4&quot;
+CLIENT_ETHERNET=&quot;eth0&quot;
+SERVER_ETHERNET=&quot;eth0&quot;
+CLIENT_TUNNEL=&quot;tun2&quot;
+SERVER_TUNNEL=&quot;tun1&quot;
+CLIENT_TUN_IP=&quot;10.0.0.2&quot;
+SERVER_TUN_IP=&quot;10.0.0.1&quot;
+CLIENT_NET=&quot;192.168.2.0/24&quot;
+CLIENT_GATEWAY=&quot;192.168.2.1&quot;
+SERVER_NET=&quot;192.168.1.0/24&quot;
+SERVER_GATEWAY=&quot;192.168.1.1&quot;
+</code></pre>
+</blockquote>
+<h2 id="Start-VPN"><a href="#Start-VPN" class="headerlink" title="Start VPN"></a>Start VPN</h2><p><code>svpn.sh -start</code></p>
+<h2 id="Stop-VPN"><a href="#Stop-VPN" class="headerlink" title="Stop VPN"></a>Stop VPN</h2><p><code>svpn.sh -stop</code></p>
+<h1 id="Network-topology"><a href="#Network-topology" class="headerlink" title="Network topology"></a>Network topology</h1><ul>
+<li>Server: Machine A&#x2F;Host A</li>
+<li>Client: Machine B&#x2F;Host B</li>
+</ul>
+<h2 id="Network-topology-A-Default"><a href="#Network-topology-A-Default" class="headerlink" title="Network topology A (Default)"></a>Network topology A (Default)</h2><blockquote>
+<pre><code>               Has internet     Has internet
+192.168.1.0/24 (netA)|gateA &lt;-&gt; gateB|192.168.2.0/24 (netB)
+
++------------------+            OpenSSH 4.3            +-----------------+
+|   Machine A      | tun1 -- Tunnel Interface -- tun2  |    Machine B    |
+|  Has a tunnel    | &lt;--------------------------------&gt;|   Has a tunnel  |
+|  and ethernet    | 10.0.0.1                10.0.0.2  |   and ethernet  |
++----------+-------+     point to point connection     +---------+-------+
+           | eth0                                           eth0 |
+           | 192.168.1.100                         192.168.2.100 |
+           | port 22                                             |
+           | forwarded                                           |
+           | here                                                |
++----------+----------+          +-~-~-~-~-~-~-~-+       +-------+-------+
+|     Network A       |          |               |       |   Network B   |
+|    192.168.1.0/24   | 1.2.3.4  |  The Internet |       | 192.168.2.0/24|
+|    Has internet     |&lt;--------&gt;|               |&lt;-----&gt;|  Has internet |
+|    NAT gateway      | Routable |               |       |  NAT gateway  |
++---------------------+ Address  +-~-~-~-~-~-~-~-+       +---------------+
+</code></pre>
+</blockquote>
+<h2 id="Network-topology-B"><a href="#Network-topology-B" class="headerlink" title="Network topology B"></a>Network topology B</h2><blockquote>
+<pre><code>       hostA hasn&#39;t internet     Has internet
+192.168.1.0/24  (netA)|gateA &lt;-- hostB|1.2.3.4
+
++------------------+            OpenSSH 4.3            +-----------------+
+|   Machine A      | tun1 -- Tunnel Interface -- tun2  |    Machine B    |
+|  Has a tunnel    | &lt;--------------------------------&gt;|   Has a tunnel  |
+|  and ethernet    | 10.0.0.1                10.0.0.2  |   and ethernet  |
++----------+-------+     point to point connection     +---------+-------+
+           | eth0                                           eth0 |
+           | 192.168.1.100                               1.2.3.4 |
+           | port 22                                Has internet |
+           | forwarded                                           |
+           | here                                                |
++----------+----------+          +-~-~-~-~-~-~-~-+               |
+|     Network A       |          |               |               |
+|    192.168.1.0/24   | 4.3.2.1  |  The Internet |               |
+|  Hasn&#39;t internet    |&lt;--------&gt;|               |&lt;--------------+
+|    NAT gateway      | Routable |               |
++---------------------+ Address  +-~-~-~-~-~-~-~-+
+</code></pre>
+</blockquote>
+<p>Edit <strong>svpn.sh</strong></p>
+<blockquote>
+<pre><code>36:    ip route replace default via $&#123;SERVER_GATEWAY&#125;
+37:    # ip route del $&#123;CLIENT_NET&#125; via $&#123;SERVER_TUN_IP&#125;
+47:    # ip route add $&#123;CLIENT_NET&#125; via $&#123;SERVER_TUN_IP&#125;
+48:    ip route replace default via $&#123;SERVER_TUN_IP&#125;
+77:    ip route replace default via $&#123;SERVER_GATEWAY&#125;
+78:    # ip route del $&#123;CLIENT_NET&#125; via $&#123;SERVER_TUN_IP&#125;
+</code></pre>
+</blockquote>
+<h2 id="Network-topology-C"><a href="#Network-topology-C" class="headerlink" title="Network topology C"></a>Network topology C</h2><blockquote>
+<pre><code>               Has internet     Has internet
+192.168.2.0/24 (netB)|gateB --&gt; hostA|1.2.3.4 --&gt; GFW
+or
+              4.3.2.1|hostB --&gt; hostA|1.2.3.4 --&gt; GFW
+
++------------------+            OpenSSH 4.3            +-----------------+
+|   Machine B      | tun2 -- Tunnel Interface -- tun1  |    Machine A    |
+|  Has a tunnel    | &lt;--------------------------------&gt;|   Has a tunnel  |
+|  and ethernet    | 10.0.0.2                10.0.0.1  |   and ethernet  |
++----------+-------+     point to point connection     +---------+-------+
+           |                                                     ^
+           |                                                eth0 |
+           |                                             1.2.3.4 |
+           |                                        Has internet |
+           |                                                     |
++----------+----------+          +-~-~-~-~-~-~-~-+               |
+|     Network B       |          |               |               |
+|    192.168.2.0/24   | 4.3.2.1  |  The Internet |               |
+|    Has internet     |&lt;--------&gt;|               |---------------+
+|    NAT gateway      | Routable |               |
++---------------------+ Address  +-~-~-~-~-~-~-~-+
+</code></pre>
+</blockquote>
+<p>Edit <strong>svpn.sh</strong></p>
+<blockquote>
+<pre><code>62:    # ip route add $&#123;SERVER_NET&#125; via $&#123;CLIENT_TUN_IP&#125;
+63:    ip route replace default via $&#123;CLIENT_TUN_IP&#125;
+64:    # iptables -t nat -A POSTROUTING -s $&#123;SERVER_TUN_IP&#125;/32 -o $&#123;CLIENT_ETHERNET&#125; -j MASQUERADE
+65:    # iptables -A FORWARD -p tcp --syn -s $&#123;SERVER_TUN_IP&#125;/32 -j TCPMSS --set-mss 1356
+90:    ip route replace default via $&#123;CLIENT_GATEWAY&#125;
+91:    # ip route del $&#123;SERVER_NET&#125; via $&#123;CLIENT_TUN_IP&#125;
+93:    # iptables -t nat -D POSTROUTING -s $&#123;SERVER_TUN_IP&#125;/32 -o $&#123;CLIENT_ETHERNET&#125; -j MASQUERADE
+94:    # iptables -D FORWARD -p tcp --syn -s $&#123;SERVER_TUN_IP&#125;/32 -j TCPMSS --set-mss 1356
+</code></pre>
+</blockquote>
+<h1 id="Performance-ping-test"><a href="#Performance-ping-test" class="headerlink" title="Performance (ping test)"></a>Performance (ping test)</h1><h2 id="Topology-B"><a href="#Topology-B" class="headerlink" title="Topology B"></a>Topology B</h2><p>Installing VMware Workstation 11 on Machine A (Windows 7).</p>
+<blockquote>
+<pre><code>                         +-~-~-~-+-~-~-~-+
+                         | Gateway G     |
+                         | 192.168.1.1   |
+                         +-~-~-~-+-~-~-~-+
+                                 |
+        +------------------------+------------------------+
+        |                        |                        |
++-------+-------+        +-------+-------+        +-------+-------+
+| Machine A     |        | Machine B     |        | Machine C     |
+| 192.168.1.4   |        | 192.168.1.2   |        | 192.168.1.3   |
++-------+-------+        +---------------+        +---------------+
+        |
+        +------------------------+------------------------+
+        |                        |                        |
+        |                +-~-~-~-+-~-~-~-+        +-~-~-~-+-~-~-~-+
+        |                |      NAT      |        |   Host-only   |
+        |                |   Gateway E   |        |   Gateway F   |
+        |                |  192.168.72.1 |        |  192.168.19.1 |
+        |                +-~-~-~-+-~-~-~-+        +-~-~-~-+-~-~-~-+
+        | Bridge                 |                        |
++-------+-------+        +-------+-------+        +-------+-------+
+| VM Machine D1 |        | VM Machine D2 |        | VM Machine D3 |
+| 192.168.1.5   |        | 192.168.72.2  |        | 192.168.19.2  |
++---------------+        +---------------+        +---------------+
+</code></pre>
+</blockquote>
+<h3 id="Host-only"><a href="#Host-only" class="headerlink" title="Host-only"></a>Host-only</h3><blockquote>
+<pre><code>Machine B --&gt; ssh --&gt; Machine A --&gt; port forwarded --&gt; VM Machine D3
+     ^                                                       ^
+     |                 SSH Tunnel Interface                  |
+tun2 | 10.0.0.2      point to point connection      10.0.0.1 | tun1
+     +-------------------------------------------------------+
+
+                                                 rtt avg
+D3 -&gt; D3         ping -c 50 192.168.19.2         0.074 ms
+D3 -&gt; F          ping -c 50 192.168.19.1         0.414 ms
+D3 -&gt; A          ping -c 50 192.168.1.4          3.636 ms
+D3 -&gt; G          ping -c 50 192.168.1.1          2.514 ms
+D3 -&gt; B          ping -c 50 192.168.1.2          2.488 ms
+D3 -&gt; C          ping -c 50 192.168.1.3          2.522 ms
+B  -&gt; D3         ping -c 50 192.168.19.2         1.938 ms
+B  -&gt; F          ping -c 50 192.168.19.1         2.179 ms
+B  -&gt; D3         ping -c 50 10.0.0.1             1.930 ms
+</code></pre>
+</blockquote>
+<h3 id="Bridge"><a href="#Bridge" class="headerlink" title="Bridge"></a>Bridge</h3><blockquote>
+<pre><code>D1 -&gt; D1         ping -c 50 192.168.1.5          0.074 ms
+D1 -&gt; A          ping -c 50 192.168.1.4          0.452 ms
+D1 -&gt; G          ping -c 50 192.168.1.1          1.421 ms
+D1 -&gt; B          ping -c 50 192.168.1.2          1.361 ms
+D1 -&gt; C          ping -c 50 192.168.1.3          1.429 ms
+</code></pre>
+</blockquote>
+<h3 id="NAT"><a href="#NAT" class="headerlink" title="NAT"></a>NAT</h3><blockquote>
+<pre><code>D2 -&gt; D2         ping -c 50 192.168.72.2         0.074 ms
+D2 -&gt; E          ping -c 50 192.168.72.1         0.411 ms
+D2 -&gt; F          ping -c 50 192.168.19.1         1.127 ms
+D2 -&gt; A          ping -c 50 192.168.1.4          1.155 ms
+D2 -&gt; G          ping -c 50 192.168.1.1          1.996 ms
+D2 -&gt; B          ping -c 50 192.168.1.2          1.997 ms
+D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
+</code></pre>
+</blockquote>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+      <tags>
+        <tag>VPN</tag>
+        <tag>ssh</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>打车软件Uber打开后卡在U界面</title>
+    <url>/posts/a5a90057.html</url>
+    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
+<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
+<span id="more"></span>
+
+<p>不少网友在使用过程中出现以下问题：</p>
+<ul>
+<li>“uber为啥安卓上打开就卡在开机画面？”</li>
+<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
+<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
+<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
+<li>“uber打车软件登录后，就卡在那里了。”</li>
+<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
+<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
+<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
+<li>“安卓版本的怎么进不了等车界面？”</li>
+<li>“一些手机安装了没有绑定支付宝的选择。”</li>
+<li>“更改密码要登录官方网站。”</li>
+<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
+<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
+<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
+</ul>
+<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
+<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
+<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
+<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
+<ol>
+<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
+<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
+</ol>
+<p>再多说几句Uber的烂点：</p>
+<ol>
+<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
+<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
+<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
+<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
+</ol>
+<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Win7远程桌面连接提示“您的凭据不工作”的解决方法</title>
+    <url>/posts/742f0a33.html</url>
+    <content><![CDATA[<p>以前折腾过Easy Sysprep封装Ghost版本Win7镜像，也用这个镜像测试安装过几台笔记本电脑，今天恰好要在其中一台开启远程桌面，却发现其他Win7电脑怎样都远程登录不上。</p>
+<p>Ghost封装的系统稳定性差一直广受诟病，尽管是自己亲手封装的，但还是保持怀疑，现在思考是否因为Ghost系统带来的问题已经不重要，解决问题才是重点，于是开始摸索解决。</p>
+<span id="more"></span>
+<p>为了避免和以前的凭据冲突，把Win7客户端电脑里的Windows凭据全删除了，注册表里的远程桌面的历史记录也清空了，检查了远程桌面客户端设置，RD网关服务器是自动或者关闭的（没有用域和RD网关）。</p>
+<p>要远程登录的Win7服务器改了IP重启系统，确认防火墙没问题，远程桌面允许任意版本连接（为了XP能连），甚至新建了用户。</p>
+<p>结果使用Win7系统的远程桌面客户端连接这台Win7，全都提示“您的凭据不工作”，用户名和密码都是正确的啊，怎么就连接不上？</p>
+<p>到微软官网扒文，有这么个提示信息：<br><a href="http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection">http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection</a></p>
+<p>尝试更改服务器的组策略：<br>gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; 系统 -&gt; 凭据分配 -&gt; 允许分配保存的凭据用于仅NTLM服务器身份验证 -&gt; 选择“已启用” -&gt; 单击“显示”输入“TERMSRV&#x2F;*” -&gt; 运行命令 gpupdate &#x2F;force 强制更新组策略。</p>
+<p>失败。</p>
+<p>在客户端电脑先添加Windows凭据：<br>控制面板 -&gt; 凭据管理器 -&gt; 添加Windows凭据 -&gt; 输入服务器的IP地址、用户、密码。</p>
+<p>还是失败！</p>
+<p>安卓手机上安装有几个RDP远程工具，全部拿来测试，继续失败！</p>
+<p>除了这几台Win7本子，其他Windows系统就仅有虚拟机里的XP，剩下都是Linux，使用虚拟机里的XP远程登录却成功了……泪奔~</p>
+<p>继续测试，在Linux下使用Remmina客户端连接，安全选项如果使用“商协”则登录失败，指定RDP类型则登录成功，猜测是验证出的问题，只是Win7的远程桌面客户端没安全设置这个选项，只能在服务器上着手，摸索一番，在组策略里找到了。</p>
+<p><strong>Windows 7服务器修改步骤：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; Windows组件 -&gt; 远程桌面服务 -&gt;</span><br><span class="line">远程桌面会话主机 -&gt; 安全 -&gt; 远程(RDP)连接要求使用指定的安全层，启用并把安全层改为RDP。</span><br></pre></td></tr></table></figure>
+<p>另，如果是Server 2008 R2服务器设置可能不一样，看下终端服务器配置的RDP-TCP设置。</p>
+<p>再次使用Win7的远程桌面客户端连接Win7服务器，正常登录，问题解决。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2017-03-31 18:36 m15692411613</span><br><span class="line">哈哈。厉害了，找了好久的教程，终于解决了</span><br><span class="line"></span><br><span class="line">2016-06-06 11:27 zhoujiang0307</span><br><span class="line">牛逼啊大师兄，网上找了那么多方法，还是你的最后一个方法解决了，原创支持，</span><br><span class="line"></span><br><span class="line">2016-03-25 11:16 巴拿马圈圈</span><br><span class="line">卧槽，实在是太感谢了 您真是太牛逼了</span><br><span class="line"></span><br><span class="line">2015-11-24 09:35 windless</span><br><span class="line">用最后的方法解决了!!!</span><br><span class="line">感谢！</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>System</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Google打不开怎么办？用nginx搭建本地Google搜索网站！</title>
+    <url>/posts/ec57e3d.html</url>
+    <content><![CDATA[<p>在国外VPS上搭建Google反向代理网站是很简单的事情，但风险是自己的VPS也可能被墙！</p>
+<p>如果会使用GoAgent、ShadowSocks等代理，访问Google自然也不成问题。</p>
+<p>但ss帐号不可能随便公布，猪队友跑完你的流量就等着哭吧，还有小白不会用代理怎办！</p>
+<span id="more"></span>
+<p>GoAgent虽然免费，但时常得扫描更新谷歌服务器的IP，还有小白不会用代理怎办！</p>
+<p>即使在局域网都搭建了ss或者gae代理客户端共享使用，其他电脑的浏览器总要设置插件吧！GoAgent证书也要添加吧！</p>
+<p>怎么拯救只需使用Google搜索的小白还不能太浪费时间呢？把反向代理网站放国内就OK了！只需要解决Nginx访问Google的问题。</p>
+<p>先说明：只为无聊折腾，效率就不考虑了，还有搜索结果有差异，不同于浏览器直接使用代理的搜索结果。只在局域网测试。对了，还需要自签ssl证书哦。</p>
+<p>系统：Windows<br>软件：nginx + ShadowSocks&#x2F;GoAgent + Proxifier&#x2F;ProxyCap</p>
+<p>用ShadowSocks比较方便，加一个全局代理软件Proxifier或者ProxyCap，把ss的socks5代理设置让Nginx使用，再配置Nginx反向代理Google，然后打开浏览器，使用局域网ip地址就可以访问Google网站了。</p>
+<p>注：如果Proxifier或者ProxyCap里添加ss代理时，127.0.0.1不能用则换成局域网ip。</p>
+<p>GoAgent是http类型的代理，还需要使用CCProxy转为socks5类型。</p>
+<p>GoAgent-PHP转socks5，然后Proxifier设置给nginx全局代理，可反向代理Google，但不能反向代理1024站。</p>
+<p>GoAgent转socks5，然后Proxifier设置给nginx全局代理，可反向代理1024站，但反向代理Google只能看首页，搜索时候会跳转到Google域名，不能正常用。</p>
+<p>最后贴Nginx配置的server部分：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"># 反向代理百度 or <span class="number">1024</span>站</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">80</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.baidu.com;</span></span><br><span class="line">            proxy_redirect off;</span><br><span class="line">            proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"># 反向代理google搜索</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">443</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        ssl on;</span><br><span class="line">        ssl_certificate C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.crt;</span><br><span class="line">        ssl_certificate_key C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.key;</span><br><span class="line"></span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_redirect http<span class="punctuation">:</span><span class="comment">//www.google.com/ /;</span></span><br><span class="line">            proxy_cookie_domain google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.google.com.hk;</span></span><br><span class="line">            proxy_set_header Accept-Encoding <span class="string">&quot;&quot;</span>;</span><br><span class="line">            proxy_set_header User-Agent $http_user_agent;</span><br><span class="line">            proxy_set_header Accept-Language <span class="string">&quot;zh-CN&quot;</span>;</span><br><span class="line">            proxy_set_header Cookie <span class="string">&quot;PREF=ID=047808f19f6de346:U=0f62f33dd8549d11:FF=2:LD=zh-CN:NW=1:TM=1325338577:LM=1332142444:GM=1:SG=2:S=rE0SyJh2W1IQ-Maw&quot;</span>;</span><br><span class="line">            sub_filter www.google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            sub_filter_once off;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>2018&#x2F;11&#x2F;12 补充：使用 Caddy 做反向代理更简单。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:80 &#123;</span><br><span class="line">    gzip</span><br><span class="line">    tls off</span><br><span class="line">    proxy / https://www.google.com.hk</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Web</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>没购买外网IP流量的阿里云ECS服务器通过SSH隧道上外网</title>
+    <url>/posts/9a9556bd.html</url>
+    <content><![CDATA[<p>网上看到一文《Nginx正向代理让无法直接上网的机器通过代理上网》，说是在阿里云平台买了几台ECS，但是只要其中一台开通了公网，由于要初始化系统环境，需要网络安装相关依赖，于是使用Nginx搭建代理服务器。</p>
+<p>看完觉得Nginx功能还是挺多的，只不过这么个做法太low了，https代理没法搞，配置完代理服务器还得在无外网IP的服务器上设置shell环境变量或者apt&#x2F;yum的配置，遇到不支持代理的软件还更麻烦，这种情况怎么也得来个“全局代理”吧，还有什么做法比更改默认网关更全局呢？看完下文，你只需一台开通公网IP的ECS，就可以让同区域只有内网IP的其他ECS服务器访问公网了。</p>
+<span id="more"></span>
+
+<hr>
+<p>年初刚学习使用ssh登录的时候，了解到ssh隧道可以当vpn使用，练手写了个bash脚本：<br><a href="https://github.com/oicu/vpn-over-ssh">https://github.com/oicu/vpn-over-ssh</a></p>
+<p>这里补充一博文，解释一下这个脚本的作用，首次设置步骤较为繁琐，耐心点。</p>
+<p>svpn.sh脚本功能：<br>1、在 ssh客户端 运行，建立ssh隧道并在 服务端和客户端 各添加tun网卡。<br>2、在 ssh服务端 添加&#x2F;删除路由或更改默认网关。<br>3、在 ssh客户端 添加&#x2F;删除路由或更改默认网关。<br>4、在 ssh服务端 配置iptables做snat，tun网卡ip源地址转换，并更改mtu。<br>5、在 ssh客户端 配置iptables做snat，tun网卡ip源地址转换，并更改mtu。<br>6、在 ssh服务端 配置iptables做snat，局域网ip源地址转换。<br>7、在 ssh客户端 配置iptables做snat，局域网ip源地址转换。</p>
+<p>运行过程需要输入2次ssh密码，如果使用公钥登录则没那么麻烦。</p>
+<p>我列了3种网络拓扑，因为脚本写得粗糙也不方便再优化，不同网络需要对脚本里添加路由、更改默认网关、配置iptables的语句进行修改。步骤4-7全部设置也没有影响，主要是第2、3步选用改路由还是改网关。</p>
+<hr>
+<p>脚本开头定义了几个变量：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SERVER_SSH_PORT=&quot;22&quot;		#服务端ssh端口</span><br><span class="line">SERVER_SSH_IP=&quot;1.2.3.4&quot;		#服务端ip，如果是路由器，需要做端口映射</span><br><span class="line">CLIENT_ETHERNET=&quot;eth0&quot;		#客户端物理网卡名</span><br><span class="line">SERVER_ETHERNET=&quot;eth0&quot;		#服务端物理网卡名</span><br><span class="line">CLIENT_TUNNEL=&quot;tun2&quot;		#自定义的客户端tun网卡名，tun+数字</span><br><span class="line">SERVER_TUNNEL=&quot;tun1&quot;		#自定义的服务端tun网卡名，不能和客户端相同</span><br><span class="line">CLIENT_TUN_IP=&quot;10.0.0.2&quot;	#自定义的客户端tun网卡IP</span><br><span class="line">SERVER_TUN_IP=&quot;10.0.0.1&quot;	#自定义的服务端tun网卡IP，不能和客户端相同</span><br><span class="line">CLIENT_NET=&quot;192.168.2.0/24&quot;	#客户端所在局域网网段</span><br><span class="line">CLIENT_GATEWAY=&quot;192.168.2.1&quot;	#客户端现在的网关</span><br><span class="line">SERVER_NET=&quot;192.168.1.0/24&quot;	#服务端所在局域网网段，有可能和客户端相同</span><br><span class="line">SERVER_GATEWAY=&quot;192.168.1.1&quot;	#服务端现在的网关，有可能和客户端相同</span><br></pre></td></tr></table></figure>
+<p>如果有多张物理网卡，要根据情况选用。</p>
+<hr>
+<p>脚本默认适用的网络：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C --&gt; A --&gt; 路由器1 &lt;-- 互联网 --&gt; 路由器2 &lt;-- B &lt;-- D</span><br></pre></td></tr></table></figure>
+
+<p>A和C在一个局域网，B和D在一个局域网，如何像使用VPN一样，让2个子网互通呢？<br>即让C和D相互访问呢？</p>
+<p>1、首先A和B需要是Linux系统，都需要有root权限。<br>2、两个局域网的网段不能一样，网络规划好。<br>3、至少有一个路由器有外网IP，有外网IP的一方作为服务端。假设路由器2有外网IP，那么B当作ssh服务器，在路由器2上做端口映射到B。A作为ssh客户端，在A上放 <code>svpn.sh</code> 脚本，根据两边的网络，更改那几个变量。<br>4、A和B都需安装的软件：<br>   CentOS:         <code>yum install tunctl iptables</code><br>   Debian&#x2F;Ubuntu:  <code>sudo apt-get install uml-utilities iptables</code><br>5、脚本里所有<code>iptables</code>命令都启用（默认是全启用）。<br>6、脚本里都使用添加&#x2F;删除路由的命令，而不用更改默认网关的命令，否则访问本地局域<br>   网数据得到对端绕一圈（默认是使用路由）。<br>7、ssh服务端还需要更改配置<code>/etc/ssh/sshd_config</code>，前2行是必须的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PermitRootLogin yes</span><br><span class="line">PermitTunnel yes</span><br><span class="line">ClientAliveInterval 30</span><br><span class="line">ClientAliveCountMax 6</span><br></pre></td></tr></table></figure>
+<p>8、脚本外的操作：C或路由器1上添加对端局域网的访问路由，网关设置为A的局域网IP，如果局域网还有E、F其他电脑，在路由器上设置就不用在每台电脑上都设定。<br>9、脚本外的操作：D或路由器2上添加对端局域网的访问路由，网关设置为B的局域网IP。</p>
+<p>有网友建议通过 bonding 增加可用性。通过 <code>runit/ daemontools</code> 跑起来。一下跑16个进程，然后把16个接口做802.1ad或者xor bonding成一个接口用。但因为我对这个脚本的定位是即用即开，不用即关，所以没研究。</p>
+<hr>
+<p>另一种网络拓扑：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C --&gt; A --&gt; 路由器 &lt;-- 互联网 --&gt;  B</span><br></pre></td></tr></table></figure>
+
+<p>A、C都限制不能上外网，但路由器的22端口映射到A，B在外网可以ssh登录A，只需在B执行svpn.sh脚本，A就能上外网了，C配置默认网关为A的局域网IP，也能上外网了。只要留一个ssh端口，就能够突破网络封锁！</p>
+<hr>
+<p>再来一种网络拓扑：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">A &lt;-- 互联网 --&gt; B --&gt; GFW</span><br></pre></td></tr></table></figure>
+
+<p>A在国内，B是国外的VPS，在A配置执行svpn.sh脚本，A就能科学上网了。</p>
+<hr>
+<p>回到主题，无外网IP的阿里云ECS服务器怎么访问外网呢？网络拓扑简化为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">A &lt;--&gt; B &lt;-- 互联网 --&gt; D</span><br></pre></td></tr></table></figure>
+
+<p>A服务器没有外网IP，当作ssh服务端。<br>B有外网IP，当作ssh客户端，svpn脚本放在B执行。<br>D是外网的电脑&#x2F;服务器。</p>
+<p>使用以下配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SERVER_SSH_PORT=&quot;22&quot;		#A的ssh端口</span><br><span class="line">SERVER_SSH_IP=&quot;10.111.1.222&quot;	#A的内网ip</span><br><span class="line">CLIENT_ETHERNET=&quot;eth1&quot;		#B的外网物理网卡</span><br><span class="line">CLIENT_TUNNEL=&quot;tun2&quot;		#自定义的客户端tun网卡名，tun+数字</span><br><span class="line">SERVER_TUNNEL=&quot;tun1&quot;		#自定义的服务端tun网卡名，不能和客户端相同</span><br><span class="line">CLIENT_TUN_IP=&quot;192.168.169.2&quot;	#因为阿里云内网使用A类，所以这里用C类</span><br><span class="line">SERVER_TUN_IP=&quot;192.168.169.1&quot;</span><br><span class="line">SERVER_GATEWAY=&quot;10.111.1.254&quot;	#A的默认网关</span><br></pre></td></tr></table></figure>
+<p>有几个变量没有使用到，脚本内含有这几个没使用变量的行注释或删除。</p>
+<p>然后在B服务器上运行svpn.sh脚本，脚本会修改A的默认网关，在B用iptables做snat，A就可以访问外网了！</p>
+<p>如果有2台无外网流量的ECS服务器要同时访问外网呢？一台用一个脚本，只是tun网卡用另一组：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CLIENT_TUNNEL=&quot;tun4&quot;</span><br><span class="line">SERVER_TUNNEL=&quot;tun3&quot;</span><br></pre></td></tr></table></figure>
+<p>又多了第3台呢？tun网卡名称都递增+1即可。</p>
+<hr>
+<p>这里贴个可用于阿里云的简化版脚本：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line"><span class="comment">#FileName:    svpn.sh</span></span><br><span class="line"><span class="comment">#Author:      oicu</span></span><br><span class="line"><span class="comment">#Blog:        http://oicu.cc.blog.163.com/</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line">PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin</span><br><span class="line"><span class="built_in">export</span> PATH</span><br><span class="line"></span><br><span class="line">[ <span class="string">&quot;<span class="subst">$(whoami)</span>&quot;</span> != <span class="string">&#x27;root&#x27;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Run it as root.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1</span><br><span class="line"></span><br><span class="line">SERVER_SSH_PORT=<span class="string">&quot;22&quot;</span>		<span class="comment">#A的ssh端口</span></span><br><span class="line">SERVER_SSH_IP=<span class="string">&quot;10.111.1.222&quot;</span>	<span class="comment">#A的内网ip</span></span><br><span class="line">CLIENT_ETHERNET=<span class="string">&quot;eth1&quot;</span>		<span class="comment">#B的外网物理网卡</span></span><br><span class="line">CLIENT_TUNNEL=<span class="string">&quot;tun2&quot;</span>		<span class="comment">#自定义的客户端tun网卡名，tun+数字</span></span><br><span class="line">SERVER_TUNNEL=<span class="string">&quot;tun1&quot;</span>		<span class="comment">#自定义的服务端tun网卡名，不能和客户端相同</span></span><br><span class="line">CLIENT_TUN_IP=<span class="string">&quot;192.168.169.2&quot;</span>	<span class="comment">#因为阿里云内网使用A类，所以这里用C类</span></span><br><span class="line">SERVER_TUN_IP=<span class="string">&quot;192.168.169.1&quot;</span></span><br><span class="line">SERVER_GATEWAY=<span class="string">&quot;10.111.1.254&quot;</span>	<span class="comment">#A的默认网关</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">start</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ssh -NTCf -o ServerAliveInterval=30 \</span><br><span class="line">    -o ServerAliveCountMax=6 \</span><br><span class="line">    -o ExitOnForwardFailure=<span class="built_in">yes</span> \</span><br><span class="line">    -o Tunnel=point-to-point \</span><br><span class="line">    -w <span class="string">&quot;<span class="variable">$&#123;CLIENT_TUNNEL#tun&#125;</span>:<span class="variable">$&#123;SERVER_TUNNEL#tun&#125;</span>&quot;</span> \</span><br><span class="line">    root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span> <span class="built_in">exit</span> 1; <span class="keyword">fi</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ssh tunnel is working.&quot;</span></span><br><span class="line">ssh -T root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span> &gt; /dev/null 2&gt;&amp;1 &lt;&lt; <span class="string">eeooff</span></span><br><span class="line"><span class="string">    ip route replace default via $&#123;SERVER_GATEWAY&#125;</span></span><br><span class="line"><span class="string">    ip link set $&#123;SERVER_TUNNEL&#125; down</span></span><br><span class="line"><span class="string">    ifconfig $&#123;SERVER_TUNNEL&#125; &gt; /dev/null 2&gt;&amp;1</span></span><br><span class="line"><span class="string">    if [ $? -eq 0 ]; then</span></span><br><span class="line"><span class="string">        echo 1 &gt; /proc/sys/net/ipv4/ip_forward</span></span><br><span class="line"><span class="string">        ip link set $&#123;SERVER_TUNNEL&#125; up</span></span><br><span class="line"><span class="string">        ip addr add $&#123;SERVER_TUN_IP&#125;/32 peer $&#123;CLIENT_TUN_IP&#125; dev $&#123;SERVER_TUNNEL&#125;</span></span><br><span class="line"><span class="string">        ip route replace default via $&#123;SERVER_TUN_IP&#125;</span></span><br><span class="line"><span class="string">    fi</span></span><br><span class="line"><span class="string">    exit</span></span><br><span class="line"><span class="string">eeooff</span></span><br><span class="line"><span class="keyword">if</span> [ $? -ne 0 ]; <span class="keyword">then</span> <span class="built_in">exit</span> 1; <span class="keyword">fi</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;remote start.&quot;</span></span><br><span class="line">ifconfig <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> 1 &gt; /proc/sys/net/ipv4/ip_forward</span><br><span class="line">    ip <span class="built_in">link</span> <span class="built_in">set</span> <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> up</span><br><span class="line">    ip addr add <span class="variable">$&#123;CLIENT_TUN_IP&#125;</span>/32 peer <span class="variable">$&#123;SERVER_TUN_IP&#125;</span> dev <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span></span><br><span class="line">    iptables -t nat -A POSTROUTING -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -o <span class="variable">$&#123;CLIENT_ETHERNET&#125;</span> -j MASQUERADE</span><br><span class="line">    iptables -A FORWARD -p tcp --syn -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -j TCPMSS --set-mss 1356</span><br><span class="line">    ping <span class="variable">$&#123;SERVER_TUN_IP&#125;</span> -i 60 &gt; /dev/null 2&gt;&amp;1 &amp;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;local start.&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">stop-<span class="function"><span class="title">srv</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ssh -T root@<span class="variable">$&#123;SERVER_SSH_IP&#125;</span> -p <span class="variable">$&#123;SERVER_SSH_PORT&#125;</span> &gt; /dev/null 2&gt;&amp;1 &lt;&lt; <span class="string">eeooff</span></span><br><span class="line"><span class="string">    ip route replace default via $&#123;SERVER_GATEWAY&#125;</span></span><br><span class="line"><span class="string">    ip link set $&#123;SERVER_TUNNEL&#125; down</span></span><br><span class="line"><span class="string">    exit</span></span><br><span class="line"><span class="string">eeooff</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]; <span class="keyword">then</span> <span class="built_in">echo</span> <span class="string">&quot;remote stop.&quot;</span>; <span class="keyword">fi</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">stop</span></span>()</span><br><span class="line">&#123;</span><br><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> <span class="variable">$&#123;CLIENT_TUNNEL&#125;</span> down</span><br><span class="line">iptables -t nat -D POSTROUTING -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -o <span class="variable">$&#123;CLIENT_ETHERNET&#125;</span> -j MASQUERADE</span><br><span class="line">iptables -D FORWARD -p tcp --syn -s <span class="variable">$&#123;SERVER_TUN_IP&#125;</span>/32 -j TCPMSS --set-mss 1356</span><br><span class="line">CLIENT_SSH_PID=`ps -ef | grep <span class="string">&#x27;ssh -NTCf -o&#x27;</span> | grep -v grep | <span class="built_in">head</span> -n1 | awk <span class="string">&#x27;&#123;print $2&#125;&#x27;</span>`</span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$&#123;CLIENT_SSH_PID&#125;</span>&quot;</span> ]; <span class="keyword">then</span> <span class="built_in">kill</span> -9 <span class="variable">$&#123;CLIENT_SSH_PID&#125;</span>; <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;`pidof ping`&quot;</span> ]; <span class="keyword">then</span> pidof ping | xargs <span class="built_in">kill</span> -9; <span class="keyword">fi</span></span><br><span class="line">&#125; &gt; /dev/null 2&gt;&amp;1</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">usage</span></span>()</span><br><span class="line">&#123;</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;usage:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    <span class="variable">$0</span> -start&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    <span class="variable">$0</span> -stop&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;for ssh:&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;    nohup <span class="variable">$0</span> -start &gt; /dev/null 2&gt;&amp;1&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">    <span class="string">&quot;--start&quot;</span> | <span class="string">&quot;-start&quot;</span>)</span><br><span class="line">        stop</span><br><span class="line">        start</span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;--stop&quot;</span> | <span class="string">&quot;-stop&quot;</span>)</span><br><span class="line">        stop-srv</span><br><span class="line">        stop</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;local stop.&quot;</span></span><br><span class="line">        ;;</span><br><span class="line">    *)</span><br><span class="line">        usage</span><br><span class="line">        ;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>谈谈SolidWorks的后门事件</title>
+    <url>/posts/9458357e.html</url>
+    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
+<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
+<span id="more"></span>
+
+<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
+<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
+<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
+<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
+<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
+<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
+<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
+]]></content>
+      <categories>
+        <category>私人日志</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>AIX、Linux、Windows计算文件MD5、SHA1哈希校验码</title>
+    <url>/posts/b8c9236b.html</url>
+    <content><![CDATA[<h1 id="MD5文件格式"><a href="#MD5文件格式" class="headerlink" title="MD5文件格式"></a>MD5文件格式</h1><blockquote>
+<p>常用文件校验码是 crc、md5、sha1、sha256，本文以最简单的 md5 为例（虽然过时了）。<br><strong>文件校验码只和文件内容有关，不因文件名、修改时间戳的变化而变化。</strong><br><strong>如果FTP跨平台传输文本文件，一定要选择bin模式</strong>，不然该文本文件的md5校验会失败。<br>md5文件的扩展名没有强制规定，但建议使用 <code>.md5</code> 或者 <code>.txt</code> 扩展名。<br>一个md5文件可包括多行。</p>
+</blockquote>
+<span id="more"></span>
+
+<p><strong>如果手动编写md5文件，那么 md5 值与文件名之间只能 1 到 2 个空格。</strong></p>
+<p>md5文件格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;md5校验码&gt;&lt;空格&gt;&lt;空格或*符号&gt;&lt;文件名或绝对路径、相对路径&gt;</span><br></pre></td></tr></table></figure>
+
+<p>一个md5文件对应一个文件的格式示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">582ff16e322241cc6157cf70378a3dec  abc.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>一个md5文件对应多个文件的格式示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">61b06996a32bc1c40c7393648fe55fb2  def.zip</span><br><span class="line">072550c6cf640100a35a68e8cde7afb8  ghi.zip</span><br></pre></td></tr></table></figure>
+
+<p>在 Windows 系统用 git-bash 里的 <code>md5sum</code> 命令创建的文件格式示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">5b895d01cbd357162df92f33603ca7a8 *abc.zip</span><br></pre></td></tr></table></figure>
+
+<h1 id="AIX"><a href="#AIX" class="headerlink" title="AIX"></a>AIX</h1><p>AIX系统计算文件md5或者sha1的命令是 <code>csum</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">csum filename                 <span class="comment">#默认使用md5算法，文件名可用通配符，生成filename的md5码，并显示</span></span><br><span class="line">csum -o md5values file1 file2 <span class="comment">#将file1 file2 的md5码和文件名写入md5values文件。</span></span><br><span class="line">csum -i md5values             <span class="comment">#将md5values内纪录的md5值与目前生成的值进行校验。</span></span><br><span class="line"></span><br><span class="line">csum -h SHA1 filename         <span class="comment">#使用sha1算法，要大写！</span></span><br><span class="line">csum -h SHA1 -o sha1values file1 file2</span><br><span class="line">csum -h SHA1 -i sha1values</span><br></pre></td></tr></table></figure>
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><p>Linux系统计算文件md5命令是 <code>md5sum</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">md5sum</span> file1                  <span class="comment">#生成file1的md5码并显示，文件名可用通配符</span></span><br><span class="line"><span class="built_in">md5sum</span> file1 &gt;f1md5           <span class="comment">#将file1的md5码写入f1md5文件</span></span><br><span class="line"><span class="built_in">md5sum</span> -c f1md5               <span class="comment">#校验f1md5文件内的md5码与目前生成的值是否匹配。</span></span><br></pre></td></tr></table></figure>
+
+<p>Linux系统计算文件sha1命令是 <code>sha1sum</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sha1sum</span> filename</span><br><span class="line"><span class="built_in">sha1sum</span> filename &gt;sha1file</span><br><span class="line"><span class="built_in">sha1sum</span> -c sha1file</span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-b, --binary            二进制模式读取，*NIX默认为二进制模式</span><br><span class="line">-c, --check             根据文件检查文件</span><br><span class="line">-t, --text              文本模式读取（默认），编译为Windows版本时才有文本模式</span><br></pre></td></tr></table></figure>
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><p>Windows系统计算文件md5、sha1、sha256的命令是 <code>certutil</code>，但哈希结果带空格。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">certutil -hashfile filename MD5</span><br><span class="line">certutil -hashfile filename SHA1</span><br><span class="line">certutil -hashfile filename SHA256</span><br></pre></td></tr></table></figure>
+
+<p>Windows 系统下有各种语言编写的 md5 码生成器，比较小巧的如 <a href="http://keir.net/download/hash.zip">Hash.exe</a></p>
+<p>建议安装 git-bash 用 <code>md5sum</code> 命令创建 md5 文件，尽量不要手动创建。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+      <tags>
+        <tag>哈希</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows 10的开始菜单打不开</title>
+    <url>/posts/85e81d0c.html</url>
+    <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
+<p>尝试网上很多方法，又是重启又是改注册表、改组策略，通通都无效！</p>
+<p>最终还是上大杀器：管理员身份运行PowerShell，输入以下一行命令进行修复。</p>
+<span id="more"></span>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-AppxPackage</span> | <span class="keyword">ForEach</span> &#123;<span class="built_in">Add-AppxPackage</span> <span class="literal">-DisableDevelopmentMode</span> <span class="literal">-Register</span> <span class="string">&quot;<span class="variable">$</span>(<span class="variable">$_</span>.InstallLocation)\AppxManifest.xml&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>System</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisualSVN自签SSL证书导致svn客户端coredump或不能永久接受证书</title>
+    <url>/posts/d4b9c670.html</url>
+    <content><![CDATA[<p>VisualSVN Server 自签 OpenSSL 证 书bug 导致 Linux、AIX 的 svn 客户端 coredump 或不能永久接受证书。</p>
+<p>VisualSVN 默认使用 https 协议访问 svn 库，早在 2012 年初的 VisualSVN Server 2.5 就曾出现过 ssl 证书的 bug，导致 Linux 的 svn 客户端不能连上 Windows 的 VisualSVN 服务器。</p>
+<span id="more"></span>
+
+<p>英文错误信息如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">svn: OPTIONS of &#x27;https://192.168.100.59/svn/repo&#x27;: SSL handshake failed: SSL error:</span><br><span class="line">Key usage violation in certificate has been detected. (https://192.168.100.59)</span><br></pre></td></tr></table></figure>
+
+<p>中文错误信息如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">svn: 方法 OPTIONS 失败于 “https://192.168.100.59/svn/repo”: SSL handshake failed: SSL 错误：</span><br><span class="line">在证书中检测到违规的密钥用法。 (https://192.168.100.59)</span><br></pre></td></tr></table></figure>
+
+<p>错误原因是 Windows 使用的证书 Linux 不能识别。改正方法是修改服务器上 VisualSVN 使用的证书为第三方产生的证书，以便 Windows 和 Linux 都能识别。</p>
+<p>官方解决如下：<br><a href="https://www.visualsvn.com/support/topic/00056/">https://www.visualsvn.com/support/topic/00056/</a><br>需要导入注册表信息并重新生产证书。<br>1. Add the following registry value to the Windows registry:<br>for 32-bit system:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[HKEY_LOCAL_MACHINE\SOFTWARE\VisualSVN\VisualSVN Server]</span><br><span class="line">&quot;CreateGnuTLSCompatibleCertificate&quot;=dword:00000001</span><br></pre></td></tr></table></figure>
+
+<p>for 64-bit system:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\VisualSVN\VisualSVN Server]</span><br><span class="line">&quot;CreateGnuTLSCompatibleCertificate&quot;=dword:00000001</span><br></pre></td></tr></table></figure>
+
+<p>2. Start VisualSVN Server Manager.<br>3. Go to Action | Properties | Certificate.<br>4. Click Change certificate… and follow the wizard instructions to generate a new self-signed certificate.</p>
+<p>The certificate will be generated without the ‘Key Usage’ extension and will be compatible both with GnuTLS and OpenSSL.</p>
+<p>再次执行 svn ls，会提示证书生成者不受信赖的警告，选择永久接受即可。</p>
+<hr>
+<p>但是！！！在2016年底出的 VisualSVN Server 3.5.6 版本依然有证书问题。</p>
+<p>我使用的 AIX 7.1 系统，因为 ibm 网站出的 subversion-1.9.4-1.aix6.1.ppc.rpm 只能用 svn、file 协议，不带 https&#x2F;http，又不想折腾编译，于是安装了 oss4aix、perzl.org 网站编译的 subversion 版本，测试了多个版本，除了 subversion 1.6.x 能正常使用，1.7.x、1.8.x 的版本 checkout 一个 https 的库，能连服务器，但总在最后证书验证后出错 Segmentation fault(coredump) 异常退出，根本找不到原因。</p>
+<p>我需要新版本的 svn 客户端，这样就不会在每个文件夹下都生成 .svn 目录，能找到的最新版本为 oss4aix 网站的 subversion-1.8.10-2.aix5.3.ppc.rpm，安装后，我尝试从依赖库入手解决问题。既然是在证书验证部分报错，先替换 openssl 版本，没解决。</p>
+<p>又想到 svn 1.8 之后用 serf 代替 neon 访问 https&#x2F;http，我尝试更新安装serf-1.2.1-2.aix5.1.ppc.rpm 后，svn 客户端不再 Segmentation fault(coredump) 异常退出，可以检出文件了，但证书只能临时接受，无法永久保存，每次 svn update、svn list 都要提示一次证书错误信息，很心烦。</p>
+<p>但也确认了 subversion 1.8.x 奔溃原因和 serf 版本有关。</p>
+<p>网上搜到一句说“该错误是自签名证书在 subversion 1.8.8 中生成新类型的错误的结果，该错误在 1.3.4 之前的 serf 版本中未正确处理。”</p>
+<p>用chrome 浏览器打开 <a href="https://192.168.100.59/svn/repo">https://192.168.100.59/svn/repo</a> 也会提示“服务器的证书与网址不相符”，在VisualSVN 里重新生成证书问题依旧。</p>
+<p>结合以前的证书bug，因此我认为根本原因还是 VisualSVN 的证书问题。</p>
+<p>国外论坛也有无法永久保存证书的问题，但只是提出 Fix the certificate chain on the server，并没明确解决方法及根本原因。<br>Subversion Server SSL certificate verification failed: and other reason(s)<br><a href="http://stackoverflow.com/questions/22108914/subversion-server-ssl-certificate-verification-failed-and-other-reasons">http://stackoverflow.com/questions/22108914/subversion-server-ssl-certificate-verification-failed-and-other-reasons</a></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ svn update</span><br><span class="line">Updating &#x27;.&#x27;:</span><br><span class="line">Error validating server certificate for &#x27;https://192.168.100.59:443&#x27;:</span><br><span class="line"> - The certificate is not issued by a trusted authority. Use the</span><br><span class="line">   fingerprint to validate the certificate manually!</span><br><span class="line"> - The certificate hostname does not match.</span><br><span class="line">Certificate information:</span><br><span class="line"> - Hostname: 571458-tools1</span><br><span class="line"> - Valid: from Feb 28 23:57:35 2014 GMT until Feb 26 23:57:35 2024 GMT</span><br><span class="line"> - Issuer:</span><br><span class="line"> - Fingerprint: 55:3E:55:FD:4D:40:A4:1E:8A:1E:27:71:DD:D4:ED:8B:A3:9A:1D:EC</span><br><span class="line">(R)eject, accept (t)emporarily or accept (p)ermanently? p</span><br><span class="line">Error validating server certificate for &#x27;https://192.168.100.59:443&#x27;:</span><br><span class="line"> - The certificate has an unknown error.</span><br><span class="line">Certificate information:</span><br><span class="line"> - Hostname: 571458-tools1</span><br><span class="line"> - Valid: from Feb 28 23:57:35 2014 GMT until Feb 26 23:57:35 2024 GMT</span><br><span class="line"> - Issuer:</span><br><span class="line"> - Fingerprint: 55:3E:55:FD:4D:40:A4:1E:8A:1E:27:71:DD:D4:ED:8B:A3:9A:1D:EC</span><br><span class="line">(R)eject or accept (t)emporarily? t</span><br><span class="line">(credentials dialogue)</span><br><span class="line">At revision 46.</span><br></pre></td></tr></table></figure>
+
+<p>分析出原因，于是我在 AIX&#x2F;Linux 下用 openssl 重新生成证书，问题解决！</p>
+<p>生成证书的命令（脚本）：<br><a href="https://github.com/michaelliao/itranswarp.js/blob/master/conf/ssl/gencert.sh">https://github.com/michaelliao/itranswarp.js/blob/master/conf/ssl/gencert.sh</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="comment"># create self-signed server certificate:</span></span><br><span class="line"><span class="comment"># 密钥长度改为2048位</span></span><br><span class="line">DOMAIN=192.168.100.59</span><br><span class="line">openssl genrsa -des3 -out <span class="variable">$DOMAIN</span>.key 2048</span><br><span class="line">openssl req -new -subj /C=CN/ST=GuangDong/L=Zhuhai/O=oicu/OU=oicu/CN=<span class="variable">$DOMAIN</span> -key <span class="variable">$DOMAIN</span>.key -out <span class="variable">$DOMAIN</span>.csr</span><br><span class="line"><span class="built_in">mv</span> <span class="variable">$DOMAIN</span>.key <span class="variable">$DOMAIN</span>.origin.key</span><br><span class="line">openssl rsa -<span class="keyword">in</span> <span class="variable">$DOMAIN</span>.origin.key -out <span class="variable">$DOMAIN</span>.key</span><br><span class="line">openssl x509 -req -days 3650 -<span class="keyword">in</span> <span class="variable">$DOMAIN</span>.csr -signkey <span class="variable">$DOMAIN</span>.key -out <span class="variable">$DOMAIN</span>.crt</span><br></pre></td></tr></table></figure>
+
+<p><a href="http://www.liaoxuefeng.com/article/0014189023237367e8d42829de24b6eaf893ca47df4fb5e000">http://www.liaoxuefeng.com/article/0014189023237367e8d42829de24b6eaf893ca47df4fb5e000</a><br>为HTTPS准备的证书需要注意，创建的签名请求的CN必须与域名完全一致，否则无法通过浏览器验证。</p>
+<p>最后把 crt 文件和无密码的 key 文件复制到 Windows 系统，修改 VisualSVN 自带的 apache 设置 conf&#x2F;httpd.conf 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ServerName &quot;192.168.100.59:443&quot;</span><br><span class="line"># SSLCertificateFile      certs/server.pem</span><br><span class="line"># SSLCertificateKeyFile   certs/server.pem</span><br><span class="line">SSLCertificateFile      certs/192.168.100.59.crt</span><br><span class="line">SSLCertificateKeyFile   certs/192.168.100.59.key</span><br></pre></td></tr></table></figure>
+
+<p>后记：<br>因为出错信息不同，我是在其他平台用 openssl 重新生成证书解决，后来才搜索到本文前部分的问题，尝试了改注册表后用 VisualSVN 重新生成 server.pem 证书的方法也能同样解决，这个方法较为简单不用改 httpd.conf 文件，只是 chrome 访问依旧会提示“服务器的证书与网址不相符”。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>svn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>用js脚本提取合并多个excel表格</title>
+    <url>/posts/f6330333.html</url>
+    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
+<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
+<blockquote>
+<p>注：用js脚本处理表格需要电脑安装有excel。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>老样子，先描述需求：</p>
+<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
+<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
+<p>3、执行js脚本的过程及结果。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
+<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Apache加载php模块提示错误Cannot load php5apache2_2.dll into server</title>
+    <url>/posts/59917b37.html</url>
+    <content><![CDATA[<p>Apache 2.2.x 要以 handler 方式加载 php 模块，<a href="http://windows.php.net/downloads/releases/archives/">php 官网</a>里只有 php 5.2-5.4 的 Thread Safe 版本才带 <code>php5apache2_2.dll</code>，之后都是 <code>php5apache2_4.dll</code>（给 Apache 2.4.x 用）。</p>
+<blockquote>
+<p>不要下载名字带 <code>nts</code> 的 NoneThread Safe 版本。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>之后无论怎么配置 Apache 的 httpd.conf 文件都提示错误：<br><code>Cannot load C:/php/php5apache2_2.dll into server</code></p>
+<p>经过版本测试，发现：</p>
+<ol>
+<li>其实 php5apache2_2.dll 相对绝对路径并不是大问题。</li>
+<li>根据编译版本，安装对应的VC运行库。</li>
+<li>最重要的一点谨记！x64 的 Apache 无法使用 x86 的 php 啊！</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Web</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）</title>
+    <url>/posts/9f91560f.html</url>
+    <content><![CDATA[<blockquote>
+<p>注：本方法实测支持 VisualSVN 2.1～3.6.x，不过2还需多改Apache的配置，老版本应该抛弃，懒得写了。<br>转载请注明来源，不为别的，就是怕那些无良网站为了流量到处转帖，转丢失内容或者是老版本的内容。</p>
+</blockquote>
+<p>如果不用VisualSVN客户端的话，VisualSVN Server只能在服务器端修改密码，对管理来说很不方便。</p>
+<p>网上大部分给 VisualSVN 增加自助修改密码的补丁都是基于 2.5.x 版本的，也有几个用于 3.5.x&#x2F;3.6.x 版本，多数还是用 cgi 方式，而且要么像 csdn 那样藏着掖着，要么也没个详细的说明。</p>
+<span id="more"></span>
+
+<p>VisualSVN Server 帐号及密码保存在 htpasswd 文件里，除了 cgi 有以下几种修改方式：</p>
+<p>1、使用 VisualSVN Server Manager 管理工具重置密码。</p>
+<p>2、通过 WMI 里用 PowerShell 脚本更改。示例如下：<br>来源：<a href="http://stackoverflow.com/questions/4354356/visualsvn-server-password-change">http://stackoverflow.com/questions/4354356/visualsvn-server-password-change</a></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$svnuser</span> = <span class="built_in">Get-WmiObject</span> <span class="literal">-Namespace</span> Root\VisualSVN `</span><br><span class="line"><span class="literal">-ComputerName</span> svn.hostname.com `</span><br><span class="line"><span class="literal">-query</span> <span class="string">&quot;select * from VisualSVN_User where name = &#x27;username&#x27;&quot;</span></span><br><span class="line"><span class="variable">$svnuser</span>.SetPassword(<span class="string">&#x27;123456&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>3、使用 Windows 版 Apache 的 htpasswd.exe 命令更改。<br>来源：<a href="http://www.cnblogs.com/rgqancy/p/4679881.html">http://www.cnblogs.com/rgqancy/p/4679881.html</a><br>该方法是使用 php 页面来调用 htpasswd.exe 修改密码，方便用户通过网页修改，下面讲解配置要点。</p>
+<p>我使用的操作系统是 Windows Server 2008R2 x64，安装了 VisualSVN Server 3.5.6 x64 带 Apache 2.2.31 x64 的版本，默认安装路径。</p>
+<p>从 Apache 官方网站下载完整的 Apache 2.2.31 x64 版本，从里面提取一个文件 htpasswd.exe 放到<br><code>C:\Program Files\VisualSVN Server\bin\htpasswd.exe</code></p>
+<p>Apache 2.2.x 要以 handler 方式加载 php 模块，只有 php 5.2-5.4 的 Thread Safe 版本才带 php5apache2_2.dll 文件，php 5.5 及之后的版本只能和 Apache 2.4.x 搭配了，所以选定 php 5.4 版本。</p>
+<p><strong>特别注意，如果用 VisualSVN Server x64 就必须找 x64 的 php！</strong><br>否则 Apache 加载 php 模块会提示错误 Cannot load php5apache2_2.dll into server<br><a href="http://oicu.cc.blog.163.com/blog/static/123039471201610229952552/">http://oicu.cc.blog.163.com/blog/static/123039471201610229952552/</a><br>因为 Apache x64 无法使用 php x86。</p>
+<p>使用 32 位版本的 VisualSVN Server 比较简单，因为 php 官网都是 x86 版本:<br><a href="http://windows.php.net/downloads/releases/archives/">http://windows.php.net/downloads/releases/archives/</a></p>
+<p>使用 64 位版本的 VisualSVN Server 就得找第三方编译的 php x64 版本了，提供两个下载：<br><a href="https://www.anindya.com/php-5-4-12-and-5-3-22-x64-64-bit-for-windows/">https://www.anindya.com/php-5-4-12-and-5-3-22-x64-64-bit-for-windows/</a><br><a href="http://www.apachelounge.com/viewtopic.php?t=6123">http://www.apachelounge.com/viewtopic.php?t=6123</a></p>
+<p>我下载的是 php-5.4.36-Win32-VC9-x64.zip，下载后解压到 <code>C:\Program Files\VisualSVN Server\php</code> 文件夹。把 php.ini-production 文件重命名为 php.ini 即可，其他不用配置。</p>
+<p>修改空文件 <code>C:\Program Files\VisualSVN Server\conf\httpd-custom.conf</code><br>内容如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LoadModule php5_module &quot;php/php5apache2_2.dll&quot;</span><br><span class="line">&lt;IfModule php5_module&gt;</span><br><span class="line">    AddType application/x-httpd-php .php</span><br><span class="line">    DirectoryIndex index.html index.php</span><br><span class="line">&lt;/IfModule&gt;</span><br><span class="line"># 配置 php.ini 的路径</span><br><span class="line">PHPIniDir &quot;php&quot;</span><br></pre></td></tr></table></figure>
+
+<p>新建一个 php 文件放到 <code>C:\Program Files\VisualSVN Server\htdocs\pw\index.php</code><br>内容如下（做了一点小修改，增加返回及跳转页面的处理）：</p>
+<blockquote>
+<p>有2个变量要根据实际文件的路径更改，$passwdfile和$command</p>
+</blockquote>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$username</span> = <span class="variable">$_SERVER</span>[<span class="string">&quot;PHP_AUTH_USER&quot;</span>]; <span class="comment">//经过 AuthType Basic 认证的用户名</span></span><br><span class="line"><span class="variable">$authed_pass</span> = <span class="variable">$_SERVER</span>[<span class="string">&quot;PHP_AUTH_PW&quot;</span>]; <span class="comment">//经过 AuthType Basic 认证的密码</span></span><br><span class="line"><span class="variable">$input_oldpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;oldpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;oldpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//从界面上输入的原密码</span></span><br><span class="line"><span class="variable">$newpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;newpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;newpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//界面上输入的新密码</span></span><br><span class="line"><span class="variable">$repeatpass</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;repeatpass&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;repeatpass&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//界面上输入的重复密码</span></span><br><span class="line"><span class="variable">$action</span> = (<span class="keyword">isset</span>(<span class="variable">$_REQUEST</span>[<span class="string">&quot;action&quot;</span>]) ? <span class="variable">$_REQUEST</span>[<span class="string">&quot;action&quot;</span>] : <span class="string">&quot;&quot;</span>); <span class="comment">//以hide方式提交到服务器的action</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$action</span>!=<span class="string">&quot;modify&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;view&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$authed_pass</span>!=<span class="variable">$input_oldpass</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;oldpasswrong&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$newpass</span>)) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;passempty&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$newpass</span>!=<span class="variable">$repeatpass</span>) &#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;passnotsame&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span>&#123;</span><br><span class="line">    <span class="variable">$action</span> = <span class="string">&quot;modify&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta http-equiv=<span class="string">&quot;Content-Type&quot;</span> content=<span class="string">&quot;text/html; charset=GBK&quot;</span>&gt;</span><br><span class="line">    &lt;title&gt;Subversion 在线自助密码修改&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">//action=view 显示普通的输入信息</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;view&quot;</span>) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language = <span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">loginIn</span>(<span class="params">myform</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> newpass=myform.newpass.value;</span><br><span class="line">    <span class="keyword">var</span> repeatpass=myform.repeatpass.value;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newpass==<span class="string">&quot;&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;请输入密码！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (repeatpass==<span class="string">&quot;&quot;</span>) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;请重复输入密码！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newpass!=repeatpass) &#123;</span><br><span class="line">        <span class="title function_ invoke__">alert</span>(<span class="string">&quot;两次输入密码不一致，请重新输入！&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">&lt;style type=<span class="string">&quot;text/css&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line">    table &#123;</span><br><span class="line">        border: <span class="number">1</span>px solid <span class="comment">#CCCCCC;</span></span><br><span class="line">        background-color: <span class="comment">#f9f9f9;</span></span><br><span class="line">        text-align: center;</span><br><span class="line">        vertical-align: middle;</span><br><span class="line">        font-size: <span class="number">9</span>pt;</span><br><span class="line">        line-height: <span class="number">15</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">    th &#123;</span><br><span class="line">        font-weight: bold;</span><br><span class="line">        line-height: <span class="number">20</span>px;</span><br><span class="line">        border-top-width: <span class="number">1</span>px;</span><br><span class="line">        border-right-width: <span class="number">1</span>px;</span><br><span class="line">        border-bottom-width: <span class="number">1</span>px;</span><br><span class="line">        border-left-width: <span class="number">1</span>px;</span><br><span class="line">        border-bottom-style: solid;</span><br><span class="line">        color: <span class="comment">#333333;</span></span><br><span class="line">        background-color: f6f6f6;</span><br><span class="line">    &#125;</span><br><span class="line">    input&#123;</span><br><span class="line">        height: <span class="number">18</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">    .button &#123;</span><br><span class="line">        height: <span class="number">20</span>px;</span><br><span class="line">    &#125;</span><br><span class="line">--&gt;</span><br><span class="line">&lt;/style&gt;</span><br><span class="line"></span><br><span class="line">&lt;br&gt;&lt;br&gt;&lt;br&gt;</span><br><span class="line">&lt;form method=<span class="string">&quot;post&quot;</span>&gt;</span><br><span class="line">&lt;input type=<span class="string">&quot;hidden&quot;</span> name=<span class="string">&quot;action&quot;</span> value=<span class="string">&quot;modify&quot;</span>/&gt;</span><br><span class="line">&lt;table width=<span class="string">&quot;220&quot;</span> cellpadding=<span class="string">&quot;3&quot;</span> cellspacing=<span class="string">&quot;8&quot;</span> align=<span class="string">&quot;center&quot;</span>&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;th colspan=<span class="number">2</span>&gt;Subversion 密码修改&lt;/th&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;用 户 名：&lt;/td&gt;</span><br><span class="line">&lt;td align=<span class="string">&quot;left&quot;</span>&gt; <span class="meta">&lt;?php</span> <span class="keyword">echo</span> <span class="variable">$username</span><span class="meta">?&gt;</span>&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;原 密 码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=oldpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;用户密码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=newpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td&gt;确认密码：&lt;/td&gt;</span><br><span class="line">&lt;td&gt;&lt;input type=password size=<span class="number">12</span> name=repeatpass&gt;&lt;/td&gt;</span><br><span class="line">&lt;/tr&gt;</span><br><span class="line">&lt;tr&gt;</span><br><span class="line">&lt;td colspan=<span class="number">2</span>&gt;</span><br><span class="line">&lt;input onclick=<span class="string">&quot;return loginIn(this.form)&quot;</span> <span class="class"><span class="keyword">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">type</span>=<span class="title">submit</span> <span class="title">value</span>=&quot;修 改&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;<span class="title">input</span> <span class="title">name</span>=&quot;<span class="title">reset</span>&quot; <span class="title">type</span>=<span class="title">reset</span> <span class="title">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">value</span>=&quot;取 消&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;<span class="title">input</span> <span class="title">onclick</span>=&quot;<span class="title">window</span>.<span class="title">location</span>.<span class="title">href</span>=&#x27;/&#x27;&quot; <span class="title">class</span>=&quot;<span class="title">button</span>&quot; <span class="title">type</span>=&quot;<span class="title">button</span>&quot; <span class="title">value</span>=&quot;返 回&quot;&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">td</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">tr</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">table</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">form</span>&gt;</span></span><br><span class="line"><span class="class">&lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">&#125; <span class="title">else</span> <span class="title">if</span> ($<span class="title">action</span> == &quot;<span class="title">oldpasswrong</span>&quot;) </span>&#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;原密码错误&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;passempty&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;请输入新密码&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">$action</span> == <span class="string">&quot;passnotsame&quot;</span>) &#123;</span><br><span class="line">    <span class="variable">$msg</span>=<span class="string">&quot;两次输入密码不一致，请重新输入&quot;</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="variable">$passwdfile</span>=<span class="string">&quot;D:\Repositories\htpasswd&quot;</span>;</span><br><span class="line">    <span class="variable">$command</span>=<span class="string">&#x27;&quot;C:\Program Files\VisualSVN Server\bin\htpasswd.exe&quot; -b &#x27;</span>.<span class="variable">$passwdfile</span>.<span class="string">&quot; &quot;</span>.<span class="variable">$username</span>.<span class="string">&#x27; &quot;&#x27;</span>.<span class="variable">$newpass</span>.<span class="string">&#x27;&quot;&#x27;</span>;</span><br><span class="line">    <span class="title function_ invoke__">system</span>(<span class="variable">$command</span>, <span class="variable">$result</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$result</span>==<span class="number">0</span>) &#123;</span><br><span class="line">        <span class="variable">$msg_succ</span>=<span class="string">&quot;用户[&quot;</span>.<span class="variable">$username</span>.<span class="string">&quot;]密码修改成功，请用新密码登陆&quot;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$msg</span>=<span class="string">&quot;用户[&quot;</span>.<span class="variable">$username</span>.<span class="string">&quot;]密码修改失败，返回值为&quot;</span>.<span class="variable">$result</span>.<span class="string">&quot;，请和管理员联系&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$msg_succ</span>)) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language=<span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="title function_ invoke__">alert</span>(<span class="string">&quot;&lt;?php echo <span class="subst">$msg_succ</span>?&gt;&quot;</span>);</span><br><span class="line">window.location.href=<span class="string">&quot;/&quot;</span></span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$msg</span>)) &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;script language=<span class="string">&quot;javaScript&quot;</span>&gt;</span><br><span class="line">&lt;!--</span><br><span class="line"><span class="title function_ invoke__">alert</span>(<span class="string">&quot;&lt;?php echo <span class="subst">$msg</span>?&gt;&quot;</span>);</span><br><span class="line">window.location.href=<span class="string">&quot;&lt;?php echo <span class="subst">$_SERVER</span>[&quot;</span>PHP_SELF<span class="string">&quot;]?&gt;&quot;</span></span><br><span class="line"><span class="comment">//--&gt;</span></span><br><span class="line">&lt;/script&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在header增加超链接麻烦，所以我就在页脚增加修改密码的链接，<br>修改文件 <code>C:\Program Files\VisualSVN Server\WebUI\index.html</code><br>内容如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">footer</span>&gt;</span></span><br><span class="line">Powered by <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;http://www.visualsvn.com/server/&quot;</span>&gt;</span>VisualSVN Server<span class="tag">&lt;/<span class="name">a</span>&gt;</span>. <span class="symbol">&amp;copy;</span> 2005-2016 VisualSVN Limited.</span><br><span class="line"><span class="tag">&lt;<span class="name">br</span> /&gt;</span><span class="tag">&lt;<span class="name">br</span> /&gt;</span><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;/pw&quot;</span>&gt;</span>自助修改密码<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">footer</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>完工。</p>
+<p>效果图如下：</p>
+<p><img src="/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/Subversion%E5%AF%86%E7%A0%81%E4%BF%AE%E6%94%B9.jpg"></p>
+<p><img src="/images/VisualSVN%E5%A2%9E%E5%8A%A0%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E9%A1%B5%E9%9D%A2/%E8%87%AA%E5%8A%A9%E4%BF%AE%E6%94%B9%E5%AF%86%E7%A0%81%E8%B6%85%E9%93%BE%E6%8E%A5.jpg"></p>
+<blockquote>
+<p>建议用Chrome、Firefox浏览器。<br>适用于VisualSVN Server 2.1~3.6最新版，2系列还需要改apache的httpd.conf。<br>已经修复密码带特殊字符 ^ 时的问题，博客里公开的是基础版本。增强版增加了密码复杂度、密码到期时间、信息录入等功能。</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Web</category>
+      </categories>
+      <tags>
+        <tag>svn</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>在AIX系统安装svn客户端</title>
+    <url>/posts/1997d5d0.html</url>
+    <content><![CDATA[<p>某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。</p>
+<p>首先，解决 VisualSVN 的 SSL 证书问题：<br><a href="http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/">http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/</a><br>否则使用 svn 命令时不能永久保存证书，每次使用 svn 命令都会提示或奔溃。</p>
+<span id="more"></span>
+
+<p>在 Linux 和 Windows 安装 svn 客户端都简单，但在 AIX 上就稍微麻烦点，由于同一个系统里有多个用户，编译这种麻烦事肯定是排除的，优先考虑使用 rpm 安装。</p>
+<p>由于低版本的 svn 客户端 checkout 之后，在本地每个文件夹都生成 .svn 隐藏目录，svn 1.7 及之后的版本在本地的 working copy 只有根目录有一个 .svn 目录，取代以前的所有的目录下都有 .svn 目录的方式。因此推荐使用 subversion 1.7 之后的版本。</p>
+<p>AIX 系统用的 rpm 包可以从以下网站获取：<br><a href="http://www.oss4aix.org/download/RPMS/subversion/">http://www.oss4aix.org/download/RPMS/subversion/</a><br><a href="http://www.perzl.org/aix/index.php?n=Main.Subversion">http://www.perzl.org/aix/index.php?n=Main.Subversion</a><br><a href="ftp://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/subversion/">ftp://public.dhe.ibm.com/aix/freeSoftware/aixtoolbox/RPMS/ppc/subversion/</a><br><a href="http://www.bullfreeware.com/">http://www.bullfreeware.com/</a></p>
+<p>ibm 网站提供的 svn 版本较新，但是不能使用 http&#x2F;https 访问 VisualSVN 服务器的库，排除！<br>perzl 网站是 svn 官网推荐的 Windows 编译版本，但版本较旧，截止发文，最新的只有 v1.8.5-1。<br>oss4aix 网站的版本比 prezl 的新一点，我最终选用的是 <code>subversion-1.8.10-2.aix5.3.ppc.rpm</code> 这个包。<br>未测试 bullfreeware 网站的包。</p>
+<p>依赖关系（Package dependencies）：<br>prezl 及 bullfreeware 网站列有依赖关系供参考，每个版本的 subversion 依赖都不一样，根据具体来安装。依赖包不用安装太新的，满足最低要求即可！否则一个依赖一个，装个没完。<br>svn 1.8 之前的版本使用 http&#x2F;https 访问需要安装 neon 依赖，1.8 及之后版本弃用 neon 而改使用 serf。<br>serf 的版本越新越好，旧版本可能处理 SSL 证书会有问题，我选用 oss4aix 网站的 <code>serf-1.2.1-2.aix5.1.ppc.rpm</code></p>
+<p>因为只是安装客户端，如果提示要依赖 httpd（ibm 网站的版本要），使用 <code>--nodeps</code> 参数：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">rpm -ivh --nodeps subversion-1.8.10-2.aix5.3.ppc.rpm</span><br></pre></td></tr></table></figure>
+
+
+<p>我所用的 AIX 7.1 系统并没有使用 UTF-8 编码！使用 svn 客户端遇到中文文件名无法检出，处理方法为（不推荐）：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">export LC_ALL=</span><br><span class="line">export LC_CTYPE=&quot;Zh_CN.GB18030&quot;</span><br></pre></td></tr></table></figure>
+<p>用 <code>locale</code> 命令查看，把其他 LC_* 环境变量设置为 C 或者 en_US。<br>不要设置 LANG 这个环境变量！</p>
+<p>rpm -qa 查看已经安装的包：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">zlib-1.2.8-1</span><br><span class="line">file-5.28-1</span><br><span class="line">libgcc-4.5.4-1</span><br><span class="line">apr-1.5.2-2</span><br><span class="line">apr-util-1.5.4-1</span><br><span class="line">file-libs-5.28-1</span><br><span class="line">gettext-0.19.7-1</span><br><span class="line">expat-2.1.0-1</span><br><span class="line">sqlite-3.9.2.0-1</span><br><span class="line">db4-4.7.25-2</span><br><span class="line">openssl-1.0.1t-1</span><br><span class="line">serf-1.2.1-2</span><br><span class="line">libiconv-1.14-2</span><br><span class="line">info-5.2-1</span><br><span class="line">readline-6.3-5</span><br><span class="line">subversion-1.8.10-2</span><br><span class="line">python-2.7.5-1</span><br><span class="line">gdbm-1.8.3-5</span><br></pre></td></tr></table></figure>
+
+
+<p>对应的 rpm 包是：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">apr-1.5.2-2.aix5.2.ppc.rpm</span><br><span class="line">apr-util-1.5.4-1.aix5.1.ppc.rpm</span><br><span class="line">db4-4.7.25-2.aix5.1.ppc.rpm</span><br><span class="line">expat-2.1.0-1.aix5.1.ppc.rpm</span><br><span class="line">file-5.28-1.aix5.1.ppc.rpm</span><br><span class="line">file-libs-5.28-1.aix5.1.ppc.rpm</span><br><span class="line">gettext-0.19.7-1.aix6.1.ppc.rpm</span><br><span class="line">info-5.2-1.aix5.1.ppc.rpm</span><br><span class="line">libgcc-4.5.4-1.aix7.1.ppc.rpm</span><br><span class="line">libiconv-1.14-2.aix5.1.ppc.rpm</span><br><span class="line">openssl-1.0.1t-1.aix5.1.ppc.rpm</span><br><span class="line">readline-6.3-5.aix5.1.ppc.rpm</span><br><span class="line">serf-1.2.1-2.aix5.1.ppc.rpm</span><br><span class="line">sqlite-3.9.2.0-1.aix5.1.ppc.rpm</span><br><span class="line">subversion-1.8.10-2.aix5.3.ppc.rpm</span><br><span class="line">zlib-1.2.8-1.aix6.1.ppc.rpm</span><br><span class="line">python-2.7.5-1.aix6.1.ppc.rpm</span><br><span class="line">gdbm-1.8.3-5.aix5.2.ppc.rpm</span><br></pre></td></tr></table></figure>
+
+
+<p>特别注意 libgcc 这个包对应的版本！我尝试装其他版本都不行，只好装这个 aix7.1 的。</p>
+<p>如果没设置 LIBPATH 变量，或虽然设置了但所有动态库路径里都不产生库版本冲突时，svn可正常运行。<br>检查动态库是否有冲突：<br><code>ldd /usr/bin/svn</code><br>有冲突需要修改程序运行时查找动态库的路径顺序，&#x2F;opt&#x2F;freeware&#x2F;lib 顺序必须在前<br><code>LIBPATH=/opt/freeware/lib:$LIBPATH</code><br>export 这个设置放到 .profile 里的话，可能会影响编译或者其他程序的运行。</p>
+<p><strong>由于在 .profile 里更改全局环境变量 LC_CTYPE 会带来其他影响，建议创建一个脚本先修改 LIBPATH（不能export），并 alias svn 为这个脚本，顺便解决中文文件名、中文备注乱码的问题。</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="comment"># Author: oicu</span></span><br><span class="line"><span class="comment"># Usage:  alias svn=&#x27;/opt/freeware/bin/svn.sh&#x27;</span></span><br><span class="line">LIBPATH=/opt/freeware/lib:<span class="variable">$LIBPATH</span></span><br><span class="line"><span class="built_in">env</span> LC_CTYPE=zh_CN /opt/freeware/bin/svn <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p><code>locale</code> 命令查看环境的变量设置为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">LANG=en_US</span><br><span class="line">LC_COLLATE=&quot;en_US&quot;</span><br><span class="line">LC_CTYPE=&quot;en_US&quot;</span><br><span class="line">LC_MONETARY=&quot;en_US&quot;</span><br><span class="line">LC_NUMERIC=&quot;en_US&quot;</span><br><span class="line">LC_TIME=&quot;en_US&quot;</span><br><span class="line">LC_MESSAGES=&quot;en_US&quot;</span><br><span class="line">LC_ALL=</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Software</category>
+        <category>svn</category>
+      </categories>
+      <tags>
+        <tag>svn</tag>
+        <tag>AIX</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Excel根据条件找到最大值</title>
+    <url>/posts/2083236c.html</url>
+    <content><![CDATA[<p>久没更新blog，来一篇证明我还在。</p>
+<p>发信人: CiJianSN (此间少年), 信区: OfficeSoft<br>标  题: 问个excel的函数根据一列去找最大值<br>发信站: 水木社区 (Fri Jun  9 12:27:22 2017), 站内</p>
+<span id="more"></span>
+
+<p>表格大概这样</p>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>科目</th>
+<th>成绩</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>张三</td>
+<td>数学</td>
+<td>90</td>
+</tr>
+<tr>
+<td>李四</td>
+<td>英语</td>
+<td>75</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>数学</td>
+<td>81</td>
+</tr>
+<tr>
+<td>王二</td>
+<td>数学</td>
+<td>36</td>
+</tr>
+<tr>
+<td>大妞</td>
+<td>数学</td>
+<td>45</td>
+</tr>
+<tr>
+<td>三胖</td>
+<td>语文</td>
+<td>75</td>
+</tr>
+<tr>
+<td>大妞</td>
+<td>语文</td>
+<td>87</td>
+</tr>
+<tr>
+<td>王二</td>
+<td>数学</td>
+<td>65</td>
+</tr>
+<tr>
+<td>老王</td>
+<td>英语</td>
+<td>98</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>数学</td>
+<td>78</td>
+</tr>
+<tr>
+<td>王二</td>
+<td>语文</td>
+<td>74</td>
+</tr>
+<tr>
+<td>大妞</td>
+<td>数学</td>
+<td>75</td>
+</tr>
+<tr>
+<td>李萍</td>
+<td>语文</td>
+<td>45</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>语文</td>
+<td>87</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>英语</td>
+<td>45</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>语文</td>
+<td>66</td>
+</tr>
+<tr>
+<td>李四</td>
+<td>英语</td>
+<td>98</td>
+</tr>
+<tr>
+<td>张三</td>
+<td>英语</td>
+<td>98</td>
+</tr>
+</tbody></table>
+<p>要求找出第一列 <code>每个人、每个科目</code> 出现的最高分，这个函数怎么写？</p>
+<p>比如张三的数学成绩中 90 最高，就获得这样的列表</p>
+<table>
+<thead>
+<tr>
+<th>姓名</th>
+<th>科目</th>
+<th>最高分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>张三</td>
+<td>数学</td>
+<td>90</td>
+</tr>
+</tbody></table>
+<hr>
+<p>发信人: oicu (Oh! I see you!), 信区: OfficeSoft<br>标  题: Re: 问个excel的函数根据一列去找最大值<br>发信站: 水木社区 (Sat Jun 10 21:41:33 2017), 站内</p>
+<p>写个毛线公式。鄙人最不想用的方式就是公式。</p>
+<p>法一：透视表，最大值。</p>
+<p>法二：自定义3级排序，其中成绩降序，删除重复项，完工。<strong>推荐！</strong></p>
+<p>法三：如果想不开，非要用公式……<br><code>&#123;=LARGE(IF($A$2:$A$19&amp;$B$2:$B$19=A2&amp;B2,$C$2:$C$19,0),1)&#125;</code><br>或者<br><code>&#123;=MAX(IF(($A$2:$A$19=A2)*($B$2:$B$19=B2),$C$2:$C$19))&#125;</code><br>然后填充。</p>
+<hr>
+<p>2018&#x2F;11&#x2F;12 补充：</p>
+<p>Excel 2019 &#x2F; Office 365 有 MAXIFS 和 MINIFS 函数。</p>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Excel分类汇总的多种方式</title>
+    <url>/posts/eeb65806.html</url>
+    <content><![CDATA[<p>原文链接：<a href="http://www.newsmth.net/bbstcon.php?board=OfficeSoft&gid=111331">http://www.newsmth.net/bbstcon.php?board=OfficeSoft&amp;gid=111331</a></p>
+<p>其实这篇回复在2015年9月，时间很久远了，看到blog文章太少弄来充数。</p>
+<p>一说到处理Excel数据，根据某列的分类汇总计算，往往初学者都首先想到公式，其实公式是最不明智的选择，首先应该考虑的是透视表和分类汇总功能。</p>
+<span id="more"></span>
+
+<p>问题：<br>发信人: xinwo (六爻占卜), 信区: OfficeSoft<br>标  题: excel中如何把很多行中某一列信息相同的行提取出来同时对某一列<br>发信站: 水木社区 (Thu Sep 10 08:40:35 2015), 站内</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>value</th>
+<th>size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A</td>
+<td>5</td>
+<td>1</td>
+</tr>
+<tr>
+<td>B</td>
+<td>4</td>
+<td>3</td>
+</tr>
+<tr>
+<td>A</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>C</td>
+<td>6</td>
+<td>6</td>
+</tr>
+</tbody></table>
+<p>如何把type里相同的行，比如都等于A的两行，所对应的value相加，即第一行的5和第三行<br>的3加起来？怎么用公式啊？</p>
+<hr>
+<p>解答：</p>
+<p>法1：标题行添加筛选，然后排序A列，数据-分类汇总。</p>
+<p>法2：透视表</p>
+<p><img src="/images/Excel%E5%88%86%E7%B1%BB%E6%B1%87%E6%80%BB%E7%9A%84%E5%A4%9A%E7%A7%8D%E6%96%B9%E5%BC%8F/%E9%80%8F%E8%A7%86%E8%A1%A8%E5%88%86%E7%B1%BB%E6%B1%87%E6%80%BB.gif" alt="透视表"></p>
+<p>法3：公式 <code>D2=IF(COUNTIF(A$1:A2,A2)&gt;1,&quot;&quot;,SUMIF(A:A,A2,B:B))</code> 往下填充</p>
+<p>法4：SQL</p>
+<p><img src="/images/Excel%E5%88%86%E7%B1%BB%E6%B1%87%E6%80%BB%E7%9A%84%E5%A4%9A%E7%A7%8D%E6%96%B9%E5%BC%8F/Excel%E9%87%8C%E4%BD%BF%E7%94%A8SQL%E5%91%BD%E4%BB%A4-%E5%88%86%E7%B1%BB%E6%B1%87%E6%80%BB.gif" alt="SQL"></p>
+<p>法5：另存为csv文件，用awk脚本处理</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">awk -F <span class="string">&#x27;,&#x27;</span> <span class="string">&#x27;NR&gt;1&#123;a[$1]+=$2&#125; END&#123;for(i in a)printf &quot;%s %d\n&quot;,i,a[i]&#125;&#x27;</span> a.csv</span><br></pre></td></tr></table></figure>
+
+<p>法6：VBA（略）</p>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+        <tag>汇总</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AIX系统用shell取前一天日期</title>
+    <url>/posts/c51bd946.html</url>
+    <content><![CDATA[<p>写这篇博文原因是同事被新浪博客的一篇文章误导了。前年我也看过那篇文章，当时碰巧发现了问题，但只是自己在电脑上做了笔记，为了不让更多人被误导，在此写一文。</p>
+<span id="more"></span>
+
+<p>这篇误导大众的文章是：<a href="http://blog.sina.com.cn/s/blog_541a3cf10101expx.html">http://blog.sina.com.cn/s/blog_541a3cf10101expx.html</a><br>文章内取AIX系统前一天日期的命令 <code>TZ=aaa24 date +%Y%m%d</code> <strong>是错误的！</strong><br>小时数为 0~7 点时，得到的是大前天的日期。<br>我估计作者早上都在睡觉的吧，晚上的特例没错误就当标准了。</p>
+<p>正确用法是：</p>
+<p>AIX里取前一天的日期，16是由（24×1-8）获得<br><code>TZ=BEIST+16 date +%Y%m%d</code></p>
+<p>AIX里取前两天的日期，40是由（24×2-8）获得<br><code>TZ=BEIST+40 date +%Y%m%d</code></p>
+<p>AIX里取下一天的日期，32是由（24×1+8）获得，注意2个地方的正负号。<br><code>TZ=BEIST-32 date +%Y%m%d</code></p>
+<p>前N天</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">X=24*N-8</span><br><span class="line">TZ=BEIST+X</span><br></pre></td></tr></table></figure>
+
+<p>下N天</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Y=24*N+8</span><br><span class="line">TZ=BEIST-Y</span><br></pre></td></tr></table></figure>
+
+<p>使用前，确认环境的时区设置并做测试验证！不同环境可能导致结果和预想不同。</p>
+<p>A 环境可能是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">AAA&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">Asia/Shanghai</span><br><span class="line">AAA&gt; <span class="built_in">date</span></span><br><span class="line">Fri Nov 20 21:24:25 CST 2015</span><br></pre></td></tr></table></figure>
+
+<p>B 环境可能是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">BBB&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">BEIST-8</span><br><span class="line">BBB&gt; <span class="built_in">date</span></span><br><span class="line">Thu Apr  2 18:34:00 BEIST 2015</span><br></pre></td></tr></table></figure>
+
+<p>需要根据环境的时区确定基础时区设置，可以写一个脚本放 crontab 定时任务里执行一天，比对结果决定使用哪种写法：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">30 * * * * /HOME/user/yesterday.sh &gt;&gt; /HOME/user/yesterday.log</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">date</span> <span class="string">&quot;+%Y%m%d %T&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;aaa16&quot;</span></span><br><span class="line">TZ=aaa16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;BEIST+16&quot;</span></span><br><span class="line">TZ=BEIST+16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;CST+16&quot;</span></span><br><span class="line">TZ=CST+16 <span class="built_in">date</span> +%Y%m%d</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Batch</category>
+      </categories>
+      <tags>
+        <tag>AIX</tag>
+        <tag>shell</tag>
+        <tag>date</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>皇帝的新装——如何绕过深信服VSP防泄密安全桌面</title>
+    <url>/posts/b3197d94.html</url>
+    <content><![CDATA[<p>做项目的时候，总会遇到一些视数据为生命的甲方，各种加密限制，各种网络隔离，与操作系统、其他软件还各种兼容性问题，给工作带来很大不便，比如<strong>亿赛通、深信服VSP安全桌面</strong>等，在我看来就如皇帝的新装，绕过限制只是分分钟的事情。</p>
+<p>深信服VSP安全桌面这个产品在政府部门使用得比较多，属于XP时代的产品吧，用过这么多软件，没见过这么烂的软件，用户体验、兼容性令人嗤之以鼻，当下Windows 10当道，VSP还不支持……</p>
+<span id="more"></span>
+
+<p>言归正传，因为我的环境很多，各种操作系统，使用VSP过程中总能发现一些“奇怪”现象，比如：</p>
+<ol>
+<li>Administrator用户可以同时在本地桌面和安全桌面打开IE等多标签的程序，但User用户则不行；</li>
+<li>IE代理有时候无法修改，始终被VSP劫持，导致无法添加例外地址；</li>
+<li>飞鸽、飞信、内网通等多种局域网通讯工具，有时候能从VSP安全桌面里发送消息到本地桌面，但无法传文件；</li>
+<li>……</li>
+</ol>
+<p>根据各种迹象，我构想出系统层、网络层、中间人、跳转、中转、提权、软件层、服务层、共享内存等多种绕过限制的模式，并验证了几种方式均成功，花式狂虐VSP。</p>
+<ol>
+<li>系统层，如果你是Windows Server系统，可以多用户登录，在VSP安全桌面里，mstsc远程登录127.0.0.2到另一个用户，剩下的我不多说。如果没有Server系统，破解Windows XP、Windows7-10全系列操作系统变成多用户登录也是很简单的事。</li>
+<li>中转，如果有一台服务器，能在本地桌面和VSP安全桌面同时访问，那么在VSP安全桌面里把数据传输到该服务器，然后本地桌面再从服务器下载。</li>
+<li>网络、软件、服务层，前面不是提到局域网通讯工具能从VSP安全桌面里发送消息到本地桌面么？那可以在安全桌面里启动http、ftp服务提供下载么？答案是不行。但反过来呢？哈哈……在本地桌面搭建FTP等文件服务，在VSP安全桌面里使用FTP客户端连接127.0.0.1即可传文件。熟悉操作系统及网络的同学都知道电脑有个lo网卡，有IPv6地址，出去的网卡只有一个，利用回环或者IPv6隧道的特性绕过VSP的沙盒~</li>
+<li>中间人的方式较为复杂，不推荐，无非就是iptables、3proxy代理、burp等工具做一些DNAT、SNAT，就不多言。乌云上有一篇利用中间人绕过VSP限制的帖子《看我如何利用burp大法绕过深信服SSL VPN访问权限控制》，原文没有了，这里有个暂存的 <a href="https://www.secpulse.com/archives/50144.html">https://www.secpulse.com/archives/50144.html</a> 网址，但是这个方式太过复杂了，本机环境无法完成，普通用户难以复制。</li>
+<li>提权，VSP可以配置提供下载安全桌面里文件的权限，解决思路是“破解”，有简单的方式能绕过，就不搞这些费心思的事情了。</li>
+</ol>
+<p>最容易实现的是方法3，练手写个 python 脚本搭建只能本机连接的匿名 FTP 服务器，在本地桌面运行脚本启动服务后，在 VSP 安全桌面里用 IE 或者资源管理器打开 <a href="ftp://127.0.0.1/">ftp://127.0.0.1</a> 即可传文件：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: gb18030 -*-</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line"><span class="comment"># Usage:       python FtpServer.py</span></span><br><span class="line"><span class="comment"># Author:      oicu</span></span><br><span class="line"><span class="comment"># Required:    pip install pyftpdlib</span></span><br><span class="line"><span class="comment">#########################################</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pyftpdlib.authorizers <span class="keyword">import</span> DummyAuthorizer</span><br><span class="line"><span class="keyword">from</span> pyftpdlib.handlers <span class="keyword">import</span> FTPHandler</span><br><span class="line"><span class="keyword">from</span> pyftpdlib.servers <span class="keyword">import</span> FTPServer</span><br><span class="line"></span><br><span class="line">authorizer = DummyAuthorizer()</span><br><span class="line">authorizer.add_anonymous(<span class="string">&#x27;C:/pub&#x27;</span>, perm=<span class="string">&#x27;elradfmwMT&#x27;</span>)</span><br><span class="line">handler = FTPHandler</span><br><span class="line">handler.authorizer = authorizer</span><br><span class="line">server = FTPServer((<span class="string">&#x27;127.0.0.1&#x27;</span>, <span class="number">21</span>), handler)</span><br><span class="line">server.serve_forever()</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>解除VMware Horizon Client客户端驱动器重定向的只读限制</title>
+    <url>/posts/32014289.html</url>
+    <content><![CDATA[<p>虽然虚拟桌面的管理员在域控里配置了只读限制，但是解除限制太过简单了，去<a href="https://docs.vmware.com/">VMWare官方官网</a>搜索 <code>Configure Client Drive Redirection</code> 相关信息可参考。</p>
+<p>当然没这么简单，官网答案只能解除第一层限制，还有第二层呢，具体实现方式暂时不便于公开。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>虚拟桌面</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>破解ExcelMailer邮件群发工具</title>
+    <url>/posts/b5bc6bba.html</url>
+    <content><![CDATA[<p>其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。</p>
+<p>不会编程？那么用 blat.exe 批量发送工具也很便捷，Foxmail 还支持命令行调用发送邮件的基本功能呢。</p>
+<span id="more"></span>
+
+<p>氮素，广大 OL 表示不懂码农的这些命令行工具，于是我平时只能介绍一些图形界面的工具给别人，比如 Word 的邮件合并后调用 Outlook（但无法发附件），比如 ExcelMailer 这个 Excel 插件，含有拆分数据和邮件群发的功能，刚好满足 OL 们的基本需求。</p>
+<p>ExcelMailer 授权费￥100，未授权的时候，发送邮件会带尾巴广告。瞅了一眼程序的dll文件，看到了作者的数据库密码（生日）等信息，也知道它读取注册表哪个位置检查PassCode授权码，对于糙快猛理念的我，破解它的注册机制太tmd麻烦了，直接去掉尾巴内容不就完事。</p>
+<p>ExcelMailer v3.8.1.8 版本，破解去掉邮件尾巴信息：</p>
+<p>用二进制编辑器打开 ExcelMailer.dll 跳转到地址 <code>001DDE80</code>，把第一个 <code>3B 20</code> 替换为 <code>00 00</code>，即</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">31 0A 00 0A 00 3B 20 3B 20 3B 20</span><br></pre></td></tr></table></figure>
+<p>变成</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">31 0A 00 0A 00 00 00 3B 20 3B 20</span><br></pre></td></tr></table></figure>
+<p>测试1秒间隔，发送了94封邮件，都正常发出。</p>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+        <tag>破解</tag>
+        <tag>mail</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Xlight FTP Server最新版破解方式</title>
+    <url>/posts/9ecaf4f0.html</url>
+    <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
+<p>实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 <code>%WINDIR%\Temp</code> 目录仔细观察，只能告诉这么多了。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>sftp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SSH公钥认证登录</title>
+    <url>/posts/45030.html</url>
+    <content><![CDATA[<blockquote>
+<p>SSH PubkeyAuthentication</p>
+</blockquote>
+<p><strong>“互信”只是公钥认证的一个特例。</strong> 2台服务器相互使用公钥认证登录，才叫互信。</p>
+<p>本文前提条件是使用 OpenSSH，假设服务器 A（192.168.1.1） 的用户 user1 需要使用公钥认证登录服务器 B（192.168.1.2）的用户 user2。</p>
+<h1 id="由谁操作"><a href="#由谁操作" class="headerlink" title="由谁操作"></a>由谁操作</h1><p>原则上，谁拥有 user1、user2 的密码权限，谁负责操作，不应该使用 root 来建立普通用户之间的公钥认证。</p>
+<p>管理公钥认证就如管理密码一样，需要绝对清楚各个系统之间的交互关系。</p>
+<span id="more"></span>
+
+<h1 id="生成密钥对"><a href="#生成密钥对" class="headerlink" title="生成密钥对"></a>生成密钥对</h1><blockquote>
+<p>带 <code>.pub</code> 结尾的是公钥，可以任意公开。不带 .pub 结尾的是私钥，可设置私钥的密码，<strong>私钥不能泄露</strong>。<br>服务器之间的公钥认证，如果设置私钥密码，当服务器系统重启后需要人工处理才能正常使用。<br>主机密钥对与用户密钥对生成方法一样，只是文件名、保存位置、用户属组不同。</p>
+</blockquote>
+<h2 id="RSA密钥对"><a href="#RSA密钥对" class="headerlink" title="RSA密钥对"></a>RSA密钥对</h2><p>登录服务器 A 的用户 user1，生成非对称加密 RSA 密钥对，建议使用 2048 或 4096 位：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 2048</span><br></pre></td></tr></table></figure>
+
+
+<p>按照提示一直按回车，将会在 ~&#x2F;.ssh 目录下生成 2 个文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">~/.ssh/id_rsa</span><br><span class="line">~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<h2 id="ed25519密钥对"><a href="#ed25519密钥对" class="headerlink" title="ed25519密钥对"></a>ed25519密钥对</h2><p>OpenSSH 6.5 之后的版本支持新的 ed25519 加密算法，可代替 RSA 算法。</p>
+<p>登录服务器 A 的用户 user1，生成非对称加密 ed25519 密钥对，无需指定密钥长度：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t ed25519</span><br></pre></td></tr></table></figure>
+
+<p>按照提示一直按回车，将会在 ~&#x2F;.ssh 目录下生成 2 个文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">~/.ssh/id_ed25519</span><br><span class="line">~/.ssh/id_ed25519.pub</span><br></pre></td></tr></table></figure>
+
+<h1 id="授权公钥"><a href="#授权公钥" class="headerlink" title="授权公钥"></a>授权公钥</h1><blockquote>
+<p>通俗的解释：一个手指就是一个私钥，对应的指纹特征就是公钥，系统就相当于门禁。授权公钥的过程就相当于录入指纹！可以使用不同的手指打开一个门，也可以同一个手指打开多个门。</p>
+</blockquote>
+<p>把 user1@A 的公钥添加到 user2@B 的 <strong>~&#x2F;.ssh&#x2F;authorized_keys</strong> 授权文件里，user1@A 即可免密码登录 user2@B。</p>
+<h2 id="使用ssh-copy-id"><a href="#使用ssh-copy-id" class="headerlink" title="使用ssh-copy-id"></a>使用ssh-copy-id</h2><p>登录服务器 A 的 user1 用户操作。</p>
+<h3 id="Linux-Unix"><a href="#Linux-Unix" class="headerlink" title="Linux&#x2F;Unix"></a>Linux&#x2F;Unix</h3><p>Linux 服务器默认有 ssh-copy-id 命令，AIX 服务器的 ssh 版本低，没有该命令。</p>
+<blockquote>
+<p>-i 参数后指定的是<strong>用户公钥</strong>。<br>用户公钥和用户私钥需在同一目录。</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub user2@192.168.1.2</span><br></pre></td></tr></table></figure>
+
+<p>端口不是22时需要用以下这种写法：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-copy-id -i ~/.ssh/id_rsa.pub <span class="string">&#x27;user2@192.168.1.2 -p 22&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="MacOSX"><a href="#MacOSX" class="headerlink" title="MacOSX"></a>MacOSX</h3><p>Mac OSX 系统没有带 ssh-copy-id 命令，可以用以下方法安装。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">curl https://raw.github.com/beautifulcode/ssh-copy-id-for-OSX/master/ssh-copy-id.sh &gt; /usr/local/bin/ssh-copy-id</span><br><span class="line"><span class="built_in">chmod</span> +x /usr/local/bin/ssh-copy-id</span><br></pre></td></tr></table></figure>
+<p>or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">brew install ssh-copy-id</span><br></pre></td></tr></table></figure>
+
+<h2 id="手动编辑（不推荐）"><a href="#手动编辑（不推荐）" class="headerlink" title="手动编辑（不推荐）"></a>手动编辑（不推荐）</h2><p>登录服务器 B 的 user2 用户操作。</p>
+<p>首先把 user1@A 的公钥传输到 user2@B 的某一个目录下。</p>
+<p>如果没有 ~&#x2F;.ssh 目录则需新建。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[ ! -d ~/.ssh ] &amp;&amp; <span class="built_in">mkdir</span> ~/.ssh</span><br><span class="line"><span class="built_in">chmod</span> 700 ~/.ssh</span><br><span class="line"><span class="built_in">cat</span> ~/yourname.pub &gt;&gt; ~/.ssh/authorized_keys</span><br><span class="line"><span class="built_in">rm</span> ~/yourname.pub</span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<h2 id="管道操作"><a href="#管道操作" class="headerlink" title="管道操作"></a>管道操作</h2><p>登录服务器 A 的 user1 用户操作。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> ~/.ssh/id_rsa.pub | \</span><br><span class="line">ssh user2@192.168.1.2 <span class="string">&quot;umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat &gt;&gt; ~/.ssh/authorized_keys&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh user2@192.168.1.2 <span class="string">&#x27;(umask 077; test -d ~/.ssh || mkdir ~/.ssh) &amp;&amp; \</span></span><br><span class="line"><span class="string">cat &gt;&gt; ~/.ssh/authorized_keys&#x27;</span> &lt; ~/.ssh/id_rsa.pub</span><br></pre></td></tr></table></figure>
+
+<h1 id="检查权限"><a href="#检查权限" class="headerlink" title="检查权限"></a>检查权限</h1><h2 id="登录端"><a href="#登录端" class="headerlink" title="登录端"></a>登录端</h2><p>服务器 A 的 user1 用户，只对私钥文件的权限敏感，检查私钥的权限是否为600：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l ~/.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+
+<h2 id="被登录端"><a href="#被登录端" class="headerlink" title="被登录端"></a>被登录端</h2><p>登录服务器 B 的 user2 用户操作。</p>
+<p>检查目录权限是否为700：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld ~/.ssh</span><br></pre></td></tr></table></figure>
+
+<p>检查授权文件的权限是否为600：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -l ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>检查授权文件的内容，每个公钥应该只占 <strong>1</strong> 行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> -n ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>检查用户主目录的权限是否为700&#x2F;750&#x2F;755：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -ld <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>还要检查目录及文件的属主。</p>
+</blockquote>
+<h1 id="SSH原理"><a href="#SSH原理" class="headerlink" title="SSH原理"></a>SSH原理</h1><h2 id="默认配置文件"><a href="#默认配置文件" class="headerlink" title="默认配置文件"></a>默认配置文件</h2><p>与服务端相关的目录、文件：</p>
+<style>
+table th:nth-of-type(1) {
+    width: 20%;
+}
+table th:nth-of-type(2) {
+    width: 25%;
+}
+table th:nth-of-type(3) {
+    width: 15%;
+}
+table th:nth-of-type(4) {
+    width: 15%;
+}
+</style>
+
+<table>
+<thead>
+<tr>
+<th align="left">目录</th>
+<th align="left">文件名</th>
+<th align="left">用户属组</th>
+<th align="left">权限</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">&#x2F;etc&#x2F;ssh</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">sshd_config</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">服务器全局设置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ecdsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机ecdsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ecdsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机ecdsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ed25519_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机ed25519私钥，可与rsa同时启用，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_ed25519_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机ed25519公钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_rsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机rsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_rsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机rsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_dsa_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机dsa私钥，安全原因，OpenSSH 7.0弃用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_dsa_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机dsa公钥，弃用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_key</td>
+<td align="left">root</td>
+<td align="left">600</td>
+<td align="left">主机rsa私钥，SSH1协议使用</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_host_key.pub</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">主机rsa公钥，SSH1协议使用</td>
+</tr>
+<tr>
+<td align="left">~&#x2F;.ssh</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">authorized_keys</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">授权文件，保存其他服务器的用户公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_dsa</td>
+<td align="left">-</td>
+<td align="left">-</td>
+<td align="left">无效文件</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_dsa.pub</td>
+<td align="left">-</td>
+<td align="left">-</td>
+<td align="left">无效文件</td>
+</tr>
+<tr>
+<td align="left">&#x2F;home</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">$HOME</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700&#x2F;750&#x2F;755</td>
+<td align="left">Linux系统，除 root 用户</td>
+</tr>
+</tbody></table>
+<p>与客户端相关的目录、文件：</p>
+<table>
+<thead>
+<tr>
+<th align="left">目录</th>
+<th align="left">文件名</th>
+<th align="left">用户属组</th>
+<th align="left">权限</th>
+<th align="left">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">&#x2F;etc&#x2F;ssh</td>
+<td align="left">-</td>
+<td align="left">root</td>
+<td align="left">755</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_config</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">客户端全局设置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">ssh_known_hosts</td>
+<td align="left">root</td>
+<td align="left">644</td>
+<td align="left">全局授权主机列表，可选</td>
+</tr>
+<tr>
+<td align="left">~&#x2F;.ssh</td>
+<td align="left">-</td>
+<td align="left">对应用户</td>
+<td align="left">700</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">config</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户配置</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_rsa</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户rsa私钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_rsa.pub</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">用户rsa公钥</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_ed25519</td>
+<td align="left">对应用户</td>
+<td align="left">600</td>
+<td align="left">用户ed25519私钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">id_ed25519.pub</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">用户ed25519公钥，可选</td>
+</tr>
+<tr>
+<td align="left">:::</td>
+<td align="left">known_hosts</td>
+<td align="left">对应用户</td>
+<td align="left">644</td>
+<td align="left">授权主机列表，保存其他服务器的主机公钥</td>
+</tr>
+</tbody></table>
+<h2 id="公钥文件"><a href="#公钥文件" class="headerlink" title="公钥文件"></a>公钥文件</h2><p>每个公钥只有一行，常用4个字段，空格分隔，详见 <strong>sshd(8) manpage</strong> 帮助的 <strong>AUTHORIZED_KEYS FILE FORMAT</strong> 章节。</p>
+<p>格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">options keytype base64-encoded-key comment</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如 from 指定来源 ip，command 指定允许的命令（可选，需要禁止密码登录）</li>
+<li>加密类型，如 ssh-rsa</li>
+<li>公钥内容</li>
+<li>备注</li>
+</ul>
+<blockquote>
+<p>公钥文件扩展名常用 .pub<br>公钥内容的加密类型要用<strong>小写</strong>，比如 ssh-rsa、ssh-ed25519<br>备注常用个人邮箱、用户名@主机名、用户名@IP</p>
+</blockquote>
+<p>示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from=&quot;10.0.0.?,*.example.com,192.168.0.0/24&quot;,no-X11-forwarding ssh-rsa AB3Nz...EN8w== user@example.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="授权文件"><a href="#授权文件" class="headerlink" title="授权文件"></a>授权文件</h2><p>authorized_keys 文件用于 SSH 服务端！推荐使用权限 600，不严谨使用 644 也行。</p>
+<p>服务器一般不保留用户公钥 .pub 文件，需要用额外方式登记各系统之间的授权关系。</p>
+<p>授权登录服务器的用户公钥都全部记录到 authorized_keys 文件里，每个用户公钥一行。</p>
+<p>从服务器上每个受影响的 authorized_keys 文件移除对应的用户公钥即可撤销登录权限。</p>
+<blockquote>
+<p>ssh 服务器使用 OpenSSH 时，支持限制来源 IP，增强安全性。Dropbear 不支持该功能。</p>
+</blockquote>
+<p>只允许 10.0.0.2 主机的任意用户使用公钥认证登录到本用户的 authorized_keys 示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from=&quot;10.0.0.2&quot; ssh-rsa AB3Nz...EN8w== user@example.com</span><br></pre></td></tr></table></figure>
+
+<h2 id="授权主机列表"><a href="#授权主机列表" class="headerlink" title="授权主机列表"></a>授权主机列表</h2><p>known_hosts 文件用于 SSH 客户端！</p>
+<p>当前用户登录过的服务器的主机公钥全部记录到 known_hosts 文件，每个主机公钥一行。</p>
+<p>当下次访问相同计算机时，OpenSSH 会核对公钥，如果公钥不同，OpenSSH 会发出警告或拒绝登录，避免你受到 DNS劫持、中间人攻击。</p>
+<p>格式与授权文件有差异，不建议手工编辑。</p>
+<h3 id="删除授权的主机公钥"><a href="#删除授权的主机公钥" class="headerlink" title="删除授权的主机公钥"></a>删除授权的主机公钥</h3><p>删除 known_hosts 文件里指定服务器（比如192.168.0.100）的主机公钥的命令，可用于自动化脚本：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -R 192.168.0.100 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>不管是否命中，都会自动重新备份 known_hosts.old<br>known_hosts 文件里有格式错误的行时，删除失败，不会备份。</p>
+</blockquote>
+<h3 id="默认自动保存主机公钥"><a href="#默认自动保存主机公钥" class="headerlink" title="默认自动保存主机公钥"></a>默认自动保存主机公钥</h3><p>在 ~&#x2F;.ssh&#x2F;config 里增加 StrictHostKeyChecking 选项：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Host *</span><br><span class="line">        StrictHostKeyChecking no</span><br><span class="line">        UserKnownHostsFile /dev/null</span><br></pre></td></tr></table></figure>
+
+<p>或者在 ssh&#x2F;sftp&#x2F;scp 命令行里使用参数：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -o StrictHostKeyChecking=no \</span><br><span class="line">    -o UserKnownHostsFile=/dev/null \</span><br><span class="line">    user@example.com</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>先删除后再默认添加服务器主机公钥的缺点是登录时会延迟。<br>UserKnownHostsFile 是可选的，使用 &#x2F;dev&#x2F;null“黑洞文件”保存主机公钥。</p>
+</blockquote>
+<h3 id="获取集群主机公钥"><a href="#获取集群主机公钥" class="headerlink" title="获取集群主机公钥"></a>获取集群主机公钥</h3><p>利用 ssh-keyscan 获取集群机器 SSH 公钥指纹。</p>
+<p>首先准备好需要获取公钥指纹的 IP 或 HOSTNAME 列表文件 hostlist.txt</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">127.0.0.1</span><br><span class="line">127.0.0.2</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keyscan -f hostlist.txt 1&gt;&gt;~/.ssh/known_hosts 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>而后将 ~&#x2F;.ssh&#x2F;known_hosts 用 scp 拷贝到 hostlist.txt 中的所有机器上即可。</p>
+<h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="访问关系"><a href="#访问关系" class="headerlink" title="访问关系"></a>访问关系</h2><p>user1@A 要登录 user2@B、user3@C、user4@D，那么 user1 的用户公钥需要全部存放到 B、C、D 对应的用户的授权文件里。</p>
+<p>user2@B、user3@C、user4@D 都要登录 user1@A，那么 user2、user3、user4 的用户公钥都需要存放到 user1 的授权文件里。</p>
+<h2 id="多节点服务器"><a href="#多节点服务器" class="headerlink" title="多节点服务器"></a>多节点服务器</h2><p>多台服务器，使用 DMZ &#x2F; NAT &#x2F; HA 等技术对外使用同一个 IP 或者域名提供服务，当服务器切换后，由于目标服务器的主机公钥变化，构造人为的中间人攻击模型，客户端验证 known_hosts 失败并拒绝登录。</p>
+<p>解决办法有以下几个，任选其一：</p>
+<ul>
+<li>服务器复用主机密钥对，即 &#x2F;etc&#x2F;ssh&#x2F; 目录里的配置保存一致。</li>
+<li>客户端每次都删除 known_hosts 里的主机公钥，登录时重新记录。</li>
+<li>客户端不使用浮动的 IP 访问服务器，而是使用各台服务器私有的 IP 访问。需要通过其他方式判断服务器集群活动的主节点，故不推荐该法。</li>
+</ul>
+<h2 id="系统克隆"><a href="#系统克隆" class="headerlink" title="系统克隆"></a>系统克隆</h2><p>克隆虚拟机会有安全问题，比如 user1@A 公钥认证登录 user2@B，B 系统克隆得到 C，那么 user1@A 可以公钥认证登录 user2@C。</p>
+<ul>
+<li>无密钥复用的特殊要求时候，一般建议克隆虚拟机、系统磁盘后重新生成主机密钥对。</li>
+<li>删除所有用户的 .ssh 目录。</li>
+</ul>
+<p>参考命令及文件属组：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key</span><br><span class="line">ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key</span><br><span class="line">ssh-keygen -t rsa -b 2048 -f /etc/ssh/ssh_host_rsa_key</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-rw-r-----. 1 root ssh_keys    227 Aug 29  2017 ssh_host_ecdsa_key</span><br><span class="line">-rw-r--r--. 1 root root        162 Aug 29  2017 ssh_host_ecdsa_key.pub</span><br><span class="line">-rw-r-----. 1 root ssh_keys    387 Aug 29  2017 ssh_host_ed25519_key</span><br><span class="line">-rw-r--r--. 1 root root         82 Aug 29  2017 ssh_host_ed25519_key.pub</span><br><span class="line">-rw-r-----. 1 root ssh_keys   1675 Aug 29  2017 ssh_host_rsa_key</span><br><span class="line">-rw-r--r--. 1 root root        382 Aug 29  2017 ssh_host_rsa_key.pub</span><br></pre></td></tr></table></figure>
+
+<h2 id="主备客户端"><a href="#主备客户端" class="headerlink" title="主备客户端"></a>主备客户端</h2><p>如果在主备 2 台服务器部署类似 Ansible 的管理工具，可以使用相同的一对用户公钥 id_rsa.pub、私钥 id_rsa，这样只需在所有的目标服务器做一次授权。</p>
+<h2 id="小权用户"><a href="#小权用户" class="headerlink" title="小权用户"></a>小权用户</h2><p>建立小权用户查看别的用户的目录时，最常见的低级错误是 chown -R 和 chmod 更改 &#x2F;home、$HOME 的属组、权限，导致公钥认证失效。</p>
+<p>不能对组、其他用户赋予 $HOME 的写入权限！正确的权限配置：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#chmod og+x /home</span></span><br><span class="line"><span class="variable">$chmod</span> og-w <span class="variable">$HOME</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p># 开头的行代表用 root 权限执行，$ 代表用户权限执行。</p>
+</blockquote>
+<h2 id="密码有效期"><a href="#密码有效期" class="headerlink" title="密码有效期"></a>密码有效期</h2><ul>
+<li>用户密码设置有效期，到期后也无法用公钥认证登录。</li>
+<li>非 root 用户公钥认证登录后无法更改用户密码，拥有密码即拥有当前用户的最高权限。</li>
+<li>公钥认证登录时，用私钥密码代替用户密码，私钥密码可随时修改。</li>
+<li>更改用户密码、私钥密码都不影响别的公钥认证登录。</li>
+</ul>
+<h2 id="禁止密码认证"><a href="#禁止密码认证" class="headerlink" title="禁止密码认证"></a>禁止密码认证</h2><p>root 用户编辑 &#x2F;etc&#x2F;ssh&#x2F;sshd_config 文件，禁止所有用户（包括 root）使用密码认证方式登录：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PasswordAuthentication no    # 密码认证，默认 yes</span><br><span class="line">PermitEmptyPasswords no      # 空密码登录，默认 no</span><br></pre></td></tr></table></figure>
+
+<p>使用 Match User 可让某些选项只对该用户生效，比如除了 abc 用户外，其他用户都可以用密码登录：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PasswordAuthentication yes</span><br><span class="line"></span><br><span class="line">Match User abc</span><br><span class="line">        PasswordAuthentication no</span><br></pre></td></tr></table></figure>
+
+<h2 id="限制root用户登录"><a href="#限制root用户登录" class="headerlink" title="限制root用户登录"></a>限制root用户登录</h2><p>&#x2F;etc&#x2F;ssh&#x2F;sshd_config 的可选项 PermitRootLogin 可以限定 root 用户通过 ssh 的登录方式。</p>
+<table>
+<thead>
+<tr>
+<th align="left">参数类别</th>
+<th align="left">是否允许ssh登陆</th>
+<th align="left">登录方式</th>
+<th align="left">交互shell</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">yes</td>
+<td align="left">允许</td>
+<td align="left">没有限制</td>
+<td align="left">没有限制</td>
+</tr>
+<tr>
+<td align="left">without-password</td>
+<td align="left">允许</td>
+<td align="left">除密码以外</td>
+<td align="left">没有限制</td>
+</tr>
+<tr>
+<td align="left">forced-commands-only</td>
+<td align="left">允许</td>
+<td align="left">仅允许使用密钥</td>
+<td align="left">仅允许已授权的命令</td>
+</tr>
+<tr>
+<td align="left">no</td>
+<td align="left">不允许</td>
+<td align="left">N&#x2F;A</td>
+<td align="left">N&#x2F;A</td>
+</tr>
+<tr>
+<td align="left">prohibit-password</td>
+<td align="left">允许</td>
+<td align="left">除密码以外</td>
+<td align="left">没有限制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>OpenSSH 7.0 开始调整默认选项从 yes 到 prohibit-password（without-password 的同义且语义改良参数）。<br>PasswordAuthentication 的优先级比 PermitRootLogin 高。</p>
+</blockquote>
+<h2 id="禁止用户登录"><a href="#禁止用户登录" class="headerlink" title="禁止用户登录"></a>禁止用户登录</h2><p>&#x2F;etc&#x2F;ssh&#x2F;sshd_config 的可选项 AllowUsers 和 Denyusers 可设置用户白名单、黑名单。</p>
+<p>除了可以禁止某个用户登录，还可以针对固定的 IP 进行禁止登录。&#x2F;etc&#x2F;hosts.allow 和 &#x2F;etc&#x2F;hosts.deny 可设置允许访问 sshd 进程 IP 列表。</p>
+<p>在 &#x2F;etc&#x2F;passwd 里设置 &#x2F;sbin&#x2F;nologin 禁止某用户登录，即使用 root 用户 su 命令切换用户也无法登陆。</p>
+<blockquote>
+<p>被禁止的用户或 IP 地址，密码认证、公钥认证都无法登录。</p>
+</blockquote>
+<h2 id="只允许sftp登录"><a href="#只允许sftp登录" class="headerlink" title="只允许sftp登录"></a>只允许sftp登录</h2><blockquote>
+<p>建议 sftp 只用于维护操作，不当文件服务器使用，因为有最大连接数限制。</p>
+</blockquote>
+<h3 id="authorized-keys方式"><a href="#authorized-keys方式" class="headerlink" title="authorized_keys方式"></a>authorized_keys方式</h3><p>在 authorized_keys 授权文件的公钥开头写上允许使用的命令，只适用于公钥认证。</p>
+<p>用户可自己修改授权文件时，权限管控不严格。禁用密码认证并采用 CA 扩展，效果好一点。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">command=&quot;internal-sftp&quot; ssh-rsa AAAAB3NzaC1yc2EAAAADA...</span><br></pre></td></tr></table></figure>
+
+<h3 id="sshd-config方式"><a href="#sshd-config方式" class="headerlink" title="sshd_config方式"></a>sshd_config方式</h3><p>严格的权限管控需要由 root 用户更改 sshd_config 文件，用公钥认证或密码认证都无法 ssh 登录。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#Subsystem       sftp    /usr/libexec/openssh/sftp-server</span><br><span class="line">Subsystem        sftp    internal-sftp</span><br><span class="line"></span><br><span class="line">Match User user1</span><br><span class="line">        ChrootDirectory /home</span><br><span class="line">        ForceCommand internal-sftp</span><br></pre></td></tr></table></figure>
+
+<h1 id="CA扩展"><a href="#CA扩展" class="headerlink" title="CA扩展"></a>CA扩展</h1><p>OpenSSH 5.4 以上版本支持 CA 扩展，客户端、服务器需要同时支持才可用。</p>
+<p>大量的服务器需要使用公钥认证登录 user1@A 时，可使用 CA 证书认证。</p>
+<p>用户认证的基本流程是：用一台服务器 C（也可以是 A 本身）的一个私钥，对客户端的用户公钥签名，user1@A 的授权文件里只需保存 C 的一个签名公钥。</p>
+<p>CA 扩展更方便的控制用户证书里使用的登录用户名、X11 转发、SSH 代理转发、端口转发、来源 IP 地址、PTY 等。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>OpenSSH</category>
+      </categories>
+      <tags>
+        <tag>ssh</tag>
+        <tag>公钥</tag>
+        <tag>互信</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/4a17b156.html</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<span id="more"></span>
+
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>Hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>批处理修改无损音乐的cue文件内容</title>
+    <url>/posts/7f19841a.html</url>
+    <content><![CDATA[<p>原文链接：<a href="http://www.newsmth.net/nForum/article/DOS/21969?s=21969">http://www.newsmth.net/nForum/article/DOS/21969?s=21969</a></p>
+<p>今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！</p>
+<blockquote class="blockquote-center">
+            <i class="fa fa-quote-left"></i>
+            <p>千万不要跟程序猿说：你的代码有bug。<br>他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。<br>你要跟他这么说：这个程序怎么运行的跟预期不一样，是我操作有问题吗？<br>程序猿就会第一反应：我擦，这是不是出bug了？</p>
+
+            <i class="fa fa-quote-right"></i>
+          </blockquote>
+
+<p>刚好迁移了新博客，把内容转过来写吧。</p>
+<span id="more"></span>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">发信人: coreqq (风起云涌), 信区: DOS</span><br><span class="line">标  题: 问个复杂点的批处理</span><br><span class="line">发信站: 水木社区 (Mon Jan  4 23:12:37 2010), 站内</span><br><span class="line"></span><br><span class="line">两个文件a.txt,b.txt</span><br><span class="line"></span><br><span class="line">a中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)</span><br><span class="line">b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）</span><br><span class="line">现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，…</span><br><span class="line">…</span><br><span class="line">请问如何写？</span><br></pre></td></tr></table></figure>
+
+<p>以下代码保存为批处理文件，比如 <code>convert-cue.bat</code></p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2010</span>-<span class="number">01</span>-<span class="number">05</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;<span class="variable">!swap!</span>&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line">            <span class="built_in">echo</span>.    <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>翻看了以前的代码，虽然结果无误，觉得还是有必要优化一下避免特例情况出错：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2018</span>-<span class="number">10</span>-<span class="number">11</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line"><span class="comment">        rem 因为截取方式不准确，还是使用替换，直到得到2位数字</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:TITLE=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:&quot;=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=!swap: =!</span><br><span class="line"><span class="comment">        rem 搜索时，在行首搜索数字并带点，比如 01.</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;^^<span class="variable">!swap!</span>\.&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line"><span class="comment">            rem 根据实际情况调整缩进的空格</span></span><br><span class="line">            <span class="built_in">echo</span>.     <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>以下就用水木网友 <code>javame</code> 提供的内容做示例。</p>
+<p>清单 <code>a.txt</code> 如下，<strong>不要有空行等多余的无关信息</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">01.成长的岁月</span><br><span class="line">02.流不完的泪</span><br><span class="line">03.愿你莫忘记</span><br><span class="line">04.飘往山那边</span><br><span class="line">05.岁月的歌</span><br><span class="line">06.应该不应该</span><br><span class="line">07.分手</span><br><span class="line">08.梦儿难忘记</span><br><span class="line">09.请你别忘记</span><br><span class="line">10.舞女</span><br></pre></td></tr></table></figure>
+
+<p>原 cue 文件内容 <code>b.txt</code> 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;Track01&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;Track02&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;Track03&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;Track04&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;Track05&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;Track06&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;Track07&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;Track08&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;Track09&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;Track10&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>执行批处理后，得到新的文件 <code>c.txt</code>，注意 <code>TITLE</code> 都已经替换了。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;成长的岁月&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;流不完的泪&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;愿你莫忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;飘往山那边&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;岁月的歌&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;应该不应该&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;分手&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;梦儿难忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;请你别忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;舞女&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>实在看不下多年前的批处理版本，最后再写个 Shell 版本，直接修改 <code>b.txt</code> 不生成 <code>c.txt</code>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> LINE</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    TITLE=`<span class="built_in">echo</span> <span class="variable">$&#123;LINE#*.&#125;</span> | <span class="built_in">tr</span> -d <span class="string">&#x27;\r&#x27;</span>`</span><br><span class="line">    sed -i <span class="string">&#x27;s#TITLE &quot;Track&#x27;</span><span class="variable">$&#123;LINE%%.*&#125;</span><span class="string">&#x27;&quot;#TITLE &quot;&#x27;</span><span class="variable">$&#123;TITLE&#125;</span><span class="string">&#x27;&quot;#g&#x27;</span> b.txt</span><br><span class="line"><span class="keyword">done</span> &lt; a.txt</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Batch</category>
+      </categories>
+      <tags>
+        <tag>批处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
+    <url>/posts/dd913a8b.html</url>
+    <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
+<p>文件数量不大、用户数不多的环境，用 SFTP 协议就可以，防火墙都只需配置一个端口，没 FTP 那么麻烦。</p>
+<p>我们都知道 Linux 发行版基本都自带 SFTP 客户端和服务端，只需在 Windows 系统安装 SFTP 服务端即可。其实适用于 Windows 系统的 SFTP 服务器软件不少，但免费、不限制连接数、不限制用户数的不多。很久没做软件集合了，以下列几个挑选出来的软件，好几个都是单文件免安装的。</p>
+<span id="more"></span>
+
+<h1 id="OpenSSH-for-Windows"><a href="#OpenSSH-for-Windows" class="headerlink" title="OpenSSH for Windows"></a>OpenSSH for Windows</h1><p><a href="https://winscp.net/eng/docs/guide_windows_openssh_server">https://winscp.net/eng/docs/guide_windows_openssh_server</a><br><a href="https://github.com/PowerShell/Win32-OpenSSH/releases">https://github.com/PowerShell/Win32-OpenSSH/releases</a></p>
+<h1 id="FreeSSHD-SFTP-Server"><a href="#FreeSSHD-SFTP-Server" class="headerlink" title="FreeSSHD SFTP Server"></a>FreeSSHD SFTP Server</h1><p><a href="http://www.freesshd.com/">http://www.freesshd.com/</a></p>
+<p>最新的版本是 2013-01-23 的 freeSSHd 1.3.1 和 freeFTPd 1.0.13</p>
+<p>freeFTPd 或者 freeSSHd 都可以设置 sftp 用户，但不能像 xlight 那样细分权限，都是读写权限！</p>
+<p>freeSSHd 的 sftp，所有用户只有一个 sftp 的主目录。<br>freeFTPd 的 sftp，可以给不同的用户设定不同的目录。</p>
+<p>freeSSHd 可以设置系统账号、公钥、密码的登录方式，不像 xlight 只能在密码、公钥里二选一。<br>freeFTPd 可以设置系统账号、密码、匿名的登录方式。</p>
+<p>freeSSHd 容易出现用户登录验证失败问题，每次更改设置需要 unload 退出。不支持中文目录。支持 scp 命令。</p>
+<h1 id="Core-Free-Mini-SFTP-Server"><a href="#Core-Free-Mini-SFTP-Server" class="headerlink" title="Core Free Mini SFTP Server"></a>Core Free Mini SFTP Server</h1><p><a href="http://www.coreftp.com/server/">http://www.coreftp.com/server/</a></p>
+<p>Mini版才是免费的，最新版本 2018-10-01 v2.19</p>
+<p>单文件单用户免安装版，可开启scp，支持设置UTF-8，中文才不会显示乱码，但无法进入中文目录。</p>
+<h1 id="SolarWinds-SFTP-Server"><a href="#SolarWinds-SFTP-Server" class="headerlink" title="SolarWinds SFTP Server"></a>SolarWinds SFTP Server</h1><p><a href="https://www.solarwinds.com/free-tools/free-sftp-server">https://www.solarwinds.com/free-tools/free-sftp-server</a></p>
+<p>最新版本 2013-04-23</p>
+<p>随便填写个信息才能下载，可能有 4GB 大小限制。可作为服务运行，另外有 TFTP 服务端。</p>
+<p>XP系统里安装出错，未测试。</p>
+<h1 id="Syncplify-me-MicroServer"><a href="#Syncplify-me-MicroServer" class="headerlink" title="Syncplify.me MicroServer"></a>Syncplify.me MicroServer</h1><p><a href="https://www.syncplify.me/microserver.html">https://www.syncplify.me/microserver.html</a></p>
+<p>最新版本 2017-03-07 v2.0.0</p>
+<p>单文件单用户免安装版，Micro才是免费版，默认中文无乱码。登录有banner提示，可能会影响自动登录。</p>
+<h1 id="Rebex-Tiny-Sftp-Server"><a href="#Rebex-Tiny-Sftp-Server" class="headerlink" title="Rebex Tiny Sftp Server"></a>Rebex Tiny Sftp Server</h1><p><a href="http://labs.rebex.net/tiny-sftp-server">http://labs.rebex.net/tiny-sftp-server</a></p>
+<p>最新版本 2018-05-23 v1.0.5</p>
+<p>Rebex Tiny SFTP服务器是一款小型，极简主义的单用户SFTP服务器，用于测试目的。免费用于商业和非商业用途。</p>
+<p>XP系统里打不开程序，用配置文件，不方便使用。</p>
+<h1 id="Xlight-FTP-Server"><a href="#Xlight-FTP-Server" class="headerlink" title="Xlight FTP Server"></a>Xlight FTP Server</h1><p>我个人使用的 Xlight FTP Server 做 SFTP 服务端，虽然它不是免费软件，但这个国产精品简单易用。只是比较影响使用的缺点是：同一个账号不能同时启用密码和公钥验证。本博客提供有长期试用 <a href="https://oicu.github.io/posts/9ecaf4f0.html">Xlight SFTP</a> 的方法。</p>
+<p>推荐：Xlight &gt; FreeSSHD &gt; Core Mini SFTP</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>用gost透明代理让内网服务器访问互联网</title>
+    <url>/posts/79dd54ad.html</url>
+    <content><![CDATA[<p>昨天在水木看到个问题“没有网关的root权限，怎样让内网服务器联网？”</p>
+<p>这自然不难，在大中华局域网环境的我们早就练就一身翻墙本领。</p>
+<span id="more"></span>
+
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p><a href="http://www.newsmth.net/nForum/#!article/LinuxApp/941233">http://www.newsmth.net/nForum/#!article/LinuxApp/941233</a></p>
+<p>发信人: doggeddog (doggeddog), 信区: LinuxApp<br>标  题: 求教大神，没有网关的root权限，怎样让内网服务器联网？<br>发信站: 水木社区 (Sat Nov  3 16:46:47 2018), 站内</p>
+<p>原来那些机器是可以上网的，后来被公司运维关了<br>现在的情况是，网关那台机器有多个网卡，可以联网。但我只有普通用户权限，因此不能修改iptables。</p>
+<p>内网的那些机器，我有root权限</p>
+<p>我试过的方案：<br>1、proxychains，在网关搭了个socks5代理，<br>可以成功，但不是所有应用都支持<br>2、redsocks，在内网机器搭第二层代理，连接网关的代理，然后修改本机iptables。没有成功，原因不明</p>
+<p>求教各位大神，还有没有其他方案？</p>
+<h1 id="SSH隧道"><a href="#SSH隧道" class="headerlink" title="SSH隧道"></a>SSH隧道</h1><p>我首先拿出当初让阿里云无流量服务器也能访问外网的 <code>vpn-over-ssh</code> 脚本，模拟出环境成功运行，另外用 <code>OpenVPN</code> 方案也不错，这 2 个方案效果都很好，ICMP 协议也能搞掂，但都使用到 <code>iptables</code>，如果没 root 则需用网关做端口转发到外网的服务器。</p>
+<p>几年后再次使用 <code>vpn-over-ssh</code> 脚本，觉得太麻烦了，老技术不想拿出来炒冷饭，该方案仅供参观，就 show 一下最后能 ping 谷歌的结果。</p>
+<p>客户端A无法上网，客户端B可以但无root，A和B联通，C在外网。系统均为 CentOS 6.9，A和C都安装tunctl。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# rpm -ivh tunctl-1.5-3.el6.x86_64.rpm</span><br><span class="line">Preparing...                ########################################### [100%]</span><br><span class="line">    1:tunctl                 ########################################### [100%]</span><br></pre></td></tr></table></figure>
+<p>A ssh登录B，B转发 TCP 22 到C，A和C建立隧道，各自用 <code>iptables</code> 处理转发。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# ifconfig tun2 | grep addr</span><br><span class="line">           inet addr:10.0.0.2  P-t-P:10.0.0.1  Mask:255.255.255.255</span><br><span class="line">[root@centos ~]# ip route replace default via 10.0.0.1</span><br><span class="line">[root@centos ~]# echo &quot;nameserver 1.1.1.1&quot; &gt;/etc/resolv.conf</span><br><span class="line">[root@centos ~]# ping www.google.com</span><br><span class="line">PING www.google.com (172.217.27.100) 56(84) bytes of data.</span><br><span class="line">64 bytes from sin11s04-in-f100.1e100.net (172.217.27.100): icmp_seq=1 ttl=53 time=463 ms</span><br></pre></td></tr></table></figure>
+
+<h1 id="透明代理"><a href="#透明代理" class="headerlink" title="透明代理"></a>透明代理</h1><p>趁着空闲学习一些新玩意，看了下 gost、redsocks、V2Ray 这类做透明代理，虽然只能处理 TCP&#x2F;UDP，但也还不错了，只要解决 DNS 解析，能不能 ping 都无所谓。</p>
+<p>最开始是折腾 <code>gost</code> + <code>badvpn-tun2socks</code> 组合，试验了 3 个方案，发现 <code>gost</code> + <code>iptables</code> 直接就可以搞掂，<code>badvpn-tun2socks</code> 和 <code>badvpn-udpgw</code> 都可以不用。</p>
+<p><code>gost</code> 做为标准 SOCKS5 代理可处理 UDP 数据，限制条件：</p>
+<ol>
+<li>代理链中的 HTTP 代理节点必须支持 CONNECT 方法。</li>
+<li>如果要转发 SOCKS5 的 BIND 和 UDP 请求，代理链的末端(最后一个-F参数)必须支持 gost SOCKS5 类型代理。</li>
+</ol>
+<p>以下就只写出最简方案：</p>
+<p>在能访问互联网的网关服务器 <code>192.168.1.200</code> 用 <code>gost</code> 开个 socks5 代理：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gost -L=socks5://user:password@:1080</span><br></pre></td></tr></table></figure>
+
+<p>然后客户端服务器连接上面的代理服务器并设置为透明代理，我这里选用 <code>1.1.1.1</code> 作为 DNS 服务器：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;nameserver 127.0.0.1&quot; &gt; /etc/resolv.conf</span><br><span class="line">iptables -t nat -A OUTPUT -p tcp --match multiport ! --dports 12345,1080 -j DNAT --to-destination 127.0.0.1:12345</span><br><span class="line">gost -L=udp://:53/1.1.1.1:53?ttl=60 -L socks5://:1080?dns=1.1.1.1:53/tcp -L redirect://:12345 -F=socks5://user:password@192.168.1.200:1080</span><br></pre></td></tr></table></figure>
+
+<p>4 行命令，路由都不用处理，有没有觉得简单到要爆？试试 <code>dig</code> <code>yum</code> <code>apt-get</code> <code>nslookup</code> <code>w3m</code> <code>wget</code> <code>curl</code> 等命令都能正常使用，<code>ping</code> 域名虽然无结果，但还是能解析。</p>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+      <tags>
+        <tag>VPN</tag>
+        <tag>代理</tag>
+      </tags>
+  </entry>
+</search>
