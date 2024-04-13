@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>群晖DSM不能启动资源监控的修复</title>
+    <url>/posts/345c2616.html</url>
+    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
+<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
+<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
+<span id="more"></span>
+
+<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
+<p>思考一番，莫非是非正常断电关机造成的影响？</p>
+<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
+<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
+<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
+<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
+<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Windows系统自带的端口映射port mapper</title>
+    <url>/posts/330f2b1e.html</url>
+    <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
+<p>Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP&#x2F;2003&#x2F;Win7&#x2F;2008 上都可以使用。现在只支持 TCP。</p>
+<span id="more"></span>
+<p>增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">1</span>.<span class="number">2</span>.<span class="number">3</span>.<span class="number">4</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">100</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。</p>
+</blockquote>
+<p>删除端口映射：<br><code>netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4</code></p>
+<p>查看已存在的端口映射：<br><code>netsh interface portproxy show v4tov4</code></p>
+<p>查看端口是否已在监听：<br><code>netstat -ano | find &quot;6022&quot;</code></p>
+<p>测试端口是否连通<br><code>telnet 1.2.3.4 6022</code></p>
+<p>注意入站防火墙设置。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
     <title>利用SSH隧道让内网机器上互联网的方法</title>
     <url>/posts/5405ba2b.html</url>
     <content><![CDATA[<p>网上那些问完问题就消失的人最无耻了，连个基本的谢谢都没，删帖放blog里。</p>
@@ -39,71 +81,6 @@
 ]]></content>
       <categories>
         <category>VPN</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>群晖DSM不能启动资源监控的修复</title>
-    <url>/posts/345c2616.html</url>
-    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
-<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
-<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
-<span id="more"></span>
-
-<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
-<p>思考一番，莫非是非正常断电关机造成的影响？</p>
-<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
-<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
-<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
-<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
-<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
-]]></content>
-      <categories>
-        <category>Tech</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>打车软件Uber打开后卡在U界面</title>
-    <url>/posts/a5a90057.html</url>
-    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
-<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
-<span id="more"></span>
-
-<p>不少网友在使用过程中出现以下问题：</p>
-<ul>
-<li>“uber为啥安卓上打开就卡在开机画面？”</li>
-<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
-<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
-<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
-<li>“uber打车软件登录后，就卡在那里了。”</li>
-<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
-<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
-<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
-<li>“安卓版本的怎么进不了等车界面？”</li>
-<li>“一些手机安装了没有绑定支付宝的选择。”</li>
-<li>“更改密码要登录官方网站。”</li>
-<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
-<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
-<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
-</ul>
-<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
-<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
-<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
-<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
-<ol>
-<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
-<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
-</ol>
-<p>再多说几句Uber的烂点：</p>
-<ol>
-<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
-<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
-<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
-<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
-</ol>
-<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
-]]></content>
-      <categories>
-        <category>Software</category>
       </categories>
   </entry>
   <entry>
@@ -320,52 +297,48 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>Windows系统自带的端口映射port mapper</title>
-    <url>/posts/330f2b1e.html</url>
-    <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
-<p>Windows 的 cmd 命令提示符下操作，条件是已经安装了 IPV6，启不启用都无所谓，XP&#x2F;2003&#x2F;Win7&#x2F;2008 上都可以使用。现在只支持 TCP。</p>
+    <title>打车软件Uber打开后卡在U界面</title>
+    <url>/posts/a5a90057.html</url>
+    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
+<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
 <span id="more"></span>
-<p>增加端口映射，将 1.2.3.4 的 6022 映射到 192.168.1.100 的 22 端口：</p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">netsh interface portproxy add v4tov4 ^</span><br><span class="line">listenport=<span class="number">6022</span> listenaddress=<span class="number">1</span>.<span class="number">2</span>.<span class="number">3</span>.<span class="number">4</span> ^</span><br><span class="line">connectport=<span class="number">22</span> connectaddress=<span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">100</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>listenaddress 设置为 127.0.0.1 或者 0.0.0.0 或某个网卡的物理 IP，可以监听同一个端口，有可能达到端口复用的效果。</p>
-</blockquote>
-<p>删除端口映射：<br><code>netsh interface portproxy del v4tov4 listenport=6022 listenaddress=1.2.3.4</code></p>
-<p>查看已存在的端口映射：<br><code>netsh interface portproxy show v4tov4</code></p>
-<p>查看端口是否已在监听：<br><code>netstat -ano | find &quot;6022&quot;</code></p>
-<p>测试端口是否连通<br><code>telnet 1.2.3.4 6022</code></p>
-<p>注意入站防火墙设置。</p>
+<p>不少网友在使用过程中出现以下问题：</p>
+<ul>
+<li>“uber为啥安卓上打开就卡在开机画面？”</li>
+<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
+<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
+<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
+<li>“uber打车软件登录后，就卡在那里了。”</li>
+<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
+<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
+<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
+<li>“安卓版本的怎么进不了等车界面？”</li>
+<li>“一些手机安装了没有绑定支付宝的选择。”</li>
+<li>“更改密码要登录官方网站。”</li>
+<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
+<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
+<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
+</ul>
+<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
+<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
+<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
+<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
+<ol>
+<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
+<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
+</ol>
+<p>再多说几句Uber的烂点：</p>
+<ol>
+<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
+<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
+<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
+<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
+</ol>
+<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
 ]]></content>
       <categories>
-        <category>Tech</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Win7远程桌面连接提示“您的凭据不工作”的解决方法</title>
-    <url>/posts/742f0a33.html</url>
-    <content><![CDATA[<p>以前折腾过Easy Sysprep封装Ghost版本Win7镜像，也用这个镜像测试安装过几台笔记本电脑，今天恰好要在其中一台开启远程桌面，却发现其他Win7电脑怎样都远程登录不上。</p>
-<p>Ghost封装的系统稳定性差一直广受诟病，尽管是自己亲手封装的，但还是保持怀疑，现在思考是否因为Ghost系统带来的问题已经不重要，解决问题才是重点，于是开始摸索解决。</p>
-<span id="more"></span>
-<p>为了避免和以前的凭据冲突，把Win7客户端电脑里的Windows凭据全删除了，注册表里的远程桌面的历史记录也清空了，检查了远程桌面客户端设置，RD网关服务器是自动或者关闭的（没有用域和RD网关）。</p>
-<p>要远程登录的Win7服务器改了IP重启系统，确认防火墙没问题，远程桌面允许任意版本连接（为了XP能连），甚至新建了用户。</p>
-<p>结果使用Win7系统的远程桌面客户端连接这台Win7，全都提示“您的凭据不工作”，用户名和密码都是正确的啊，怎么就连接不上？</p>
-<p>到微软官网扒文，有这么个提示信息：<br><a href="http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection">http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection</a></p>
-<p>尝试更改服务器的组策略：<br>gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; 系统 -&gt; 凭据分配 -&gt; 允许分配保存的凭据用于仅NTLM服务器身份验证 -&gt; 选择“已启用” -&gt; 单击“显示”输入“TERMSRV&#x2F;*” -&gt; 运行命令 gpupdate &#x2F;force 强制更新组策略。</p>
-<p>失败。</p>
-<p>在客户端电脑先添加Windows凭据：<br>控制面板 -&gt; 凭据管理器 -&gt; 添加Windows凭据 -&gt; 输入服务器的IP地址、用户、密码。</p>
-<p>还是失败！</p>
-<p>安卓手机上安装有几个RDP远程工具，全部拿来测试，继续失败！</p>
-<p>除了这几台Win7本子，其他Windows系统就仅有虚拟机里的XP，剩下都是Linux，使用虚拟机里的XP远程登录却成功了……泪奔~</p>
-<p>继续测试，在Linux下使用Remmina客户端连接，安全选项如果使用“商协”则登录失败，指定RDP类型则登录成功，猜测是验证出的问题，只是Win7的远程桌面客户端没安全设置这个选项，只能在服务器上着手，摸索一番，在组策略里找到了。</p>
-<p><strong>Windows 7服务器修改步骤：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; Windows组件 -&gt; 远程桌面服务 -&gt;</span><br><span class="line">远程桌面会话主机 -&gt; 安全 -&gt; 远程(RDP)连接要求使用指定的安全层，启用并把安全层改为RDP。</span><br></pre></td></tr></table></figure>
-<p>另，如果是Server 2008 R2服务器设置可能不一样，看下终端服务器配置的RDP-TCP设置。</p>
-<p>再次使用Win7的远程桌面客户端连接Win7服务器，正常登录，问题解决。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2017-03-31 18:36 m15692411613</span><br><span class="line">哈哈。厉害了，找了好久的教程，终于解决了</span><br><span class="line"></span><br><span class="line">2016-06-06 11:27 zhoujiang0307</span><br><span class="line">牛逼啊大师兄，网上找了那么多方法，还是你的最后一个方法解决了，原创支持，</span><br><span class="line"></span><br><span class="line">2016-03-25 11:16 巴拿马圈圈</span><br><span class="line">卧槽，实在是太感谢了 您真是太牛逼了</span><br><span class="line"></span><br><span class="line">2015-11-24 09:35 windless</span><br><span class="line">用最后的方法解决了!!!</span><br><span class="line">感谢！</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>System</category>
+        <category>Software</category>
       </categories>
   </entry>
   <entry>
@@ -394,6 +367,33 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
 ]]></content>
       <categories>
         <category>Web</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Win7远程桌面连接提示“您的凭据不工作”的解决方法</title>
+    <url>/posts/742f0a33.html</url>
+    <content><![CDATA[<p>以前折腾过Easy Sysprep封装Ghost版本Win7镜像，也用这个镜像测试安装过几台笔记本电脑，今天恰好要在其中一台开启远程桌面，却发现其他Win7电脑怎样都远程登录不上。</p>
+<p>Ghost封装的系统稳定性差一直广受诟病，尽管是自己亲手封装的，但还是保持怀疑，现在思考是否因为Ghost系统带来的问题已经不重要，解决问题才是重点，于是开始摸索解决。</p>
+<span id="more"></span>
+<p>为了避免和以前的凭据冲突，把Win7客户端电脑里的Windows凭据全删除了，注册表里的远程桌面的历史记录也清空了，检查了远程桌面客户端设置，RD网关服务器是自动或者关闭的（没有用域和RD网关）。</p>
+<p>要远程登录的Win7服务器改了IP重启系统，确认防火墙没问题，远程桌面允许任意版本连接（为了XP能连），甚至新建了用户。</p>
+<p>结果使用Win7系统的远程桌面客户端连接这台Win7，全都提示“您的凭据不工作”，用户名和密码都是正确的啊，怎么就连接不上？</p>
+<p>到微软官网扒文，有这么个提示信息：<br><a href="http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection">http://windows.microsoft.com/zh-CN/windows7/Why-can-t-I-connect-using-Remote-Desktop-Connection</a></p>
+<p>尝试更改服务器的组策略：<br>gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; 系统 -&gt; 凭据分配 -&gt; 允许分配保存的凭据用于仅NTLM服务器身份验证 -&gt; 选择“已启用” -&gt; 单击“显示”输入“TERMSRV&#x2F;*” -&gt; 运行命令 gpupdate &#x2F;force 强制更新组策略。</p>
+<p>失败。</p>
+<p>在客户端电脑先添加Windows凭据：<br>控制面板 -&gt; 凭据管理器 -&gt; 添加Windows凭据 -&gt; 输入服务器的IP地址、用户、密码。</p>
+<p>还是失败！</p>
+<p>安卓手机上安装有几个RDP远程工具，全部拿来测试，继续失败！</p>
+<p>除了这几台Win7本子，其他Windows系统就仅有虚拟机里的XP，剩下都是Linux，使用虚拟机里的XP远程登录却成功了……泪奔~</p>
+<p>继续测试，在Linux下使用Remmina客户端连接，安全选项如果使用“商协”则登录失败，指定RDP类型则登录成功，猜测是验证出的问题，只是Win7的远程桌面客户端没安全设置这个选项，只能在服务器上着手，摸索一番，在组策略里找到了。</p>
+<p><strong>Windows 7服务器修改步骤：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gpedit.msc -&gt; 计算机配置 -&gt; 管理模板 -&gt; Windows组件 -&gt; 远程桌面服务 -&gt;</span><br><span class="line">远程桌面会话主机 -&gt; 安全 -&gt; 远程(RDP)连接要求使用指定的安全层，启用并把安全层改为RDP。</span><br></pre></td></tr></table></figure>
+<p>另，如果是Server 2008 R2服务器设置可能不一样，看下终端服务器配置的RDP-TCP设置。</p>
+<p>再次使用Win7的远程桌面客户端连接Win7服务器，正常登录，问题解决。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">2017-03-31 18:36 m15692411613</span><br><span class="line">哈哈。厉害了，找了好久的教程，终于解决了</span><br><span class="line"></span><br><span class="line">2016-06-06 11:27 zhoujiang0307</span><br><span class="line">牛逼啊大师兄，网上找了那么多方法，还是你的最后一个方法解决了，原创支持，</span><br><span class="line"></span><br><span class="line">2016-03-25 11:16 巴拿马圈圈</span><br><span class="line">卧槽，实在是太感谢了 您真是太牛逼了</span><br><span class="line"></span><br><span class="line">2015-11-24 09:35 windless</span><br><span class="line">用最后的方法解决了!!!</span><br><span class="line">感谢！</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>System</category>
       </categories>
   </entry>
   <entry>
@@ -453,6 +453,40 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
+    <title>谈谈SolidWorks的后门事件</title>
+    <url>/posts/9458357e.html</url>
+    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
+<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
+<span id="more"></span>
+
+<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
+<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
+<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
+<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
+<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
+<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
+<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
+]]></content>
+      <categories>
+        <category>私人日志</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Windows 10的开始菜单打不开</title>
+    <url>/posts/85e81d0c.html</url>
+    <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
+<p>尝试网上很多方法，又是重启又是改注册表、改组策略，通通都无效！</p>
+<p>最终还是上大杀器：管理员身份运行PowerShell，输入以下一行命令进行修复。</p>
+<span id="more"></span>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-AppxPackage</span> | <span class="keyword">ForEach</span> &#123;<span class="built_in">Add-AppxPackage</span> <span class="literal">-DisableDevelopmentMode</span> <span class="literal">-Register</span> <span class="string">&quot;<span class="variable">$</span>(<span class="variable">$_</span>.InstallLocation)\AppxManifest.xml&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>System</category>
+      </categories>
+  </entry>
+  <entry>
     <title>AIX、Linux、Windows计算文件MD5、SHA1哈希校验码</title>
     <url>/posts/b8c9236b.html</url>
     <content><![CDATA[<h1 id="MD5文件格式"><a href="#MD5文件格式" class="headerlink" title="MD5文件格式"></a>MD5文件格式</h1><blockquote>
@@ -497,40 +531,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       <tags>
         <tag>哈希</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>谈谈SolidWorks的后门事件</title>
-    <url>/posts/9458357e.html</url>
-    <content><![CDATA[<p>军工禁用SolidWorks的事件几年过去了，今天上网无意看到一网友提起这事，作为一位三维软件使用者，现在聊几句。</p>
-<p>SolidWorks真的有后门吗？<br>这要看是如何看待“后门”二字。以下是个人使用SW的过程中对软件的一些了解。</p>
-<span id="more"></span>
-
-<p>1、SolidWorks设计文件可以内嵌附件文件，这是SW的功能，但人为利用这点可以往外秘密传输数据。自带该功能的软件也不少，主要还是看使用者，即使软件自身不带该功能，16进制附加大法也能通过txt记事本、jpg图片等常见文件秘密偷取信息。正所谓：日防夜防，家贼难防。</p>
-<p>2、SolidWorks存在bug，利用该bug，可以在打开SW文件的时候对计算机做一些修改，比如把D盘格式化，或者做一个特别的SW文件传输木马病毒到内网还是可以的。不过我猜测这应该不是主因，国内了解掌握该软件漏洞的人不多。</p>
-<p>3、SolidWorks联网状态，会根据序列号收集一些计算机系统的信息，比如硬盘分区、剩余空间、配置等，不过大家不要恐慌，这个是SolidWorks推出给企业管理员使用的功能，显然这些互联网功能在天朝大内网，只能说两个字：呵呵。</p>
-<p>4、SolidWorks联网激活，也会和服务器有一部分额外信息交换。</p>
-<p>5、在设计文件内也含有部分计算机信息。它收集的信息对我来说都不是机密，但对国安来说未必。</p>
-<p>UG (Siemens NX)、Pro&#x2F;E (Creo)、AutoCAD、Inventor、和SolidWorks同是法国达索公司的CATIA，这些主流设计软件都是国外的，只要含有以上所说的机制、功能，都有可能存在“后门”。</p>
-<p>希望国产CAD不要是扶不起的阿斗。不过国人内斗、坑自家人真的不要太多……</p>
-]]></content>
-      <categories>
-        <category>私人日志</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Windows 10的开始菜单打不开</title>
-    <url>/posts/85e81d0c.html</url>
-    <content><![CDATA[<p>从Windows 7升级到Windows 10，开始菜单本来没问题的，突然某天打不开了，</p>
-<p>尝试网上很多方法，又是重启又是改注册表、改组策略，通通都无效！</p>
-<p>最终还是上大杀器：管理员身份运行PowerShell，输入以下一行命令进行修复。</p>
-<span id="more"></span>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-AppxPackage</span> | <span class="keyword">ForEach</span> &#123;<span class="built_in">Add-AppxPackage</span> <span class="literal">-DisableDevelopmentMode</span> <span class="literal">-Register</span> <span class="string">&quot;<span class="variable">$</span>(<span class="variable">$_</span>.InstallLocation)\AppxManifest.xml&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>System</category>
-      </categories>
   </entry>
   <entry>
     <title>用js脚本提取合并多个excel表格</title>
@@ -1011,20 +1011,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>Xlight FTP Server最新版破解方式</title>
-    <url>/posts/9ecaf4f0.html</url>
-    <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
-<p>实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 <code>%WINDIR%\Temp</code> 目录仔细观察，只能告诉这么多了。</p>
-]]></content>
-      <categories>
-        <category>Software</category>
-      </categories>
-      <tags>
-        <tag>破解</tag>
-        <tag>sftp</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>破解ExcelMailer邮件群发工具</title>
     <url>/posts/b5bc6bba.html</url>
     <content><![CDATA[<p>其实群发邮件这小需求，对于码农来说，用 python 等随手一写就解决，在 Excel 里写宏调用 Outlook 也是分分钟的事。</p>
@@ -1047,6 +1033,20 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
         <tag>Excel</tag>
         <tag>破解</tag>
         <tag>mail</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Xlight FTP Server最新版破解方式</title>
+    <url>/posts/9ecaf4f0.html</url>
+    <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
+<p>实例模式的破解方法不提，搭建服务器一般都会使用服务模式，打开 <code>%WINDIR%\Temp</code> 目录仔细观察，只能告诉这么多了。</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
+      <tags>
+        <tag>破解</tag>
+        <tag>sftp</tag>
       </tags>
   </entry>
   <entry>
@@ -1601,42 +1601,6 @@ table th:nth-of-type(4) {
       </tags>
   </entry>
   <entry>
-    <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
-    <url>/posts/dd913a8b.html</url>
-    <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
-<p>文件数量不大、用户数不多的环境，用 SFTP 协议就可以，防火墙都只需配置一个端口，没 FTP 那么麻烦。</p>
-<p>我们都知道 Linux 发行版基本都自带 SFTP 客户端和服务端，只需在 Windows 系统安装 SFTP 服务端即可。其实适用于 Windows 系统的 SFTP 服务器软件不少，但免费、不限制连接数、不限制用户数的不多。很久没做软件集合了，以下列几个挑选出来的软件，好几个都是单文件免安装的。</p>
-<span id="more"></span>
-
-<h1 id="OpenSSH-for-Windows"><a href="#OpenSSH-for-Windows" class="headerlink" title="OpenSSH for Windows"></a>OpenSSH for Windows</h1><p><a href="https://winscp.net/eng/docs/guide_windows_openssh_server">https://winscp.net/eng/docs/guide_windows_openssh_server</a><br><a href="https://github.com/PowerShell/Win32-OpenSSH/releases">https://github.com/PowerShell/Win32-OpenSSH/releases</a></p>
-<h1 id="FreeSSHD-SFTP-Server"><a href="#FreeSSHD-SFTP-Server" class="headerlink" title="FreeSSHD SFTP Server"></a>FreeSSHD SFTP Server</h1><p><a href="http://www.freesshd.com/">http://www.freesshd.com/</a></p>
-<p>最新的版本是 2013-01-23 的 freeSSHd 1.3.1 和 freeFTPd 1.0.13</p>
-<p>freeFTPd 或者 freeSSHd 都可以设置 sftp 用户，但不能像 xlight 那样细分权限，都是读写权限！</p>
-<p>freeSSHd 的 sftp，所有用户只有一个 sftp 的主目录。<br>freeFTPd 的 sftp，可以给不同的用户设定不同的目录。</p>
-<p>freeSSHd 可以设置系统账号、公钥、密码的登录方式，不像 xlight 只能在密码、公钥里二选一。<br>freeFTPd 可以设置系统账号、密码、匿名的登录方式。</p>
-<p>freeSSHd 容易出现用户登录验证失败问题，每次更改设置需要 unload 退出。不支持中文目录。支持 scp 命令。</p>
-<h1 id="Core-Free-Mini-SFTP-Server"><a href="#Core-Free-Mini-SFTP-Server" class="headerlink" title="Core Free Mini SFTP Server"></a>Core Free Mini SFTP Server</h1><p><a href="http://www.coreftp.com/server/">http://www.coreftp.com/server/</a></p>
-<p>Mini版才是免费的，最新版本 2018-10-01 v2.19</p>
-<p>单文件单用户免安装版，可开启scp，支持设置UTF-8，中文才不会显示乱码，但无法进入中文目录。</p>
-<h1 id="SolarWinds-SFTP-Server"><a href="#SolarWinds-SFTP-Server" class="headerlink" title="SolarWinds SFTP Server"></a>SolarWinds SFTP Server</h1><p><a href="https://www.solarwinds.com/free-tools/free-sftp-server">https://www.solarwinds.com/free-tools/free-sftp-server</a></p>
-<p>最新版本 2013-04-23</p>
-<p>随便填写个信息才能下载，可能有 4GB 大小限制。可作为服务运行，另外有 TFTP 服务端。</p>
-<p>XP系统里安装出错，未测试。</p>
-<h1 id="Syncplify-me-MicroServer"><a href="#Syncplify-me-MicroServer" class="headerlink" title="Syncplify.me MicroServer"></a>Syncplify.me MicroServer</h1><p><a href="https://www.syncplify.me/microserver.html">https://www.syncplify.me/microserver.html</a></p>
-<p>最新版本 2017-03-07 v2.0.0</p>
-<p>单文件单用户免安装版，Micro才是免费版，默认中文无乱码。登录有banner提示，可能会影响自动登录。</p>
-<h1 id="Rebex-Tiny-Sftp-Server"><a href="#Rebex-Tiny-Sftp-Server" class="headerlink" title="Rebex Tiny Sftp Server"></a>Rebex Tiny Sftp Server</h1><p><a href="http://labs.rebex.net/tiny-sftp-server">http://labs.rebex.net/tiny-sftp-server</a></p>
-<p>最新版本 2018-05-23 v1.0.5</p>
-<p>Rebex Tiny SFTP服务器是一款小型，极简主义的单用户SFTP服务器，用于测试目的。免费用于商业和非商业用途。</p>
-<p>XP系统里打不开程序，用配置文件，不方便使用。</p>
-<h1 id="Xlight-FTP-Server"><a href="#Xlight-FTP-Server" class="headerlink" title="Xlight FTP Server"></a>Xlight FTP Server</h1><p>我个人使用的 Xlight FTP Server 做 SFTP 服务端，虽然它不是免费软件，但这个国产精品简单易用。只是比较影响使用的缺点是：同一个账号不能同时启用密码和公钥验证。本博客提供有长期试用 <a href="https://oicu.github.io/posts/9ecaf4f0.html">Xlight SFTP</a> 的方法。</p>
-<p>推荐：Xlight &gt; FreeSSHD &gt; Core Mini SFTP</p>
-]]></content>
-      <categories>
-        <category>Software</category>
-      </categories>
-  </entry>
-  <entry>
     <title>用gost透明代理让内网服务器访问互联网</title>
     <url>/posts/79dd54ad.html</url>
     <content><![CDATA[<p>昨天在水木看到个问题“没有网关的root权限，怎样让内网服务器联网？”</p>
@@ -1679,5 +1643,41 @@ table th:nth-of-type(4) {
         <tag>VPN</tag>
         <tag>代理</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
+    <url>/posts/dd913a8b.html</url>
+    <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
+<p>文件数量不大、用户数不多的环境，用 SFTP 协议就可以，防火墙都只需配置一个端口，没 FTP 那么麻烦。</p>
+<p>我们都知道 Linux 发行版基本都自带 SFTP 客户端和服务端，只需在 Windows 系统安装 SFTP 服务端即可。其实适用于 Windows 系统的 SFTP 服务器软件不少，但免费、不限制连接数、不限制用户数的不多。很久没做软件集合了，以下列几个挑选出来的软件，好几个都是单文件免安装的。</p>
+<span id="more"></span>
+
+<h1 id="OpenSSH-for-Windows"><a href="#OpenSSH-for-Windows" class="headerlink" title="OpenSSH for Windows"></a>OpenSSH for Windows</h1><p><a href="https://winscp.net/eng/docs/guide_windows_openssh_server">https://winscp.net/eng/docs/guide_windows_openssh_server</a><br><a href="https://github.com/PowerShell/Win32-OpenSSH/releases">https://github.com/PowerShell/Win32-OpenSSH/releases</a></p>
+<h1 id="FreeSSHD-SFTP-Server"><a href="#FreeSSHD-SFTP-Server" class="headerlink" title="FreeSSHD SFTP Server"></a>FreeSSHD SFTP Server</h1><p><a href="http://www.freesshd.com/">http://www.freesshd.com/</a></p>
+<p>最新的版本是 2013-01-23 的 freeSSHd 1.3.1 和 freeFTPd 1.0.13</p>
+<p>freeFTPd 或者 freeSSHd 都可以设置 sftp 用户，但不能像 xlight 那样细分权限，都是读写权限！</p>
+<p>freeSSHd 的 sftp，所有用户只有一个 sftp 的主目录。<br>freeFTPd 的 sftp，可以给不同的用户设定不同的目录。</p>
+<p>freeSSHd 可以设置系统账号、公钥、密码的登录方式，不像 xlight 只能在密码、公钥里二选一。<br>freeFTPd 可以设置系统账号、密码、匿名的登录方式。</p>
+<p>freeSSHd 容易出现用户登录验证失败问题，每次更改设置需要 unload 退出。不支持中文目录。支持 scp 命令。</p>
+<h1 id="Core-Free-Mini-SFTP-Server"><a href="#Core-Free-Mini-SFTP-Server" class="headerlink" title="Core Free Mini SFTP Server"></a>Core Free Mini SFTP Server</h1><p><a href="http://www.coreftp.com/server/">http://www.coreftp.com/server/</a></p>
+<p>Mini版才是免费的，最新版本 2018-10-01 v2.19</p>
+<p>单文件单用户免安装版，可开启scp，支持设置UTF-8，中文才不会显示乱码，但无法进入中文目录。</p>
+<h1 id="SolarWinds-SFTP-Server"><a href="#SolarWinds-SFTP-Server" class="headerlink" title="SolarWinds SFTP Server"></a>SolarWinds SFTP Server</h1><p><a href="https://www.solarwinds.com/free-tools/free-sftp-server">https://www.solarwinds.com/free-tools/free-sftp-server</a></p>
+<p>最新版本 2013-04-23</p>
+<p>随便填写个信息才能下载，可能有 4GB 大小限制。可作为服务运行，另外有 TFTP 服务端。</p>
+<p>XP系统里安装出错，未测试。</p>
+<h1 id="Syncplify-me-MicroServer"><a href="#Syncplify-me-MicroServer" class="headerlink" title="Syncplify.me MicroServer"></a>Syncplify.me MicroServer</h1><p><a href="https://www.syncplify.me/microserver.html">https://www.syncplify.me/microserver.html</a></p>
+<p>最新版本 2017-03-07 v2.0.0</p>
+<p>单文件单用户免安装版，Micro才是免费版，默认中文无乱码。登录有banner提示，可能会影响自动登录。</p>
+<h1 id="Rebex-Tiny-Sftp-Server"><a href="#Rebex-Tiny-Sftp-Server" class="headerlink" title="Rebex Tiny Sftp Server"></a>Rebex Tiny Sftp Server</h1><p><a href="http://labs.rebex.net/tiny-sftp-server">http://labs.rebex.net/tiny-sftp-server</a></p>
+<p>最新版本 2018-05-23 v1.0.5</p>
+<p>Rebex Tiny SFTP服务器是一款小型，极简主义的单用户SFTP服务器，用于测试目的。免费用于商业和非商业用途。</p>
+<p>XP系统里打不开程序，用配置文件，不方便使用。</p>
+<h1 id="Xlight-FTP-Server"><a href="#Xlight-FTP-Server" class="headerlink" title="Xlight FTP Server"></a>Xlight FTP Server</h1><p>我个人使用的 Xlight FTP Server 做 SFTP 服务端，虽然它不是免费软件，但这个国产精品简单易用。只是比较影响使用的缺点是：同一个账号不能同时启用密码和公钥验证。本博客提供有长期试用 <a href="https://oicu.github.io/posts/9ecaf4f0.html">Xlight SFTP</a> 的方法。</p>
+<p>推荐：Xlight &gt; FreeSSHD &gt; Core Mini SFTP</p>
+]]></content>
+      <categories>
+        <category>Software</category>
+      </categories>
   </entry>
 </search>
