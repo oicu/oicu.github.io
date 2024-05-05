@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>群晖DSM不能启动资源监控的修复</title>
+    <url>/posts/345c2616.html</url>
+    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
+<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
+<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
+<span id="more"></span>
+
+<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
+<p>思考一番，莫非是非正常断电关机造成的影响？</p>
+<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
+<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
+<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
+<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
+<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Windows系统自带的端口映射port mapper</title>
     <url>/posts/330f2b1e.html</url>
     <content><![CDATA[<p>VMware 虚拟机使用仅主机模式网络时不能在虚拟网络编辑器里设置端口映射。以前常用的 <code>tcppm</code> 和 <code>udppm</code> 单文件在 3proxy.ru 网站上也找不到下载了，还好 Windows 系统自带该功能！</p>
@@ -23,23 +43,48 @@
       </categories>
   </entry>
   <entry>
-    <title>群晖DSM不能启动资源监控的修复</title>
-    <url>/posts/345c2616.html</url>
-    <content><![CDATA[<p>【症状】<br><strong>“资源监控”一直显示“加载中”，无法显示CPU及内存情况，直接启动“资源监控”也提示“无法联机，请确认网络设置”。</strong></p>
-<p>百度搜索的结果只有一个：被黑啦，重装吧~</p>
-<p>黑你妹的百度，要不是谷歌近期访问很不顺畅，搜索技术相关的东西轮得到你？</p>
+    <title>打车软件Uber打开后卡在U界面</title>
+    <url>/posts/a5a90057.html</url>
+    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
+<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
 <span id="more"></span>
 
-<p>黑群晖 DS3612xs，只在内网使用，无论是 ssh 登录、Synology Assistant、<strong>手机登录 web</strong> 查看系统资源，也都正常，服务器被黑已经排除。数据比较重要，也不便动数据盘，免得 shr 检验一次得几个小时。重装、恢复默认设置虽然能解决，但不是我需要的。</p>
-<p>思考一番，莫非是非正常断电关机造成的影响？</p>
-<p>为了更好的搜索到到解决方法，把群晖web切换为英文版显示，然后根据英文错误提示，用bing搜索，功夫不负有心人，在官网论坛找到相关的信息。</p>
-<p>ssh到群晖，用root登录，然后：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh stop</code></p>
-<p>关键是这里！删除pid啊：<br><code>rm /var/run/synosnmpcd.pid</code></p>
-<p>然后重新启动即可：<br><code>/usr/syno/etc.defaults/rc.d/S96synosnmpcd.sh restart</code></p>
-<p>不需要在控制面板里启用 SNMP 服务，也不需要用 <code>ipkg</code> 安装 <code>net-snmp</code> 的。</p>
+<p>不少网友在使用过程中出现以下问题：</p>
+<ul>
+<li>“uber为啥安卓上打开就卡在开机画面？”</li>
+<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
+<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
+<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
+<li>“uber打车软件登录后，就卡在那里了。”</li>
+<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
+<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
+<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
+<li>“安卓版本的怎么进不了等车界面？”</li>
+<li>“一些手机安装了没有绑定支付宝的选择。”</li>
+<li>“更改密码要登录官方网站。”</li>
+<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
+<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
+<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
+</ul>
+<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
+<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
+<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
+<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
+<ol>
+<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
+<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
+</ol>
+<p>再多说几句Uber的烂点：</p>
+<ol>
+<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
+<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
+<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
+<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
+</ol>
+<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
 ]]></content>
       <categories>
-        <category>Tech</category>
+        <category>Software</category>
       </categories>
   </entry>
   <entry>
@@ -297,48 +342,31 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>打车软件Uber打开后卡在U界面</title>
-    <url>/posts/a5a90057.html</url>
-    <content><![CDATA[<p>Uber这货用过的都说好，目前补贴优惠多是评价高的一大因素。其实不少司机都说“没补贴谁去跑，都烧油的呢，成本哪比得上烧气的出粗车。”</p>
-<p>从使用角度看，Uber这个手机软件兼容性挺差的，google play上评一颗★的用户也不少，不折不扣的烂软件……Uber对手机的GPS功能、网络要求很高，如果GPS定位不正常，可能绑定支付宝等功能都不会出现。</p>
+    <title>Google打不开怎么办？用nginx搭建本地Google搜索网站！</title>
+    <url>/posts/5b4bdfdb.html</url>
+    <content><![CDATA[<p>在国外VPS上搭建Google反向代理网站是很简单的事情，但风险是自己的VPS也可能被墙！</p>
+<p>如果会使用GoAgent、ShadowSocks等代理，访问Google自然也不成问题。</p>
+<p>但ss帐号不可能随便公布，猪队友跑完你的流量就等着哭吧，还有小白不会用代理怎办！</p>
 <span id="more"></span>
+<p>GoAgent虽然免费，但时常得扫描更新谷歌服务器的IP，还有小白不会用代理怎办！</p>
+<p>即使在局域网都搭建了ss或者gae代理客户端共享使用，其他电脑的浏览器总要设置插件吧！GoAgent证书也要添加吧！</p>
+<p>怎么拯救只需使用Google搜索的小白还不能太浪费时间呢？把反向代理网站放国内就OK了！只需要解决Nginx访问Google的问题。</p>
+<p>先说明：只为无聊折腾，效率就不考虑了，还有搜索结果有差异，不同于浏览器直接使用代理的搜索结果。只在局域网测试。对了，还需要自签ssl证书哦。</p>
+<p>系统：Windows<br>软件：nginx + ShadowSocks&#x2F;GoAgent + Proxifier&#x2F;ProxyCap</p>
+<p>用ShadowSocks比较方便，加一个全局代理软件Proxifier或者ProxyCap，把ss的socks5代理设置让Nginx使用，再配置Nginx反向代理Google，然后打开浏览器，使用局域网ip地址就可以访问Google网站了。</p>
+<p>注：如果Proxifier或者ProxyCap里添加ss代理时，127.0.0.1不能用则换成局域网ip。</p>
+<p>GoAgent是http类型的代理，还需要使用CCProxy转为socks5类型。</p>
+<p>GoAgent-PHP转socks5，然后Proxifier设置给nginx全局代理，可反向代理Google，但不能反向代理1024站。</p>
+<p>GoAgent转socks5，然后Proxifier设置给nginx全局代理，可反向代理1024站，但反向代理Google只能看首页，搜索时候会跳转到Google域名，不能正常用。</p>
+<p>最后贴Nginx配置的server部分：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"># 反向代理百度 or <span class="number">1024</span>站</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">80</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.baidu.com;</span></span><br><span class="line">            proxy_redirect off;</span><br><span class="line">            proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"># 反向代理google搜索</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">443</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        ssl on;</span><br><span class="line">        ssl_certificate C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.crt;</span><br><span class="line">        ssl_certificate_key C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.key;</span><br><span class="line"></span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_redirect http<span class="punctuation">:</span><span class="comment">//www.google.com/ /;</span></span><br><span class="line">            proxy_cookie_domain google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.google.com.hk;</span></span><br><span class="line">            proxy_set_header Accept-Encoding <span class="string">&quot;&quot;</span>;</span><br><span class="line">            proxy_set_header User-Agent $http_user_agent;</span><br><span class="line">            proxy_set_header Accept-Language <span class="string">&quot;zh-CN&quot;</span>;</span><br><span class="line">            proxy_set_header Cookie <span class="string">&quot;PREF=ID=047808f19f6de346:U=0f62f33dd8549d11:FF=2:LD=zh-CN:NW=1:TM=1325338577:LM=1332142444:GM=1:SG=2:S=rE0SyJh2W1IQ-Maw&quot;</span>;</span><br><span class="line">            sub_filter www.google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            sub_filter_once off;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<p>不少网友在使用过程中出现以下问题：</p>
-<ul>
-<li>“uber为啥安卓上打开就卡在开机画面？”</li>
-<li>“等了两分钟还在U那个图标页面，没见过这么慢的软件。”</li>
-<li>“是啊，我也经常卡。国外的软件就是烂。”</li>
-<li>“多等一会儿就来了。如果实在不来杀进程后再重开。”</li>
-<li>“uber打车软件登录后，就卡在那里了。”</li>
-<li>“手机端可以注册支付宝，Android上的注册入口有时候有，有时候又会不提供。”</li>
-<li>“而且很多人遇到支付宝绑定短信无法收到的问题，很是麻烦。”</li>
-<li>“回复了绑定支付宝的短信，uber提示等待短信验证的界面一直无法退出。”</li>
-<li>“安卓版本的怎么进不了等车界面？”</li>
-<li>“一些手机安装了没有绑定支付宝的选择。”</li>
-<li>“更改密码要登录官方网站。”</li>
-<li>“预约总失败，一直提示发送电子邮件验证，邮件确认后还是如此。”</li>
-<li>“找不到填写手机验证码的地方，网站提示回复短信go，回复也没反应，换其他号码再换回来，在预约车的时候出现输入验证码的地方。”</li>
-<li>“能看到周围有很多车辆，预约总是失败，一直显示稍后再试。”</li>
-</ul>
-<p>网上说是连续几次预约了车辆又主动取消，Uber发现这样会暂停使用，但之前才用Uber打了一次车，应该排除这个原因，很可能附近的基站网络问题。</p>
-<p>前两天更新了Uber版本，也出现了卡在U界面的问题，这到底是什么原因引起的呢？分析了一下……</p>
-<p>把软件请求权限都设置为提示，发现Uber启动后会多次请求定位。Uber以前的版本如果定位不到会提示手动定位，但新版本只会无限死循环请求定位，所以就卡在那个U界面了。综合我手机GPS定位特别慢的短板，猜测问题应该就是GPS引起的，和google play service没多大关系，不需安装。</p>
-<p>解决定位问题能减少Uber卡在U界面的几率，但不能彻底解决：</p>
-<ol>
-<li>在室外空旷处，打开手机的GPS，稍等一会。</li>
-<li>安装模拟定位的软件，特别是手机GPS功能不好使的，建议使用这个。推荐名字为 <code>伪装定位</code> 这个app，图标是灰蓝底色，一个白色笑脸图标，目前只有国内地图，不需要google基础服务，使用简单，广告少，不需要注册付费，我测试了多款模拟定位软件后发现就这个好使（微信之类社交软件的定位都能模拟）。</li>
-</ol>
-<p>再多说几句Uber的烂点：</p>
-<ol>
-<li>虽然计算路程轨迹使用GPS，但用户只需要打到车就行了嘛，对用户来说GPS其实不是必要条件，司机才需要。百度地图不开GPS使用基站定位也挺准确的。</li>
-<li>定位几次失败就应该提示手动了，要不就一直卡着。</li>
-<li>Uber手动定位搜索地址使用的Google地图，在天朝能不慢么。</li>
-<li>显示周围车辆使用的百度地图，调用一下本地的百度离线地图好不好？且不说流量，速度也重要的啊。</li>
-</ol>
-<p>最后来个广告，新用户注册，使用我的优惠码 <code>uberoicu</code>，你我都可以获得￥30抵用金。</p>
+<hr>
+<p>2018&#x2F;11&#x2F;12 补充：使用 Caddy 做反向代理更简单。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:80 &#123;</span><br><span class="line">    gzip</span><br><span class="line">    tls off</span><br><span class="line">    proxy / https://www.google.com.hk</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>Software</category>
+        <category>Web</category>
       </categories>
   </entry>
   <entry>
@@ -366,34 +394,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
 ]]></content>
       <categories>
         <category>System</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Google打不开怎么办？用nginx搭建本地Google搜索网站！</title>
-    <url>/posts/5b4bdfdb.html</url>
-    <content><![CDATA[<p>在国外VPS上搭建Google反向代理网站是很简单的事情，但风险是自己的VPS也可能被墙！</p>
-<p>如果会使用GoAgent、ShadowSocks等代理，访问Google自然也不成问题。</p>
-<p>但ss帐号不可能随便公布，猪队友跑完你的流量就等着哭吧，还有小白不会用代理怎办！</p>
-<span id="more"></span>
-<p>GoAgent虽然免费，但时常得扫描更新谷歌服务器的IP，还有小白不会用代理怎办！</p>
-<p>即使在局域网都搭建了ss或者gae代理客户端共享使用，其他电脑的浏览器总要设置插件吧！GoAgent证书也要添加吧！</p>
-<p>怎么拯救只需使用Google搜索的小白还不能太浪费时间呢？把反向代理网站放国内就OK了！只需要解决Nginx访问Google的问题。</p>
-<p>先说明：只为无聊折腾，效率就不考虑了，还有搜索结果有差异，不同于浏览器直接使用代理的搜索结果。只在局域网测试。对了，还需要自签ssl证书哦。</p>
-<p>系统：Windows<br>软件：nginx + ShadowSocks&#x2F;GoAgent + Proxifier&#x2F;ProxyCap</p>
-<p>用ShadowSocks比较方便，加一个全局代理软件Proxifier或者ProxyCap，把ss的socks5代理设置让Nginx使用，再配置Nginx反向代理Google，然后打开浏览器，使用局域网ip地址就可以访问Google网站了。</p>
-<p>注：如果Proxifier或者ProxyCap里添加ss代理时，127.0.0.1不能用则换成局域网ip。</p>
-<p>GoAgent是http类型的代理，还需要使用CCProxy转为socks5类型。</p>
-<p>GoAgent-PHP转socks5，然后Proxifier设置给nginx全局代理，可反向代理Google，但不能反向代理1024站。</p>
-<p>GoAgent转socks5，然后Proxifier设置给nginx全局代理，可反向代理1024站，但反向代理Google只能看首页，搜索时候会跳转到Google域名，不能正常用。</p>
-<p>最后贴Nginx配置的server部分：</p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"># 反向代理百度 or <span class="number">1024</span>站</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">80</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.baidu.com;</span></span><br><span class="line">            proxy_redirect off;</span><br><span class="line">            proxy_set_header X-Real-IP $remote_addr;</span><br><span class="line">            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"># 反向代理google搜索</span><br><span class="line">    server <span class="punctuation">&#123;</span></span><br><span class="line">        listen <span class="number">443</span>;</span><br><span class="line">        server_name <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">        ssl on;</span><br><span class="line">        ssl_certificate C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.crt;</span><br><span class="line">        ssl_certificate_key C<span class="punctuation">:</span>/nginx/conf/ssl/ssl.key;</span><br><span class="line"></span><br><span class="line">        location / <span class="punctuation">&#123;</span></span><br><span class="line">            proxy_redirect http<span class="punctuation">:</span><span class="comment">//www.google.com/ /;</span></span><br><span class="line">            proxy_cookie_domain google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            proxy_pass https<span class="punctuation">:</span><span class="comment">//www.google.com.hk;</span></span><br><span class="line">            proxy_set_header Accept-Encoding <span class="string">&quot;&quot;</span>;</span><br><span class="line">            proxy_set_header User-Agent $http_user_agent;</span><br><span class="line">            proxy_set_header Accept-Language <span class="string">&quot;zh-CN&quot;</span>;</span><br><span class="line">            proxy_set_header Cookie <span class="string">&quot;PREF=ID=047808f19f6de346:U=0f62f33dd8549d11:FF=2:LD=zh-CN:NW=1:TM=1325338577:LM=1332142444:GM=1:SG=2:S=rE0SyJh2W1IQ-Maw&quot;</span>;</span><br><span class="line">            sub_filter www.google.com <span class="number">192.168</span><span class="number">.1</span><span class="number">.2</span>;</span><br><span class="line">            sub_filter_once off;</span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<p>2018&#x2F;11&#x2F;12 补充：使用 Caddy 做反向代理更简单。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">:80 &#123;</span><br><span class="line">    gzip</span><br><span class="line">    tls off</span><br><span class="line">    proxy / https://www.google.com.hk</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Web</category>
       </categories>
   </entry>
   <entry>
@@ -518,6 +518,33 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
+    <title>用js脚本提取合并多个excel表格</title>
+    <url>/posts/f6330333.html</url>
+    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
+<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
+<blockquote>
+<p>注：用js脚本处理表格需要电脑安装有excel。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>老样子，先描述需求：</p>
+<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
+<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
+<p>3、执行js脚本的过程及结果。</p>
+<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
+<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Excel</category>
+      </categories>
+      <tags>
+        <tag>Excel</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>VisualSVN自签SSL证书导致svn客户端coredump或不能永久接受证书</title>
     <url>/posts/d4b9c670.html</url>
     <content><![CDATA[<p>VisualSVN Server 自签 OpenSSL 证 书bug 导致 Linux、AIX 的 svn 客户端 coredump 或不能永久接受证书。</p>
@@ -585,31 +612,25 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </categories>
   </entry>
   <entry>
-    <title>用js脚本提取合并多个excel表格</title>
-    <url>/posts/f6330333.html</url>
-    <content><![CDATA[<p>如何合并提取大量相似表格里的数据？</p>
-<p>以前玩过vba打开文件提取，也玩过不打开直接提取，也玩过公式操作流，这次换个玩法，用JavaScript脚本来处理，下回再玩就要上python大杀器了。</p>
+    <title>Apache加载php模块提示错误Cannot load php5apache2_2.dll into server</title>
+    <url>/posts/59917b37.html</url>
+    <content><![CDATA[<p>Apache 2.2.x 要以 handler 方式加载 php 模块，<a href="http://windows.php.net/downloads/releases/archives/">php 官网</a>里只有 php 5.2-5.4 的 Thread Safe 版本才带 <code>php5apache2_2.dll</code>，之后都是 <code>php5apache2_4.dll</code>（给 Apache 2.4.x 用）。</p>
 <blockquote>
-<p>注：用js脚本处理表格需要电脑安装有excel。</p>
+<p>不要下载名字带 <code>nts</code> 的 NoneThread Safe 版本。</p>
 </blockquote>
 <span id="more"></span>
 
-<p>老样子，先描述需求：</p>
-<p>1、多个表格，分类结构一致，但每个人填写的行数不同。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-01.jpg"></p>
-<p>2、最终需要得到一维表来制作透视表，如何批量提取多个文件的内容？</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-02.jpg"></p>
-<p>3、执行js脚本的过程及结果。</p>
-<p><img src="/images/%E7%94%A8js%E8%84%9A%E6%9C%AC%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6%E5%A4%9A%E4%B8%AAexcel%E8%A1%A8%E6%A0%BC/js%E6%8F%90%E5%8F%96%E5%90%88%E5%B9%B6excel%E8%A1%A8-03.jpg"></p>
-<p>4、一言不合就发代码，前半部分是批量读取文件的，以后都可通用，<br>针对每个表格提取的单元格位置做调整即可（绿色字体部分）。</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    oicu 2016-11-03</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">if</span> (<span class="title class_">WScript</span>.<span class="property">Arguments</span>.<span class="property">Length</span> &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;错误：请补上Excel文件所在的目录作为参数1&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\n用法：cscript //nologo merge-excel.js &lt;要处理的目录&gt;&quot;</span></span><br><span class="line">        + <span class="string">&quot;\n\nExcel文件与脚本在同一个目录时可使用 . 作为参数&quot;</span>);</span><br><span class="line">    <span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;\n处理完成后打开 MergeFile.txt 文件，复制内容粘贴到excel表。\n&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> fso = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Scripting.FileSystemObject&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> <span class="title class_">ExcelApp</span> = <span class="keyword">new</span> <span class="title class_">ActiveXObject</span>(<span class="string">&quot;Excel.Application&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> dir = <span class="title class_">WScript</span>.<span class="title class_">Arguments</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">if</span> (fso.<span class="title class_">FolderExists</span>(dir)) &#123;</span><br><span class="line">    <span class="title function_">processFolder</span>(fso.<span class="title class_">GetAbsolutePathName</span>(dir));</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">ExcelApp</span> = <span class="literal">null</span>;</span><br><span class="line">fso = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">processFolder</span>(<span class="params">path</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> folder = fso.<span class="title function_">getFolder</span>(path);</span><br><span class="line">    <span class="keyword">var</span> files = folder.<span class="property">Files</span>;</span><br><span class="line">    <span class="keyword">var</span> fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(files);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">viewExcelFile</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> folders = folder.<span class="property">SubFolders</span>;</span><br><span class="line">    fc = <span class="keyword">new</span> <span class="title class_">Enumerator</span>(folders);</span><br><span class="line">    <span class="keyword">for</span> (; !fc.<span class="title function_">atEnd</span>(); fc.<span class="title function_">moveNext</span>()) &#123;</span><br><span class="line">        <span class="title function_">processFolder</span>(fc.<span class="title function_">item</span>().<span class="property">Path</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">viewExcelFile</span>(<span class="params">excelFile</span>) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">indexOf</span>(<span class="string">&quot;\\~$&quot;</span>) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> temp = excelFile.<span class="title function_">toLowerCase</span>().<span class="title function_">split</span>(<span class="string">&quot;.&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xls&quot;</span> || temp[temp.<span class="property">length</span> - <span class="number">1</span>] == <span class="string">&quot;xlsx&quot;</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> tf;</span><br><span class="line">            <span class="keyword">if</span> (!fso.<span class="title class_">FileExists</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>)) &#123;</span><br><span class="line">                tf = fso.<span class="title class_">CreateTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                tf = fso.<span class="title class_">OpenTextFile</span>(dir + <span class="string">&quot;\\MergeFile.txt&quot;</span>, <span class="number">8</span>, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> excelWorkBook = <span class="title class_">ExcelApp</span>.<span class="property">Workbooks</span>.<span class="title class_">Open</span>(excelFile);</span><br><span class="line">            <span class="keyword">var</span> sheets = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> s = <span class="number">1</span>; s &lt;= excelWorkBook.<span class="property">Worksheets</span>.<span class="property">Count</span>; s++) &#123;</span><br><span class="line">                excelSheet = excelWorkBook.<span class="title class_">Worksheets</span>(s);</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="property">Name</span> == <span class="string">&quot;能力自评&quot;</span>) &#123;</span><br><span class="line">                    sheets++;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (sheets === <span class="number">0</span>) &#123;</span><br><span class="line">                tf.<span class="title class_">Close</span>();</span><br><span class="line">                excelSheet = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;不处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">                excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">                excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">                <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> blankCell = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            <span class="keyword">var</span> headText = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            headText = [excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">4</span>, <span class="number">5</span>).<span class="property">Text</span>,</span><br><span class="line">                blankCell,</span><br><span class="line">                blankCell,</span><br><span class="line">                excelSheet.<span class="title class_">Cells</span>(<span class="number">5</span>, <span class="number">3</span>).<span class="property">Text</span></span><br><span class="line">            ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> classifyRow = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">var</span> row = <span class="number">7</span>; row &lt;= excelSheet.<span class="property">UsedRange</span>.<span class="property">Rows</span>.<span class="property">count</span>; row++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="title function_">substring</span>(<span class="number">0</span>, <span class="number">2</span>) == <span class="string">&quot;项目&quot;</span>) &#123;</span><br><span class="line">                    classifyRow = row;</span><br><span class="line">                    row++;</span><br><span class="line">                    row++;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>.<span class="property">length</span> === <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">var</span> content = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                content = [headText,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(classifyRow, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">2</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">3</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">4</span>).<span class="property">Text</span>,</span><br><span class="line">                    excelSheet.<span class="title class_">Cells</span>(row, <span class="number">5</span>).<span class="property">Text</span></span><br><span class="line">                ].<span class="title function_">join</span>(<span class="string">&#x27;\t&#x27;</span>);</span><br><span class="line">                tf.<span class="title class_">WriteLine</span>(content);</span><br><span class="line">            &#125;</span><br><span class="line">            tf.<span class="title class_">Close</span>();</span><br><span class="line">            excelSheet = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(<span class="string">&quot;已处理Excel文件：&quot;</span> + excelWorkBook.<span class="property">Name</span>);</span><br><span class="line">            excelWorkBook.<span class="title function_">close</span>(<span class="number">0</span>);</span><br><span class="line">            excelWorkBook = <span class="literal">null</span>;</span><br><span class="line">            <span class="title class_">ExcelApp</span>.<span class="property">Application</span>.<span class="title class_">Quit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">        <span class="title class_">WScript</span>.<span class="title class_">Echo</span>(e.<span class="property">description</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">WScript</span>.<span class="title class_">Quit</span>(<span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<p>之后无论怎么配置 Apache 的 httpd.conf 文件都提示错误：<br><code>Cannot load C:/php/php5apache2_2.dll into server</code></p>
+<p>经过版本测试，发现：</p>
+<ol>
+<li>其实 php5apache2_2.dll 相对绝对路径并不是大问题。</li>
+<li>根据编译版本，安装对应的VC运行库。</li>
+<li>最重要的一点谨记！x64 的 Apache 无法使用 x86 的 php 啊！</li>
+</ol>
 ]]></content>
       <categories>
-        <category>Excel</category>
+        <category>Web</category>
       </categories>
-      <tags>
-        <tag>Excel</tag>
-      </tags>
   </entry>
   <entry>
     <title>VisualSVN Server 增加自助修改密码页面（支持2.1-3.6最新版）</title>
@@ -661,25 +682,42 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>Apache加载php模块提示错误Cannot load php5apache2_2.dll into server</title>
-    <url>/posts/59917b37.html</url>
-    <content><![CDATA[<p>Apache 2.2.x 要以 handler 方式加载 php 模块，<a href="http://windows.php.net/downloads/releases/archives/">php 官网</a>里只有 php 5.2-5.4 的 Thread Safe 版本才带 <code>php5apache2_2.dll</code>，之后都是 <code>php5apache2_4.dll</code>（给 Apache 2.4.x 用）。</p>
-<blockquote>
-<p>不要下载名字带 <code>nts</code> 的 NoneThread Safe 版本。</p>
-</blockquote>
+    <title>AIX系统用shell取前一天日期</title>
+    <url>/posts/c51bd946.html</url>
+    <content><![CDATA[<p>写这篇博文原因是同事被新浪博客的一篇文章误导了。前年我也看过那篇文章，当时碰巧发现了问题，但只是自己在电脑上做了笔记，为了不让更多人被误导，在此写一文。</p>
 <span id="more"></span>
 
-<p>之后无论怎么配置 Apache 的 httpd.conf 文件都提示错误：<br><code>Cannot load C:/php/php5apache2_2.dll into server</code></p>
-<p>经过版本测试，发现：</p>
-<ol>
-<li>其实 php5apache2_2.dll 相对绝对路径并不是大问题。</li>
-<li>根据编译版本，安装对应的VC运行库。</li>
-<li>最重要的一点谨记！x64 的 Apache 无法使用 x86 的 php 啊！</li>
-</ol>
+<p>这篇误导大众的文章是：<a href="http://blog.sina.com.cn/s/blog_541a3cf10101expx.html">http://blog.sina.com.cn/s/blog_541a3cf10101expx.html</a><br>文章内取AIX系统前一天日期的命令 <code>TZ=aaa24 date +%Y%m%d</code> <strong>是错误的！</strong><br>小时数为 0~7 点时，得到的是大前天的日期。<br>我估计作者早上都在睡觉的吧，晚上的特例没错误就当标准了。</p>
+<p>正确用法是：</p>
+<p>AIX里取前一天的日期，16是由（24×1-8）获得<br><code>TZ=BEIST+16 date +%Y%m%d</code></p>
+<p>AIX里取前两天的日期，40是由（24×2-8）获得<br><code>TZ=BEIST+40 date +%Y%m%d</code></p>
+<p>AIX里取下一天的日期，32是由（24×1+8）获得，注意2个地方的正负号。<br><code>TZ=BEIST-32 date +%Y%m%d</code></p>
+<p>前N天</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">X=24*N-8</span><br><span class="line">TZ=BEIST+X</span><br></pre></td></tr></table></figure>
+
+<p>下N天</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Y=24*N+8</span><br><span class="line">TZ=BEIST-Y</span><br></pre></td></tr></table></figure>
+
+<p>使用前，确认环境的时区设置并做测试验证！不同环境可能导致结果和预想不同。</p>
+<p>A 环境可能是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">AAA&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">Asia/Shanghai</span><br><span class="line">AAA&gt; <span class="built_in">date</span></span><br><span class="line">Fri Nov 20 21:24:25 CST 2015</span><br></pre></td></tr></table></figure>
+
+<p>B 环境可能是这样的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">BBB&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">BEIST-8</span><br><span class="line">BBB&gt; <span class="built_in">date</span></span><br><span class="line">Thu Apr  2 18:34:00 BEIST 2015</span><br></pre></td></tr></table></figure>
+
+<p>需要根据环境的时区确定基础时区设置，可以写一个脚本放 crontab 定时任务里执行一天，比对结果决定使用哪种写法：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">30 * * * * /HOME/user/yesterday.sh &gt;&gt; /HOME/user/yesterday.log</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">date</span> <span class="string">&quot;+%Y%m%d %T&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;aaa16&quot;</span></span><br><span class="line">TZ=aaa16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;BEIST+16&quot;</span></span><br><span class="line">TZ=BEIST+16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;CST+16&quot;</span></span><br><span class="line">TZ=CST+16 <span class="built_in">date</span> +%Y%m%d</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
-        <category>Web</category>
+        <category>Batch</category>
       </categories>
+      <tags>
+        <tag>AIX</tag>
+        <tag>shell</tag>
+        <tag>date</tag>
+      </tags>
   </entry>
   <entry>
     <title>在AIX系统安装svn客户端</title>
@@ -927,44 +965,6 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
-    <title>AIX系统用shell取前一天日期</title>
-    <url>/posts/c51bd946.html</url>
-    <content><![CDATA[<p>写这篇博文原因是同事被新浪博客的一篇文章误导了。前年我也看过那篇文章，当时碰巧发现了问题，但只是自己在电脑上做了笔记，为了不让更多人被误导，在此写一文。</p>
-<span id="more"></span>
-
-<p>这篇误导大众的文章是：<a href="http://blog.sina.com.cn/s/blog_541a3cf10101expx.html">http://blog.sina.com.cn/s/blog_541a3cf10101expx.html</a><br>文章内取AIX系统前一天日期的命令 <code>TZ=aaa24 date +%Y%m%d</code> <strong>是错误的！</strong><br>小时数为 0~7 点时，得到的是大前天的日期。<br>我估计作者早上都在睡觉的吧，晚上的特例没错误就当标准了。</p>
-<p>正确用法是：</p>
-<p>AIX里取前一天的日期，16是由（24×1-8）获得<br><code>TZ=BEIST+16 date +%Y%m%d</code></p>
-<p>AIX里取前两天的日期，40是由（24×2-8）获得<br><code>TZ=BEIST+40 date +%Y%m%d</code></p>
-<p>AIX里取下一天的日期，32是由（24×1+8）获得，注意2个地方的正负号。<br><code>TZ=BEIST-32 date +%Y%m%d</code></p>
-<p>前N天</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">X=24*N-8</span><br><span class="line">TZ=BEIST+X</span><br></pre></td></tr></table></figure>
-
-<p>下N天</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Y=24*N+8</span><br><span class="line">TZ=BEIST-Y</span><br></pre></td></tr></table></figure>
-
-<p>使用前，确认环境的时区设置并做测试验证！不同环境可能导致结果和预想不同。</p>
-<p>A 环境可能是这样的：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">AAA&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">Asia/Shanghai</span><br><span class="line">AAA&gt; <span class="built_in">date</span></span><br><span class="line">Fri Nov 20 21:24:25 CST 2015</span><br></pre></td></tr></table></figure>
-
-<p>B 环境可能是这样的：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">BBB&gt; <span class="built_in">echo</span> <span class="variable">$TZ</span></span><br><span class="line">BEIST-8</span><br><span class="line">BBB&gt; <span class="built_in">date</span></span><br><span class="line">Thu Apr  2 18:34:00 BEIST 2015</span><br></pre></td></tr></table></figure>
-
-<p>需要根据环境的时区确定基础时区设置，可以写一个脚本放 crontab 定时任务里执行一天，比对结果决定使用哪种写法：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">30 * * * * /HOME/user/yesterday.sh &gt;&gt; /HOME/user/yesterday.log</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="built_in">date</span> <span class="string">&quot;+%Y%m%d %T&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;aaa16&quot;</span></span><br><span class="line">TZ=aaa16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;BEIST+16&quot;</span></span><br><span class="line">TZ=BEIST+16 <span class="built_in">date</span> +%Y%m%d</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;CST+16&quot;</span></span><br><span class="line">TZ=CST+16 <span class="built_in">date</span> +%Y%m%d</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Batch</category>
-      </categories>
-      <tags>
-        <tag>AIX</tag>
-        <tag>shell</tag>
-        <tag>date</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>皇帝的新装——如何绕过深信服VSP防泄密安全桌面</title>
     <url>/posts/b3197d94.html</url>
     <content><![CDATA[<p>做项目的时候，总会遇到一些视数据为生命的甲方，各种加密限制，各种网络隔离，与操作系统、其他软件还各种兼容性问题，给工作带来很大不便，比如<strong>亿赛通、深信服VSP安全桌面</strong>等，在我看来就如皇帝的新装，绕过限制只是分分钟的事情。</p>
@@ -1036,6 +1036,48 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       </tags>
   </entry>
   <entry>
+    <title>批处理修改无损音乐的cue文件内容</title>
+    <url>/posts/7f19841a.html</url>
+    <content><![CDATA[<p>原文链接：<a href="http://www.newsmth.net/nForum/article/DOS/21969?s=21969">http://www.newsmth.net/nForum/article/DOS/21969?s=21969</a></p>
+<p>今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！</p>
+<blockquote class="blockquote-center">
+<p>千万不要跟程序猿说：你的代码有bug。<br>他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。<br>你要跟他这么说：这个程序怎么运行的跟预期不一样，是我操作有问题吗？<br>程序猿就会第一反应：我擦，这是不是出bug了？</p>
+
+</blockquote>
+
+<p>刚好迁移了新博客，把内容转过来写吧。</p>
+<span id="more"></span>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">发信人: coreqq (风起云涌), 信区: DOS</span><br><span class="line">标  题: 问个复杂点的批处理</span><br><span class="line">发信站: 水木社区 (Mon Jan  4 23:12:37 2010), 站内</span><br><span class="line"></span><br><span class="line">两个文件a.txt,b.txt</span><br><span class="line"></span><br><span class="line">a中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)</span><br><span class="line">b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）</span><br><span class="line">现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，…</span><br><span class="line">…</span><br><span class="line">请问如何写？</span><br></pre></td></tr></table></figure>
+
+<p>以下代码保存为批处理文件，比如 <code>convert-cue.bat</code></p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2010</span>-<span class="number">01</span>-<span class="number">05</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;<span class="variable">!swap!</span>&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line">            <span class="built_in">echo</span>.    <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>翻看了以前的代码，虽然结果无误，觉得还是有必要优化一下避免特例情况出错：</p>
+<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2018</span>-<span class="number">10</span>-<span class="number">11</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line"><span class="comment">        rem 因为截取方式不准确，还是使用替换，直到得到2位数字</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:TITLE=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:&quot;=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=!swap: =!</span><br><span class="line"><span class="comment">        rem 搜索时，在行首搜索数字并带点，比如 01.</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;^^<span class="variable">!swap!</span>\.&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line"><span class="comment">            rem 根据实际情况调整缩进的空格</span></span><br><span class="line">            <span class="built_in">echo</span>.     <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
+
+<p>以下就用水木网友 <code>javame</code> 提供的内容做示例。</p>
+<p>清单 <code>a.txt</code> 如下，<strong>不要有空行等多余的无关信息</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">01.成长的岁月</span><br><span class="line">02.流不完的泪</span><br><span class="line">03.愿你莫忘记</span><br><span class="line">04.飘往山那边</span><br><span class="line">05.岁月的歌</span><br><span class="line">06.应该不应该</span><br><span class="line">07.分手</span><br><span class="line">08.梦儿难忘记</span><br><span class="line">09.请你别忘记</span><br><span class="line">10.舞女</span><br></pre></td></tr></table></figure>
+
+<p>原 cue 文件内容 <code>b.txt</code> 如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;Track01&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;Track02&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;Track03&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;Track04&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;Track05&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;Track06&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;Track07&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;Track08&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;Track09&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;Track10&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>执行批处理后，得到新的文件 <code>c.txt</code>，注意 <code>TITLE</code> 都已经替换了。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;成长的岁月&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;流不完的泪&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;愿你莫忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;飘往山那边&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;岁月的歌&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;应该不应该&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;分手&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;梦儿难忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;请你别忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;舞女&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
+
+<p>实在看不下多年前的批处理版本，最后再写个 Shell 版本，直接修改 <code>b.txt</code> 不生成 <code>c.txt</code>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> LINE</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    TITLE=`<span class="built_in">echo</span> <span class="variable">$&#123;LINE#*.&#125;</span> | <span class="built_in">tr</span> -d <span class="string">&#x27;\r&#x27;</span>`</span><br><span class="line">    sed -i <span class="string">&#x27;s#TITLE &quot;Track&#x27;</span><span class="variable">$&#123;LINE%%.*&#125;</span><span class="string">&#x27;&quot;#TITLE &quot;&#x27;</span><span class="variable">$&#123;TITLE&#125;</span><span class="string">&#x27;&quot;#g&#x27;</span> b.txt</span><br><span class="line"><span class="keyword">done</span> &lt; a.txt</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Batch</category>
+      </categories>
+      <tags>
+        <tag>批处理</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Xlight FTP Server最新版破解方式</title>
     <url>/posts/9ecaf4f0.html</url>
     <content><![CDATA[<p>官方30天全功能试用，思路就是无限试用。</p>
@@ -1047,6 +1089,87 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
       <tags>
         <tag>破解</tag>
         <tag>sftp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/posts/4a17b156.html</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<span id="more"></span>
+
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><p><a href="https://hexo.io/zh-cn/docs/commands">https://hexo.io/zh-cn/docs/commands</a></p>
+<p><a href="https://theme-next.js.org/">https://theme-next.js.org/</a></p>
+<h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new [layout] &lt;title&gt;</span><br></pre></td></tr></table></figure>
+
+<p>新建一篇文章。如果没有设置 <code>layout</code> 的话，默认使用 _config.yml 中的 <code>default_layout</code> 参数代替。如果标题包含空格的话，请使用引号括起来。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;post title with whitespace&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+<h3 id="清除缓存"><a href="#清除缓存" class="headerlink" title="清除缓存"></a>清除缓存</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo clean</span><br></pre></td></tr></table></figure>
+
+<p>清除缓存文件 (db.json) 和已生成的静态文件 (public)。</p>
+<p>在某些情况（尤其是更换主题后），如果发现您对站点的更改无论如何也不生效，您可能需要运行该命令。</p>
+]]></content>
+      <categories>
+        <category>Tech</category>
+        <category>Hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+        <tag>blog</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>用gost透明代理让内网服务器访问互联网</title>
+    <url>/posts/79dd54ad.html</url>
+    <content><![CDATA[<p>昨天在水木看到个问题“没有网关的root权限，怎样让内网服务器联网？”</p>
+<p>这自然不难，在大中华局域网环境的我们早就练就一身翻墙本领。</p>
+<span id="more"></span>
+
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p><a href="http://www.newsmth.net/nForum/#!article/LinuxApp/941233">http://www.newsmth.net/nForum/#!article/LinuxApp/941233</a></p>
+<p>发信人: doggeddog (doggeddog), 信区: LinuxApp<br>标  题: 求教大神，没有网关的root权限，怎样让内网服务器联网？<br>发信站: 水木社区 (Sat Nov  3 16:46:47 2018), 站内</p>
+<p>原来那些机器是可以上网的，后来被公司运维关了<br>现在的情况是，网关那台机器有多个网卡，可以联网。但我只有普通用户权限，因此不能修改iptables。</p>
+<p>内网的那些机器，我有root权限</p>
+<p>我试过的方案：<br>1、proxychains，在网关搭了个socks5代理，<br>可以成功，但不是所有应用都支持<br>2、redsocks，在内网机器搭第二层代理，连接网关的代理，然后修改本机iptables。没有成功，原因不明</p>
+<p>求教各位大神，还有没有其他方案？</p>
+<h1 id="SSH隧道"><a href="#SSH隧道" class="headerlink" title="SSH隧道"></a>SSH隧道</h1><p>我首先拿出当初让阿里云无流量服务器也能访问外网的 <code>vpn-over-ssh</code> 脚本，模拟出环境成功运行，另外用 <code>OpenVPN</code> 方案也不错，这 2 个方案效果都很好，ICMP 协议也能搞掂，但都使用到 <code>iptables</code>，如果没 root 则需用网关做端口转发到外网的服务器。</p>
+<p>几年后再次使用 <code>vpn-over-ssh</code> 脚本，觉得太麻烦了，老技术不想拿出来炒冷饭，该方案仅供参观，就 show 一下最后能 ping 谷歌的结果。</p>
+<p>客户端A无法上网，客户端B可以但无root，A和B联通，C在外网。系统均为 CentOS 6.9，A和C都安装tunctl。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# rpm -ivh tunctl-1.5-3.el6.x86_64.rpm</span><br><span class="line">Preparing...                ########################################### [100%]</span><br><span class="line">    1:tunctl                 ########################################### [100%]</span><br></pre></td></tr></table></figure>
+<p>A ssh登录B，B转发 TCP 22 到C，A和C建立隧道，各自用 <code>iptables</code> 处理转发。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# ifconfig tun2 | grep addr</span><br><span class="line">           inet addr:10.0.0.2  P-t-P:10.0.0.1  Mask:255.255.255.255</span><br><span class="line">[root@centos ~]# ip route replace default via 10.0.0.1</span><br><span class="line">[root@centos ~]# echo &quot;nameserver 1.1.1.1&quot; &gt;/etc/resolv.conf</span><br><span class="line">[root@centos ~]# ping www.google.com</span><br><span class="line">PING www.google.com (172.217.27.100) 56(84) bytes of data.</span><br><span class="line">64 bytes from sin11s04-in-f100.1e100.net (172.217.27.100): icmp_seq=1 ttl=53 time=463 ms</span><br></pre></td></tr></table></figure>
+
+<h1 id="透明代理"><a href="#透明代理" class="headerlink" title="透明代理"></a>透明代理</h1><p>趁着空闲学习一些新玩意，看了下 gost、redsocks、V2Ray 这类做透明代理，虽然只能处理 TCP&#x2F;UDP，但也还不错了，只要解决 DNS 解析，能不能 ping 都无所谓。</p>
+<p>最开始是折腾 <code>gost</code> + <code>badvpn-tun2socks</code> 组合，试验了 3 个方案，发现 <code>gost</code> + <code>iptables</code> 直接就可以搞掂，<code>badvpn-tun2socks</code> 和 <code>badvpn-udpgw</code> 都可以不用。</p>
+<p><code>gost</code> 做为标准 SOCKS5 代理可处理 UDP 数据，限制条件：</p>
+<ol>
+<li>代理链中的 HTTP 代理节点必须支持 CONNECT 方法。</li>
+<li>如果要转发 SOCKS5 的 BIND 和 UDP 请求，代理链的末端(最后一个-F参数)必须支持 gost SOCKS5 类型代理。</li>
+</ol>
+<p>以下就只写出最简方案：</p>
+<p>在能访问互联网的网关服务器 <code>192.168.1.200</code> 用 <code>gost</code> 开个 socks5 代理：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gost -L=socks5://user:password@:1080</span><br></pre></td></tr></table></figure>
+
+<p>然后客户端服务器连接上面的代理服务器并设置为透明代理，我这里选用 <code>1.1.1.1</code> 作为 DNS 服务器：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;nameserver 127.0.0.1&quot; &gt; /etc/resolv.conf</span><br><span class="line">iptables -t nat -A OUTPUT -p tcp --match multiport ! --dports 12345,1080 -j DNAT --to-destination 127.0.0.1:12345</span><br><span class="line">gost -L=udp://:53/1.1.1.1:53?ttl=60 -L socks5://:1080?dns=1.1.1.1:53/tcp -L redirect://:12345 -F=socks5://user:password@192.168.1.200:1080</span><br></pre></td></tr></table></figure>
+
+<p>4 行命令，路由都不用处理，有没有觉得简单到要爆？试试 <code>dig</code> <code>yum</code> <code>apt-get</code> <code>nslookup</code> <code>w3m</code> <code>wget</code> <code>curl</code> 等命令都能正常使用，<code>ping</code> 域名虽然无结果，但还是能解析。</p>
+]]></content>
+      <categories>
+        <category>VPN</category>
+      </categories>
+      <tags>
+        <tag>VPN</tag>
+        <tag>代理</tag>
       </tags>
   </entry>
   <entry>
@@ -1529,85 +1652,6 @@ table th:nth-of-type(4) {
       </tags>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/posts/4a17b156.html</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<span id="more"></span>
-
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><p><a href="https://hexo.io/zh-cn/docs/commands">https://hexo.io/zh-cn/docs/commands</a></p>
-<p><a href="https://theme-next.js.org/">https://theme-next.js.org/</a></p>
-<h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new [layout] &lt;title&gt;</span><br></pre></td></tr></table></figure>
-
-<p>新建一篇文章。如果没有设置 <code>layout</code> 的话，默认使用 _config.yml 中的 <code>default_layout</code> 参数代替。如果标题包含空格的话，请使用引号括起来。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;post title with whitespace&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
-<h3 id="清除缓存"><a href="#清除缓存" class="headerlink" title="清除缓存"></a>清除缓存</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo clean</span><br></pre></td></tr></table></figure>
-
-<p>清除缓存文件 (db.json) 和已生成的静态文件 (public)。</p>
-<p>在某些情况（尤其是更换主题后），如果发现您对站点的更改无论如何也不生效，您可能需要运行该命令。</p>
-]]></content>
-      <categories>
-        <category>Tech</category>
-        <category>Hexo</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
-        <tag>blog</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>批处理修改无损音乐的cue文件内容</title>
-    <url>/posts/7f19841a.html</url>
-    <content><![CDATA[<p>原文链接：<a href="http://www.newsmth.net/nForum/article/DOS/21969?s=21969">http://www.newsmth.net/nForum/article/DOS/21969?s=21969</a></p>
-<p>今天一水木网友把8年多前的一篇帖子翻出来，发信给我说代码有bug！？难道没看过下面这个段子么！</p>
-<blockquote class="blockquote-center">
-<p>千万不要跟程序猿说：你的代码有bug。<br>他的第一反应是你的环境有问题，第二就是你是傻逼不会用吧。<br>你要跟他这么说：这个程序怎么运行的跟预期不一样，是我操作有问题吗？<br>程序猿就会第一反应：我擦，这是不是出bug了？</p>
-
-</blockquote>
-
-<p>刚好迁移了新博客，把内容转过来写吧。</p>
-<span id="more"></span>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">发信人: coreqq (风起云涌), 信区: DOS</span><br><span class="line">标  题: 问个复杂点的批处理</span><br><span class="line">发信站: 水木社区 (Mon Jan  4 23:12:37 2010), 站内</span><br><span class="line"></span><br><span class="line">两个文件a.txt,b.txt</span><br><span class="line"></span><br><span class="line">a中含有如“01.字符串1”“02.字符串2”之类条目(一条一行)</span><br><span class="line">b中有&quot;title01&quot;&quot;title02&quot;之类条目（一条一行）</span><br><span class="line">现在需要把b中的“title01”用a中的“字符串1”替换，“title02”用“字符串2”换，…</span><br><span class="line">…</span><br><span class="line">请问如何写？</span><br></pre></td></tr></table></figure>
-
-<p>以下代码保存为批处理文件，比如 <code>convert-cue.bat</code></p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2010</span>-<span class="number">01</span>-<span class="number">05</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;<span class="variable">!swap!</span>&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line">            <span class="built_in">echo</span>.    <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
-
-<p>翻看了以前的代码，虽然结果无误，觉得还是有必要优化一下避免特例情况出错：</p>
-<figure class="highlight bat"><table><tr><td class="code"><pre><span class="line">@<span class="built_in">echo</span> off</span><br><span class="line">::Code by oicu#lsxk.org <span class="number">2018</span>-<span class="number">10</span>-<span class="number">11</span>, <span class="keyword">for</span> <span class="built_in">cmd</span>@Windows</span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> <span class="built_in">nul</span>&gt;c.txt</span><br><span class="line"><span class="built_in">SETLOCAL</span> ENABLEDELAYEDEXPANSION</span><br><span class="line"><span class="keyword">FOR</span> /F &quot;delims=&quot; <span class="variable">%%a</span> <span class="keyword">in</span> (b.txt) <span class="keyword">do</span> (</span><br><span class="line">    <span class="built_in">echo</span>.<span class="variable">%%a</span> | <span class="built_in">findstr</span> /i &quot;Track[<span class="number">0</span>-<span class="number">9</span>]&quot; &gt;<span class="built_in">NUL</span> &amp;&amp; (</span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">%%a</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:Track=!</span></span><br><span class="line"><span class="comment">        rem 因为截取方式不准确，还是使用替换，直到得到2位数字</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:TITLE=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=<span class="variable">!swap:&quot;=!</span></span><br><span class="line">        <span class="built_in">set</span> swap=!swap: =!</span><br><span class="line"><span class="comment">        rem 搜索时，在行首搜索数字并带点，比如 01.</span></span><br><span class="line">        <span class="keyword">FOR</span> /F &quot;tokens=<span class="number">1</span>,<span class="number">2</span>* delims=.&quot; <span class="variable">%%i</span> <span class="keyword">in</span> (&#x27;<span class="built_in">type</span> a.txt^| <span class="built_in">findstr</span> /i &quot;^^<span class="variable">!swap!</span>\.&quot;&#x27;) <span class="keyword">do</span> (</span><br><span class="line"><span class="comment">            rem 根据实际情况调整缩进的空格</span></span><br><span class="line">            <span class="built_in">echo</span>.     <span class="built_in">TITLE</span> &quot;<span class="variable">%%j</span>&quot;&gt;&gt;c.txt</span><br><span class="line">        )</span><br><span class="line">    ) || (</span><br><span class="line">        <span class="built_in">echo</span>.<span class="variable">%%a</span>&gt;&gt;c.txt</span><br><span class="line">    )</span><br><span class="line">)</span><br><span class="line"><span class="built_in">ENDLOCAL</span></span><br><span class="line"><span class="keyword">goto</span> :eof</span><br></pre></td></tr></table></figure>
-
-<p>以下就用水木网友 <code>javame</code> 提供的内容做示例。</p>
-<p>清单 <code>a.txt</code> 如下，<strong>不要有空行等多余的无关信息</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">01.成长的岁月</span><br><span class="line">02.流不完的泪</span><br><span class="line">03.愿你莫忘记</span><br><span class="line">04.飘往山那边</span><br><span class="line">05.岁月的歌</span><br><span class="line">06.应该不应该</span><br><span class="line">07.分手</span><br><span class="line">08.梦儿难忘记</span><br><span class="line">09.请你别忘记</span><br><span class="line">10.舞女</span><br></pre></td></tr></table></figure>
-
-<p>原 cue 文件内容 <code>b.txt</code> 如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;Track01&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;Track02&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;Track03&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;Track04&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;Track05&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;Track06&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;Track07&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;Track08&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;Track09&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;Track10&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
-
-<p>执行批处理后，得到新的文件 <code>c.txt</code>，注意 <code>TITLE</code> 都已经替换了。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REM DISCID 8308500A</span><br><span class="line">REM COMMENT &quot;ExactAudioCopy v0.99pb5&quot;</span><br><span class="line">PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">TITLE &quot;最好的龙飘飘CD2&quot;</span><br><span class="line">FILE &quot;CDImage2.wav&quot; WAVE</span><br><span class="line">   TRACK 01 AUDIO</span><br><span class="line">     TITLE &quot;成长的岁月&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 00:00:00</span><br><span class="line">   TRACK 02 AUDIO</span><br><span class="line">     TITLE &quot;流不完的泪&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 03:55:10</span><br><span class="line">   TRACK 03 AUDIO</span><br><span class="line">     TITLE &quot;愿你莫忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 08:14:13</span><br><span class="line">   TRACK 04 AUDIO</span><br><span class="line">     TITLE &quot;飘往山那边&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 11:41:03</span><br><span class="line">   TRACK 05 AUDIO</span><br><span class="line">     TITLE &quot;岁月的歌&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 14:25:74</span><br><span class="line">   TRACK 06 AUDIO</span><br><span class="line">     TITLE &quot;应该不应该&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 18:40:71</span><br><span class="line">   TRACK 07 AUDIO</span><br><span class="line">     TITLE &quot;分手&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 22:22:41</span><br><span class="line">   TRACK 08 AUDIO</span><br><span class="line">     TITLE &quot;梦儿难忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 25:55:18</span><br><span class="line">   TRACK 09 AUDIO</span><br><span class="line">     TITLE &quot;请你别忘记&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 28:47:45</span><br><span class="line">   TRACK 10 AUDIO</span><br><span class="line">     TITLE &quot;舞女&quot;</span><br><span class="line">     PERFORMER &quot;龙飘飘&quot;</span><br><span class="line">     INDEX 01 31:49:61</span><br></pre></td></tr></table></figure>
-
-<p>实在看不下多年前的批处理版本，最后再写个 Shell 版本，直接修改 <code>b.txt</code> 不生成 <code>c.txt</code>。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">read</span> LINE</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    TITLE=`<span class="built_in">echo</span> <span class="variable">$&#123;LINE#*.&#125;</span> | <span class="built_in">tr</span> -d <span class="string">&#x27;\r&#x27;</span>`</span><br><span class="line">    sed -i <span class="string">&#x27;s#TITLE &quot;Track&#x27;</span><span class="variable">$&#123;LINE%%.*&#125;</span><span class="string">&#x27;&quot;#TITLE &quot;&#x27;</span><span class="variable">$&#123;TITLE&#125;</span><span class="string">&#x27;&quot;#g&#x27;</span> b.txt</span><br><span class="line"><span class="keyword">done</span> &lt; a.txt</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Batch</category>
-      </categories>
-      <tags>
-        <tag>批处理</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>用于Windows系统的免费SFTP服务器-Free SFTP Servers</title>
     <url>/posts/dd913a8b.html</url>
     <content><![CDATA[<p>前不久，有人问我：“怎么从 Linux 系统传文件到 Windows 服务器，不能用 FTP 协议。”</p>
@@ -1642,49 +1686,5 @@ table th:nth-of-type(4) {
       <categories>
         <category>Software</category>
       </categories>
-  </entry>
-  <entry>
-    <title>用gost透明代理让内网服务器访问互联网</title>
-    <url>/posts/79dd54ad.html</url>
-    <content><![CDATA[<p>昨天在水木看到个问题“没有网关的root权限，怎样让内网服务器联网？”</p>
-<p>这自然不难，在大中华局域网环境的我们早就练就一身翻墙本领。</p>
-<span id="more"></span>
-
-<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p><a href="http://www.newsmth.net/nForum/#!article/LinuxApp/941233">http://www.newsmth.net/nForum/#!article/LinuxApp/941233</a></p>
-<p>发信人: doggeddog (doggeddog), 信区: LinuxApp<br>标  题: 求教大神，没有网关的root权限，怎样让内网服务器联网？<br>发信站: 水木社区 (Sat Nov  3 16:46:47 2018), 站内</p>
-<p>原来那些机器是可以上网的，后来被公司运维关了<br>现在的情况是，网关那台机器有多个网卡，可以联网。但我只有普通用户权限，因此不能修改iptables。</p>
-<p>内网的那些机器，我有root权限</p>
-<p>我试过的方案：<br>1、proxychains，在网关搭了个socks5代理，<br>可以成功，但不是所有应用都支持<br>2、redsocks，在内网机器搭第二层代理，连接网关的代理，然后修改本机iptables。没有成功，原因不明</p>
-<p>求教各位大神，还有没有其他方案？</p>
-<h1 id="SSH隧道"><a href="#SSH隧道" class="headerlink" title="SSH隧道"></a>SSH隧道</h1><p>我首先拿出当初让阿里云无流量服务器也能访问外网的 <code>vpn-over-ssh</code> 脚本，模拟出环境成功运行，另外用 <code>OpenVPN</code> 方案也不错，这 2 个方案效果都很好，ICMP 协议也能搞掂，但都使用到 <code>iptables</code>，如果没 root 则需用网关做端口转发到外网的服务器。</p>
-<p>几年后再次使用 <code>vpn-over-ssh</code> 脚本，觉得太麻烦了，老技术不想拿出来炒冷饭，该方案仅供参观，就 show 一下最后能 ping 谷歌的结果。</p>
-<p>客户端A无法上网，客户端B可以但无root，A和B联通，C在外网。系统均为 CentOS 6.9，A和C都安装tunctl。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# rpm -ivh tunctl-1.5-3.el6.x86_64.rpm</span><br><span class="line">Preparing...                ########################################### [100%]</span><br><span class="line">    1:tunctl                 ########################################### [100%]</span><br></pre></td></tr></table></figure>
-<p>A ssh登录B，B转发 TCP 22 到C，A和C建立隧道，各自用 <code>iptables</code> 处理转发。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@centos ~]# ifconfig tun2 | grep addr</span><br><span class="line">           inet addr:10.0.0.2  P-t-P:10.0.0.1  Mask:255.255.255.255</span><br><span class="line">[root@centos ~]# ip route replace default via 10.0.0.1</span><br><span class="line">[root@centos ~]# echo &quot;nameserver 1.1.1.1&quot; &gt;/etc/resolv.conf</span><br><span class="line">[root@centos ~]# ping www.google.com</span><br><span class="line">PING www.google.com (172.217.27.100) 56(84) bytes of data.</span><br><span class="line">64 bytes from sin11s04-in-f100.1e100.net (172.217.27.100): icmp_seq=1 ttl=53 time=463 ms</span><br></pre></td></tr></table></figure>
-
-<h1 id="透明代理"><a href="#透明代理" class="headerlink" title="透明代理"></a>透明代理</h1><p>趁着空闲学习一些新玩意，看了下 gost、redsocks、V2Ray 这类做透明代理，虽然只能处理 TCP&#x2F;UDP，但也还不错了，只要解决 DNS 解析，能不能 ping 都无所谓。</p>
-<p>最开始是折腾 <code>gost</code> + <code>badvpn-tun2socks</code> 组合，试验了 3 个方案，发现 <code>gost</code> + <code>iptables</code> 直接就可以搞掂，<code>badvpn-tun2socks</code> 和 <code>badvpn-udpgw</code> 都可以不用。</p>
-<p><code>gost</code> 做为标准 SOCKS5 代理可处理 UDP 数据，限制条件：</p>
-<ol>
-<li>代理链中的 HTTP 代理节点必须支持 CONNECT 方法。</li>
-<li>如果要转发 SOCKS5 的 BIND 和 UDP 请求，代理链的末端(最后一个-F参数)必须支持 gost SOCKS5 类型代理。</li>
-</ol>
-<p>以下就只写出最简方案：</p>
-<p>在能访问互联网的网关服务器 <code>192.168.1.200</code> 用 <code>gost</code> 开个 socks5 代理：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">gost -L=socks5://user:password@:1080</span><br></pre></td></tr></table></figure>
-
-<p>然后客户端服务器连接上面的代理服务器并设置为透明代理，我这里选用 <code>1.1.1.1</code> 作为 DNS 服务器：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;nameserver 127.0.0.1&quot; &gt; /etc/resolv.conf</span><br><span class="line">iptables -t nat -A OUTPUT -p tcp --match multiport ! --dports 12345,1080 -j DNAT --to-destination 127.0.0.1:12345</span><br><span class="line">gost -L=udp://:53/1.1.1.1:53?ttl=60 -L socks5://:1080?dns=1.1.1.1:53/tcp -L redirect://:12345 -F=socks5://user:password@192.168.1.200:1080</span><br></pre></td></tr></table></figure>
-
-<p>4 行命令，路由都不用处理，有没有觉得简单到要爆？试试 <code>dig</code> <code>yum</code> <code>apt-get</code> <code>nslookup</code> <code>w3m</code> <code>wget</code> <code>curl</code> 等命令都能正常使用，<code>ping</code> 域名虽然无结果，但还是能解析。</p>
-]]></content>
-      <categories>
-        <category>VPN</category>
-      </categories>
-      <tags>
-        <tag>VPN</tag>
-        <tag>代理</tag>
-      </tags>
   </entry>
 </search>
