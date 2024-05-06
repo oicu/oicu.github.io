@@ -723,7 +723,7 @@ D2 -&gt; C          ping -c 50 192.168.1.3          1.931 ms
     <title>在AIX系统安装svn客户端</title>
     <url>/posts/1997d5d0.html</url>
     <content><![CDATA[<p>某些原因，不能使用分布式的 git、hg 做版本管理，也懒得折腾权限插件，于是在 Windows 系统里使用 VisualSVN Server 搭建了 svn 服务器。</p>
-<p>首先，解决 VisualSVN 的 SSL 证书问题：<br><a href="http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/">http://oicu.cc.blog.163.com/blog/static/1230394712016101344729540/</a><br>否则使用 svn 命令时不能永久保存证书，每次使用 svn 命令都会提示或奔溃。</p>
+<p>首先，解决 VisualSVN 的 SSL 证书问题：<br><a href="https://oicu.github.io/posts/d4b9c670.html">https://oicu.github.io/posts/d4b9c670.html</a><br>否则使用 svn 命令时不能永久保存证书，每次使用 svn 命令都会提示或奔溃。</p>
 <span id="more"></span>
 
 <p>在 Linux 和 Windows 安装 svn 客户端都简单，但在 AIX 上就稍微麻烦点，由于同一个系统里有多个用户，编译这种麻烦事肯定是排除的，优先考虑使用 rpm 安装。</p>
